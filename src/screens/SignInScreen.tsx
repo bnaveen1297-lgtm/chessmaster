@@ -1,27 +1,32 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Text, StyleSheet, View } from 'react-native';
 import { Screen, Button, Input } from '../components/ui';
 import { colors, spacing, typography } from '../theme';
+import { useAuth } from '../auth/AuthContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 export function SignInScreen({ navigation }: Props) {
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   return (
     <Screen>
       <Text style={typography.h1}>Your way to become a King</Text>
       <View style={{ height: spacing.lg }} />
 
-      <Input placeholder="Email address" />
-      <Input placeholder="Password" secureTextEntry />
+      <Input placeholder="Email address" value={email} onChangeText={setEmail} />
+      <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       <Text style={styles.forgot}>Forgotten your password?</Text>
 
       <Text style={styles.terms}>
         By logging in you agree to ChessMaster's Privacy Policy and Terms of Use.
       </Text>
 
-      <Button label="Sign In" onPress={() => navigation.replace('Main')} />
+      <Button label="Sign In" onPress={() => signIn(email, password)} />
       <Text style={styles.switch} onPress={() => navigation.navigate('SignUp')}>
         Not a member? <Text style={styles.link}>Join Us</Text>
       </Text>

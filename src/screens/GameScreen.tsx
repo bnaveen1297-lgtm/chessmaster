@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button, Pill, SectionHeader } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
-import { colors, radius, spacing, typography } from '../theme';
+import { colors, spacing, typography } from '../theme';
 import { gameModes, openTournaments, liveGames } from '../data/content';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';

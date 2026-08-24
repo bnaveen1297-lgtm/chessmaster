@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Screen, Card, Segmented, Button, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { colors, radius, spacing, typography } from '../theme';

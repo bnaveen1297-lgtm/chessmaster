@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button, SectionHeader, Pill } from '../components/ui';
 import { Logo } from '../components/Logo';
 import { colors, radius, spacing, typography } from '../theme';
+import { useAuth } from '../auth/AuthContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -14,7 +15,8 @@ const stats = [
   { label: 'PUZZLES', value: '340' },
 ];
 
-export function ProfileScreen({ navigation }: Props) {
+export function ProfileScreen(_props: Props) {
+  const { user, signOut } = useAuth();
   return (
     <Screen>
       <View style={styles.header}>
@@ -22,8 +24,8 @@ export function ProfileScreen({ navigation }: Props) {
           <Logo size={54} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={typography.h2}>You</Text>
-          <Text style={typography.muted}>ChessMaster member · improving fast</Text>
+          <Text style={typography.h2}>{user?.firstName || 'You'}</Text>
+          <Text style={typography.muted}>{user?.email || 'ChessMaster member'}</Text>
         </View>
         <Pill label="FREE" tone="gold" />
       </View>
@@ -45,7 +47,7 @@ export function ProfileScreen({ navigation }: Props) {
         <Row label="Restore purchase" value="" />
       </Card>
 
-      <Button label="Log out" variant="outline" onPress={() => navigation.replace('Welcome')} />
+      <Button label="Log out" variant="outline" onPress={() => signOut()} />
     </Screen>
   );
 }

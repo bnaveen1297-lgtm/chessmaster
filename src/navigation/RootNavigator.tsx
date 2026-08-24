@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors } from '../theme';
+import { useAuth } from '../auth/AuthContext';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { SignInScreen } from '../screens/SignInScreen';
@@ -41,8 +42,12 @@ export type TabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const icon = (glyph: string) => ({ color }: { color: string }) =>
-  <Text style={{ fontSize: 18, color }}>{glyph}</Text>;
+function TabIcon({ glyph, color }: { glyph: string; color: string }) {
+  return <Text style={{ fontSize: 18, color }}>{glyph}</Text>;
+}
+const icon = (glyph: string) =>
+  // eslint-disable-next-line react/display-name
+  ({ color }: { color: string }) => <TabIcon glyph={glyph} color={color} />;
 
 function MainTabs() {
   return (
@@ -71,9 +76,18 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator color={colors.ink} />
+      </View>
+    );
+  }
+
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.ink,
@@ -82,15 +96,22 @@ export function RootNavigator() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="SignIn" component={SignInScreen} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
-      <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="Analyze" component={AnalyzeScreen} />
-      <Stack.Screen name="Coach" component={CoachScreen} />
-      <Stack.Screen name="LiveGame" component={LiveGameScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
+      {user ? (
+        <>
+          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Analyze" component={AnalyzeScreen} />
+          <Stack.Screen name="Coach" component={CoachScreen} />
+          <Stack.Screen name="LiveGame" component={LiveGameScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+        </>
+      )}
     </Stack.Navigator>
   );
 }

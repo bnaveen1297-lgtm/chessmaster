@@ -1,11 +1,14 @@
 # dependencies
 node_modules/
 
-# expo
+# expo / build output
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+
+# vercel
+.vercel/
 
 # native
 *.orig.*
