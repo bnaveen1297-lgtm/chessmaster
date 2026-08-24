@@ -99,11 +99,17 @@ export function ChessBoard({
             const style = [styles.cell, { width: cell, height: cell, backgroundColor: bg }];
 
             return onSquarePress ? (
-              <Pressable key={c} style={style} onPress={() => onSquarePress(square)}>
+              <Pressable
+                key={c}
+                style={style}
+                onPress={() => onSquarePress(square)}
+                accessibilityLabel={`sq-${square}`}
+                testID={`sq-${square}`}
+              >
                 {content}
               </Pressable>
             ) : (
-              <View key={c} style={style}>
+              <View key={c} style={style} accessibilityLabel={`sq-${square}`}>
                 {content}
               </View>
             );
