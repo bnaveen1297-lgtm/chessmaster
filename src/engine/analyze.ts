@@ -18,6 +18,8 @@ export type AnalyzedMove = {
   san: string;
   cpLoss: number;
   classification: MoveClass;
+  /** Engine's best move in this position (SAN). */
+  bestSan: string;
   fenAfter: string;
 };
 
@@ -70,7 +72,9 @@ export function analyzeGame(pgn: string, depth = 2): GameReport {
     const { san, color } = moves[i];
     const fenBefore = replay.fen();
     const scores = moveScores(fenBefore, depth);
-    const best = scores.reduce((m, s) => Math.max(m, s.score), -Infinity);
+    const bestEntry = scores.reduce((a, b) => (b.score > a.score ? b : a), scores[0]);
+    const best = bestEntry ? bestEntry.score : 0;
+    const bestSan = bestEntry ? bestEntry.san : san;
     const played = scores.find((s) => s.san === san);
     const playedScore = played ? played.score : best;
     let cpLoss = Math.max(0, best - playedScore);
@@ -78,7 +82,7 @@ export function analyzeGame(pgn: string, depth = 2): GameReport {
 
     replay.move(san);
     const cls = classify(cpLoss);
-    analyzed.push({ ply: i + 1, moveNo: Math.floor(i / 2) + 1, color, san, cpLoss, classification: cls, fenAfter: replay.fen() });
+    analyzed.push({ ply: i + 1, moveNo: Math.floor(i / 2) + 1, color, san, cpLoss, classification: cls, bestSan, fenAfter: replay.fen() });
 
     const side = color === 'w' ? white : black;
     side._sum += cpLoss;

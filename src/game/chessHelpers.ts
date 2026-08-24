@@ -25,6 +25,22 @@ export function isOwnPiece(game: Chess, square: string): boolean {
   return !!piece && piece.color === game.turn();
 }
 
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+/** The square of the king that is currently in check, or null. */
+export function checkedKingSquare(game: Chess): string | null {
+  if (!game.inCheck()) return null;
+  const turn = game.turn();
+  const board = game.board();
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const p = board[r][c];
+      if (p && p.type === 'k' && p.color === turn) return `${FILES[c]}${8 - r}`;
+    }
+  }
+  return null;
+}
+
 /** Human-readable game status for the status line. */
 export function statusText(game: Chess): string {
   if (game.isCheckmate()) return `Checkmate — ${game.turn() === 'w' ? 'Black' : 'White'} wins`;

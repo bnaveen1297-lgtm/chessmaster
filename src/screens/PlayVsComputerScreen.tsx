@@ -6,7 +6,7 @@ import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
 import { colors, radius, spacing, typography } from '../theme';
 import { bestMove, LEVELS, type Level } from '../engine/ai';
-import { legalTargets, tryMove, isOwnPiece, statusText } from '../game/chessHelpers';
+import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -127,6 +127,7 @@ export function PlayVsComputerScreen({ navigation }: Props) {
           selected={selected}
           highlights={highlights}
           lastMove={lastMove}
+          checkSquare={checkedKingSquare(gameRef.current)}
         />
       </View>
 

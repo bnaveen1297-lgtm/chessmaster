@@ -140,7 +140,7 @@ export type GameMode = { id: string; title: string; blurb: string; glyph: string
 
 export const gameModes: GameMode[] = [
   { id: 'tournaments', title: 'Play Tournaments', blurb: 'Join open arenas and climb the boards.', glyph: '🏆' },
-  { id: 'friends', title: 'Play with Friends', blurb: 'Challenge a friend to a game.', glyph: '👥' },
+  { id: 'friends', title: 'Play with Friends', blurb: 'Two players, one device (pass & play).', glyph: '👥' },
   { id: 'computer', title: 'Practice vs Computer', blurb: 'Train against bots at every level.', glyph: '🤖' },
   { id: 'clock', title: 'Digital Chess Clock', blurb: 'Use a real clock for OTB practice.', glyph: '⏱️' },
 ];

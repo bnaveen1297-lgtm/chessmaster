@@ -6,7 +6,7 @@ import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
 import { colors, radius, spacing, typography } from '../theme';
 import { puzzles } from '../data/puzzles';
-import { legalTargets, tryMove, isOwnPiece } from '../game/chessHelpers';
+import { legalTargets, tryMove, isOwnPiece, checkedKingSquare } from '../game/chessHelpers';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -105,6 +105,7 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
           selected={selected}
           highlights={highlights}
           lastMove={lastMove}
+          checkSquare={checkedKingSquare(gameRef.current)}
         />
       </View>
 

@@ -37,6 +37,19 @@ Open resources used: `chess.js` (BSD) for rules; the Lichess puzzle taxonomy
 (themes) and `lichess/chess-openings` naming (CC0) as the model to scale the
 puzzle/opening data later.
 
+### Board & pieces
+- **Cburnett** SVG piece set by Colin M.L. Burnett (via lichess-org/lila) —
+  the original Wikimedia set is tri-licensed GFDL / BSD / GPLv2+ (BSD permits
+  commercial use). Parsed into `react-native-svg` primitives so it renders on
+  web and native.
+- Board shows **file/rank coordinates**, highlights the **selected square**,
+  **legal moves**, **last move**, and the **king in check** (purple).
+
+### Play modes
+- **Play vs Computer** — engine opponent, difficulty levels.
+- **Play with a Friend** — two players on one device (pass & play), board
+  auto-flips to the side to move. (Online multiplayer needs the backend.)
+
 ### Screens
 
 | Area | Screens |

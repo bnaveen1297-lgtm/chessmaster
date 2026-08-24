@@ -84,14 +84,19 @@ export function AnalyzeScreen() {
             {report.moves.map((m) => {
               const show = m.classification !== 'Best' && m.classification !== 'Good';
               return (
-                <View key={m.ply} style={styles.moveRow}>
-                  <Text style={styles.moveNo}>{m.color === 'w' ? `${m.moveNo}.` : `${m.moveNo}…`}</Text>
-                  <Text style={styles.moveSan}>{m.san}</Text>
-                  <View style={[styles.tag, { backgroundColor: CLASS_COLOR[m.classification] + '22' }]}>
-                    <View style={[styles.tagDot, { backgroundColor: CLASS_COLOR[m.classification] }]} />
-                    <Text style={[styles.tagText, { color: CLASS_COLOR[m.classification] }]}>{m.classification}</Text>
+                <View key={m.ply}>
+                  <View style={styles.moveRow}>
+                    <Text style={styles.moveNo}>{m.color === 'w' ? `${m.moveNo}.` : `${m.moveNo}…`}</Text>
+                    <Text style={styles.moveSan}>{m.san}</Text>
+                    <View style={[styles.tag, { backgroundColor: CLASS_COLOR[m.classification] + '22' }]}>
+                      <View style={[styles.tagDot, { backgroundColor: CLASS_COLOR[m.classification] }]} />
+                      <Text style={[styles.tagText, { color: CLASS_COLOR[m.classification] }]}>{m.classification}</Text>
+                    </View>
+                    {show && m.cpLoss > 0 && <Text style={styles.cp}>−{(m.cpLoss / 100).toFixed(1)}</Text>}
                   </View>
-                  {show && m.cpLoss > 0 && <Text style={styles.cp}>−{(m.cpLoss / 100).toFixed(1)}</Text>}
+                  {show && m.bestSan !== m.san && (
+                    <Text style={styles.bestLine}>engine preferred <Text style={styles.bestSan}>{m.bestSan}</Text></Text>
+                  )}
                 </View>
               );
             })}
@@ -159,5 +164,7 @@ const styles = StyleSheet.create({
   tagDot: { width: 6, height: 6, borderRadius: 3 },
   tagText: { fontSize: 11, fontWeight: '700' },
   cp: { ...typography.muted, width: 44, textAlign: 'right', color: colors.danger, fontVariant: ['tabular-nums'] },
+  bestLine: { ...typography.muted, fontSize: 11, marginLeft: 46, marginTop: -2, marginBottom: 4 },
+  bestSan: { color: colors.success, fontWeight: '700' },
   footnote: { ...typography.muted, marginTop: spacing.md },
 });

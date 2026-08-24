@@ -16,6 +16,7 @@ import { ShopScreen } from '../screens/ShopScreen';
 import { LiveGameScreen } from '../screens/LiveGameScreen';
 import { PuzzleSolveScreen } from '../screens/PuzzleSolveScreen';
 import { PlayVsComputerScreen } from '../screens/PlayVsComputerScreen';
+import { PlayLocalScreen } from '../screens/PlayLocalScreen';
 import { AnalyzeScreen } from '../screens/AnalyzeScreen';
 import { CoachScreen } from '../screens/CoachScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -31,6 +32,7 @@ export type RootStackParamList = {
   LiveGame: { id: string };
   PuzzleSolve: { id: string };
   PlayVsComputer: undefined;
+  PlayLocal: undefined;
   Analyze: undefined;
   Coach: undefined;
   Lesson: { id: string };
@@ -113,6 +115,7 @@ export function RootNavigator() {
           <Stack.Screen name="LiveGame" component={LiveGameScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayVsComputer" component={PlayVsComputerScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PlayLocal" component={PlayLocalScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

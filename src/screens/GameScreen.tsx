@@ -50,12 +50,18 @@ export function GameScreen({ navigation }: Props) {
           <Card
             key={m.id}
             style={styles.mode}
-            onPress={m.id === 'computer' ? () => navigation.navigate('PlayVsComputer') : undefined}
+            onPress={
+              m.id === 'computer'
+                ? () => navigation.navigate('PlayVsComputer')
+                : m.id === 'friends'
+                  ? () => navigation.navigate('PlayLocal')
+                  : undefined
+            }
           >
             <Text style={styles.modeGlyph}>{m.glyph}</Text>
             <Text style={typography.h3}>{m.title}</Text>
             <Text style={typography.muted}>{m.blurb}</Text>
-            {m.id === 'computer' && <Text style={styles.playable}>▶ Playable now</Text>}
+            {(m.id === 'computer' || m.id === 'friends') && <Text style={styles.playable}>▶ Playable now</Text>}
           </Card>
         ))}
       </View>
