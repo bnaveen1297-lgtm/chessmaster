@@ -11,7 +11,8 @@
     "web": "expo start --web",
     "build:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "verify:puzzles": "node scripts/verify-puzzles.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",

@@ -25,3 +25,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Verify puzzles
+        run: npm run verify:puzzles

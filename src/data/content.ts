@@ -124,25 +124,6 @@ export const liveGames: LiveGame[] = [
   },
 ];
 
-/* -------------------------------------------------------------------- PUZZLE */
-
-export type Puzzle = {
-  id: string;
-  title: string;
-  deadline: string;
-  solved: number;
-  total: number;
-  fen: string;
-  toMove: 'WHITE' | 'BLACK';
-};
-
-export const puzzles: Puzzle[] = [
-  { id: 'p1', title: 'Beginner level tactics', deadline: '10-12-2025', solved: 10, total: 10, fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w - - 0 1', toMove: 'WHITE' },
-  { id: 'p2', title: 'Mate in one', deadline: '10-12-2025', solved: 20, total: 20, fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1', toMove: 'WHITE' },
-  { id: 'p3', title: 'Mate in one — Advance', deadline: '01-01-2026', solved: 0, total: 20, fen: '3qk3/3ppp2/8/8/8/8/3PPP2/3QK2R w - - 0 1', toMove: 'WHITE' },
-  { id: 'p4', title: 'Capture', deadline: '05-01-2026', solved: 0, total: 20, fen: 'rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R w - - 0 1', toMove: 'WHITE' },
-];
-
 /* -------------------------------------------------------------- SUBSCRIPTION */
 
 export type Plan = { id: string; name: string; price: string; color: string; blurb: string };

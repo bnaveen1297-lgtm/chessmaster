@@ -21,6 +21,22 @@ gold accents, bold colorful feature cards).
 
 **Free to use during launch** — all features unlocked; paid plans come later.
 
+### Actually functional (real chess logic)
+
+- ♟️ **Play vs Computer** — full legal-move play against a built-in engine
+  (negamax + alpha-beta), three difficulty levels. Powered by `chess.js` for
+  rules and our own `src/engine/ai.ts`.
+- 🧩 **Puzzle solving** — tap the winning move; validated live. Every puzzle's
+  solution is **machine-verified** by `npm run verify:puzzles`.
+- 🔍 **Game analyzer** — paste a PGN and get an engine review: accuracy, ACPL,
+  and every move rated (Best → Blunder). See `src/engine/analyze.ts`.
+- 📚 **Curriculum** — real self-learn lessons + an **Opening Book** (ECO lines,
+  verified FENs).
+
+Open resources used: `chess.js` (BSD) for rules; the Lichess puzzle taxonomy
+(themes) and `lichess/chess-openings` naming (CC0) as the model to scale the
+puzzle/opening data later.
+
 ### Screens
 
 | Area | Screens |

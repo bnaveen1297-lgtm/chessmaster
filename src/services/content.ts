@@ -9,13 +9,12 @@ import { hasBackend, apiGet } from './api';
 import {
   liveGames,
   curriculum,
-  puzzles,
   openTournaments,
   type LiveGame,
   type CurriculumUnit,
-  type Puzzle,
   type OpenTournament,
 } from '../data/content';
+import { puzzles, type Puzzle } from '../data/puzzles';
 
 export async function getLiveGames(): Promise<LiveGame[]> {
   if (hasBackend) return apiGet<LiveGame[]>('/olympiad/live');

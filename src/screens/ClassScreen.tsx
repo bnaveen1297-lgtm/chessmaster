@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Screen, Card, Segmented, Button, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { colors, radius, spacing, typography } from '../theme';
@@ -80,9 +80,18 @@ export function ClassScreen({ navigation }: Props) {
             </View>
           ))}
 
+          <Card style={styles.openingCard} onPress={() => navigation.navigate('Openings')}>
+            <Text style={styles.openingGlyph}>♟️</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={typography.h3}>Opening Book</Text>
+              <Text style={typography.muted}>Named openings, lines and ideas (ECO).</Text>
+            </View>
+            <Text style={styles.chev}>›</Text>
+          </Card>
+
           <Text style={[typography.h3, { marginTop: spacing.lg }]}>Self-learn curriculum</Text>
           <Text style={[typography.muted, { marginBottom: spacing.sm }]}>
-            An end-to-end path from your first move to advanced endgames.
+            An end-to-end path from your first move to advanced endgames. Tap a lesson to read it.
           </Text>
           {curriculum.map((unit) => {
             const done = unit.lessons.filter((l) => l.done).length;
@@ -93,13 +102,13 @@ export function ClassScreen({ navigation }: Props) {
                   <Text style={typography.label}>{done}/{unit.lessons.length} DONE</Text>
                 </View>
                 {unit.lessons.map((lesson) => (
-                  <View key={lesson.id} style={styles.lessonRow}>
+                  <Pressable key={lesson.id} style={styles.lessonRow} onPress={() => navigation.navigate('Lesson', { id: lesson.id })}>
                     <View style={[styles.dot, lesson.done && { backgroundColor: colors.success, borderColor: colors.success }]}>
                       {lesson.done && <Text style={styles.check}>✓</Text>}
                     </View>
                     <Text style={[styles.lessonTitle, lesson.done && styles.lessonDone]}>{lesson.title}</Text>
-                    <Text style={typography.label}>{lesson.minutes}m</Text>
-                  </View>
+                    <Text style={styles.chev}>›</Text>
+                  </Pressable>
                 ))}
               </Card>
             );
@@ -140,4 +149,7 @@ const styles = StyleSheet.create({
   check: { color: colors.onDark, fontSize: 11, fontWeight: '900' },
   lessonTitle: { ...typography.body, flex: 1 },
   lessonDone: { color: colors.textMuted, textDecorationLine: 'line-through' },
+  openingCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.md },
+  openingGlyph: { fontSize: 26 },
+  chev: { fontSize: 20, color: colors.textFaint },
 });

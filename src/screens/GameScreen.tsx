@@ -47,10 +47,15 @@ export function GameScreen({ navigation }: Props) {
       <SectionHeader title="Play" />
       <View style={styles.modeGrid}>
         {gameModes.map((m) => (
-          <Card key={m.id} style={styles.mode}>
+          <Card
+            key={m.id}
+            style={styles.mode}
+            onPress={m.id === 'computer' ? () => navigation.navigate('PlayVsComputer') : undefined}
+          >
             <Text style={styles.modeGlyph}>{m.glyph}</Text>
             <Text style={typography.h3}>{m.title}</Text>
             <Text style={typography.muted}>{m.blurb}</Text>
+            {m.id === 'computer' && <Text style={styles.playable}>▶ Playable now</Text>}
           </Card>
         ))}
       </View>
@@ -88,4 +93,5 @@ const styles = StyleSheet.create({
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   mode: { width: '47%', marginBottom: 0 },
   modeGlyph: { fontSize: 22, marginBottom: spacing.xs },
+  playable: { ...typography.label, color: colors.success, marginTop: spacing.xs },
 });

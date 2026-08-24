@@ -3,8 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button, SectionHeader, Pill } from '../components/ui';
 import { colors, radius, spacing, typography } from '../theme';
 import { prepPlan } from '../data/content';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
-export function CoachScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Coach'>;
+
+export function CoachScreen({ navigation }: Props) {
   return (
     <Screen>
       <Text style={typography.h1}>Prep Coach</Text>
@@ -19,6 +23,15 @@ export function CoachScreen() {
         <Text style={styles.heroMeta}>in 6 days · 5 rounds · G/25+10</Text>
         <View style={{ height: spacing.md }} />
         <Button label="Adjust goals" variant="outline" small />
+      </Card>
+
+      <Card style={styles.openingLink} onPress={() => navigation.navigate('Openings')}>
+        <Text style={styles.openingGlyph}>♟️</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={typography.h3}>Opening Book</Text>
+          <Text style={typography.muted}>Build a repertoire from named ECO openings.</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
       </Card>
 
       <SectionHeader title="This week's plan" />
@@ -59,4 +72,7 @@ const styles = StyleSheet.create({
   dayText: { ...typography.h3, color: colors.gold },
   bulletRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   bulletMark: { fontSize: 15 },
+  openingLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  openingGlyph: { fontSize: 24 },
+  chev: { fontSize: 20, color: colors.textFaint },
 });

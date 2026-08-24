@@ -15,9 +15,12 @@ import { GameScreen } from '../screens/GameScreen';
 import { ShopScreen } from '../screens/ShopScreen';
 import { LiveGameScreen } from '../screens/LiveGameScreen';
 import { PuzzleSolveScreen } from '../screens/PuzzleSolveScreen';
+import { PlayVsComputerScreen } from '../screens/PlayVsComputerScreen';
 import { AnalyzeScreen } from '../screens/AnalyzeScreen';
 import { CoachScreen } from '../screens/CoachScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { LessonScreen } from '../screens/LessonScreen';
+import { OpeningsScreen } from '../screens/OpeningsScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -27,8 +30,11 @@ export type RootStackParamList = {
   Profile: undefined;
   LiveGame: { id: string };
   PuzzleSolve: { id: string };
+  PlayVsComputer: undefined;
   Analyze: undefined;
   Coach: undefined;
+  Lesson: { id: string };
+  Openings: undefined;
 };
 
 export type TabParamList = {
@@ -102,8 +108,11 @@ export function RootNavigator() {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Analyze" component={AnalyzeScreen} />
           <Stack.Screen name="Coach" component={CoachScreen} />
+          <Stack.Screen name="Lesson" component={LessonScreen} />
+          <Stack.Screen name="Openings" component={OpeningsScreen} />
           <Stack.Screen name="LiveGame" component={LiveGameScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PlayVsComputer" component={PlayVsComputerScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>
