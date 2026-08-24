@@ -1,0 +1,45 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Screen, Button, Input } from '../components/ui';
+import { colors, spacing, typography } from '../theme';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/RootNavigator';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
+
+export function SignUpScreen({ navigation }: Props) {
+  return (
+    <Screen>
+      <Text style={typography.h1}>Become a Chess Member</Text>
+      <Text style={[typography.muted, { marginBottom: spacing.lg }]}>
+        Create your ChessMaster profile and get first access to the very best
+        classes, tools and community.
+      </Text>
+
+      <Input placeholder="Email address" />
+      <Input placeholder="Password" secureTextEntry />
+      <Input placeholder="First Name" />
+      <Input placeholder="Last Name" />
+      <Input placeholder="Date of Birth" />
+      <Text style={styles.perk}>🍫 Get a surprise every year on your Birthday</Text>
+      <Input placeholder="Country (India)" />
+
+      <Text style={styles.terms}>
+        By creating an account, you agree to ChessMaster's Privacy Policy and
+        Terms of Use.
+      </Text>
+
+      <Button label="Join Us" onPress={() => navigation.replace('Main')} />
+      <Text style={styles.switch} onPress={() => navigation.navigate('SignIn')}>
+        Already a member? <Text style={styles.link}>Sign in</Text>
+      </Text>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  perk: { ...typography.muted, color: colors.gold, marginBottom: spacing.sm },
+  terms: { ...typography.muted, fontSize: 12, marginVertical: spacing.md },
+  switch: { ...typography.muted, textAlign: 'center', marginTop: spacing.md },
+  link: { color: colors.ink, fontWeight: '700' },
+});
