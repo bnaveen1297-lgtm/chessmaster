@@ -9,8 +9,9 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 export function SignUpScreen({ navigation }: Props) {
-  const { signUp } = useAuth();
+  const { signUp, authError } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
@@ -23,19 +24,21 @@ export function SignUpScreen({ navigation }: Props) {
       </Text>
 
       <Input placeholder="Email address" value={email} onChangeText={setEmail} />
-      <Input placeholder="Password" secureTextEntry />
+      <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       <Input placeholder="First Name" value={firstName} onChangeText={setFirstName} />
       <Input placeholder="Last Name" value={lastName} onChangeText={setLastName} />
       <Input placeholder="Date of Birth" />
       <Text style={styles.perk}>🍫 Get a surprise every year on your Birthday</Text>
       <Input placeholder="Country (India)" />
 
+      {authError && <Text style={styles.error}>{authError}</Text>}
+
       <Text style={styles.terms}>
         By creating an account, you agree to ChessMaster's Privacy Policy and
         Terms of Use.
       </Text>
 
-      <Button label="Join Us" onPress={() => signUp({ email, firstName, lastName })} />
+      <Button label="Join Us" onPress={() => signUp({ email, password, firstName, lastName })} />
       <Text style={styles.switch} onPress={() => navigation.navigate('SignIn')}>
         Already a member? <Text style={styles.link}>Sign in</Text>
       </Text>
@@ -45,6 +48,7 @@ export function SignUpScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   perk: { ...typography.muted, color: colors.gold, marginBottom: spacing.sm },
+  error: { color: colors.danger, fontWeight: '600', marginBottom: spacing.sm },
   terms: { ...typography.muted, fontSize: 12, marginVertical: spacing.md },
   switch: { ...typography.muted, textAlign: 'center', marginTop: spacing.md },
   link: { color: colors.ink, fontWeight: '700' },

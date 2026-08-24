@@ -9,7 +9,7 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 export function SignInScreen({ navigation }: Props) {
-  const { signIn } = useAuth();
+  const { signIn, authError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -21,6 +21,8 @@ export function SignInScreen({ navigation }: Props) {
       <Input placeholder="Email address" value={email} onChangeText={setEmail} />
       <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       <Text style={styles.forgot}>Forgotten your password?</Text>
+
+      {authError && <Text style={styles.error}>{authError}</Text>}
 
       <Text style={styles.terms}>
         By logging in you agree to ChessMaster's Privacy Policy and Terms of Use.
@@ -36,6 +38,7 @@ export function SignInScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   forgot: { ...typography.muted, textAlign: 'right', color: colors.gold, fontWeight: '600' },
+  error: { color: colors.danger, fontWeight: '600', marginTop: spacing.sm },
   terms: { ...typography.muted, fontSize: 12, marginVertical: spacing.md },
   switch: { ...typography.muted, textAlign: 'center', marginTop: spacing.md },
   link: { color: colors.ink, fontWeight: '700' },

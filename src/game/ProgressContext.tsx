@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { useAuth } from '../auth/AuthContext';
 
 /**
  * Gamification state — XP, levels, daily streak, a daily goal, lifetime stats,
@@ -80,9 +82,41 @@ type Ctx = {
 const STORAGE_KEY = 'chessmaster.progress';
 const ProgressContext = createContext<Ctx | undefined>(undefined);
 
+function fromRow(row: any): Progress {
+  return {
+    xp: row.xp ?? 0,
+    streakDays: row.streak_days ?? 0,
+    lastActiveDate: row.last_active_date ?? '',
+    puzzlesSolved: row.puzzles_solved ?? 0,
+    gamesPlayed: row.games_played ?? 0,
+    gamesWon: row.games_won ?? 0,
+    dailyGoal: row.daily_goal ?? 3,
+    solvedToday: row.solved_today ?? 0,
+    goalDate: row.goal_date ?? '',
+    achievements: row.achievements ?? [],
+  };
+}
+function toRow(p: Progress, userId: string) {
+  return {
+    user_id: userId,
+    xp: p.xp,
+    streak_days: p.streakDays,
+    last_active_date: p.lastActiveDate || null,
+    puzzles_solved: p.puzzlesSolved,
+    games_played: p.gamesPlayed,
+    games_won: p.gamesWon,
+    daily_goal: p.dailyGoal,
+    solved_today: p.solvedToday,
+    goal_date: p.goalDate || null,
+    achievements: p.achievements,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<Progress>(DEFAULT);
   const [newlyEarned, setNewlyEarned] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -94,6 +128,31 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, []);
+
+  // When signed in with a backend, load cloud progress (source of truth).
+  useEffect(() => {
+    if (!(isSupabaseConfigured && supabase && user)) return;
+    supabase
+      .from('progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setProgress(fromRow(data));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const save = useCallback(
+    (next: Progress) => {
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      if (isSupabaseConfigured && supabase && user) {
+        supabase.from('progress').upsert(toRow(next, user.id)).then(() => {});
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id],
+  );
 
   /** Apply daily streak + goal rollover, returning an updated draft. */
   const withDaily = (p: Progress): Progress => {
@@ -130,10 +189,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       let next = withDaily(prev);
       next = { ...next, xp: next.xp + XP_PUZZLE, puzzlesSolved: next.puzzlesSolved + 1, solvedToday: next.solvedToday + 1 };
       next = applyAchievements(next);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      save(next);
       return next;
     });
-  }, []);
+  }, [save]);
 
   const awardGameResult = useCallback((won: boolean) => {
     setProgress((prev) => {
@@ -145,10 +204,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         gamesWon: next.gamesWon + (won ? 1 : 0),
       };
       next = applyAchievements(next);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      save(next);
       return next;
     });
-  }, []);
+  }, [save]);
 
   const value = useMemo<Ctx>(
     () => ({
