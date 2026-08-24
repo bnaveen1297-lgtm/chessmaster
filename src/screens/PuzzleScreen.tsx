@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Screen, Card, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { colors, spacing, typography } from '../theme';
 import { puzzles, puzzleThemes } from '../data/puzzles';
+import { fetchRandomPuzzle } from '../services/puzzleApi';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,11 +16,35 @@ type Props = CompositeScreenProps<
 >;
 
 export function PuzzleScreen({ navigation }: Props) {
+  const [loading, setLoading] = useState(false);
+
+  const randomPuzzle = useCallback(async () => {
+    setLoading(true);
+    try {
+      const puzzle = await fetchRandomPuzzle();
+      navigation.navigate('PuzzleSolve', { puzzle });
+    } finally {
+      setLoading(false);
+    }
+  }, [navigation]);
+
   return (
     <Screen>
       <AppHeader title="Puzzle" onProfile={() => navigation.navigate('Profile')} />
+
+      <Card style={styles.online} onPress={loading ? undefined : randomPuzzle}>
+        <View style={styles.onlineRow}>
+          <Text style={styles.onlineGlyph}>♾️</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.onlineTitle}>Unlimited puzzles</Text>
+            <Text style={styles.onlineSub}>Fresh tactics from free chess APIs</Text>
+          </View>
+          {loading ? <ActivityIndicator color={colors.onDark} /> : <Text style={styles.onlineCta}>Play ›</Text>}
+        </View>
+      </Card>
+
       <Text style={[typography.muted, { marginBottom: spacing.sm }]}>
-        Solve tactics by topic. Tap a puzzle and play the winning move on the board.
+        Or solve curated tactics by topic. Tap a puzzle and play the winning move.
       </Text>
 
       {puzzleThemes.map((theme) => (
@@ -49,4 +74,10 @@ export function PuzzleScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   themeHeader: { ...typography.label, color: colors.gold, marginTop: spacing.md, marginBottom: spacing.sm },
+  online: { backgroundColor: colors.ink, borderColor: colors.ink },
+  onlineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  onlineGlyph: { fontSize: 26 },
+  onlineTitle: { ...typography.h3, color: colors.onDark },
+  onlineSub: { ...typography.muted, color: '#C9C9CF' },
+  onlineCta: { color: colors.gold, fontWeight: '800' },
 });

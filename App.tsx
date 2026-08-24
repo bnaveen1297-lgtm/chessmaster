@@ -4,6 +4,7 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/auth/AuthContext';
+import { ProgressProvider } from './src/game/ProgressContext';
 import { PhoneFrame } from './src/components/PhoneFrame';
 import { colors } from './src/theme';
 
@@ -17,10 +18,12 @@ export default function App() {
     <SafeAreaProvider>
       <PhoneFrame>
         <AuthProvider>
-          <NavigationContainer theme={navTheme}>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </NavigationContainer>
+          <ProgressProvider>
+            <NavigationContainer theme={navTheme}>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </NavigationContainer>
+          </ProgressProvider>
         </AuthProvider>
       </PhoneFrame>
     </SafeAreaProvider>

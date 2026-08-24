@@ -4,15 +4,10 @@ import { Screen, Card, Button, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { colors, radius, spacing, typography } from '../theme';
 import { plans } from '../data/content';
-import type { CompositeScreenProps } from '@react-navigation/native';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, TabParamList } from '../navigation/RootNavigator';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
-type Props = CompositeScreenProps<
-  BottomTabScreenProps<TabParamList, 'Plans'>,
-  NativeStackScreenProps<RootStackParamList>
->;
+type Props = NativeStackScreenProps<RootStackParamList, 'Plans'>;
 
 export function SubscriptionsScreen({ navigation }: Props) {
   return (

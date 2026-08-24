@@ -7,6 +7,7 @@ import { Button } from '../components/ui';
 import { colors, radius, spacing, typography } from '../theme';
 import { bestMove, LEVELS, type Level } from '../engine/ai';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
+import { useProgress } from '../game/ProgressContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -25,10 +26,22 @@ export function PlayVsComputerScreen({ navigation }: Props) {
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [level, setLevel] = useState<Level>(LEVELS[1]);
   const [thinking, setThinking] = useState(false);
+  const { awardGameResult } = useProgress();
+  const awardedRef = useRef(false);
 
   const sync = useCallback(() => {
     setFen(gameRef.current.fen());
   }, []);
+
+  const maybeAward = useCallback(() => {
+    const g = gameRef.current;
+    if (g.isGameOver() && !awardedRef.current) {
+      awardedRef.current = true;
+      // Player is White; black-to-move at checkmate means White delivered it.
+      const won = g.isCheckmate() && g.turn() === 'b';
+      awardGameResult(won);
+    }
+  }, [awardGameResult]);
 
   const runEngine = useCallback(() => {
     const game = gameRef.current;
@@ -43,8 +56,9 @@ export function PlayVsComputerScreen({ navigation }: Props) {
       }
       setThinking(false);
       sync();
+      maybeAward();
     }, 250);
-  }, [level.depth, sync]);
+  }, [level.depth, sync, maybeAward]);
 
   const onSquarePress = useCallback(
     (square: string) => {
@@ -58,6 +72,7 @@ export function PlayVsComputerScreen({ navigation }: Props) {
           setHighlights([]);
           setLastMove({ from: mv.from, to: mv.to });
           sync();
+          maybeAward();
           runEngine();
           return;
         }
@@ -71,11 +86,12 @@ export function PlayVsComputerScreen({ navigation }: Props) {
         setHighlights([]);
       }
     },
-    [selected, thinking, sync, runEngine],
+    [selected, thinking, sync, runEngine, maybeAward],
   );
 
   const newGame = useCallback(() => {
     gameRef.current = new Chess();
+    awardedRef.current = false;
     setSelected(null);
     setHighlights([]);
     setLastMove(null);

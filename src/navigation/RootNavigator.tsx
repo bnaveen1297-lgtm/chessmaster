@@ -8,6 +8,7 @@ import { useAuth } from '../auth/AuthContext';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { SignInScreen } from '../screens/SignInScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
+import { HomeScreen } from '../screens/HomeScreen';
 import { ClassScreen } from '../screens/ClassScreen';
 import { PuzzleScreen } from '../screens/PuzzleScreen';
 import { SubscriptionsScreen } from '../screens/SubscriptionsScreen';
@@ -30,19 +31,20 @@ export type RootStackParamList = {
   Main: undefined;
   Profile: undefined;
   LiveGame: { id: string };
-  PuzzleSolve: { id: string };
+  PuzzleSolve: { id?: string; puzzle?: import('../data/puzzles').Puzzle };
   PlayVsComputer: undefined;
   PlayLocal: undefined;
   Analyze: undefined;
   Coach: undefined;
   Lesson: { id: string };
   Openings: undefined;
+  Plans: undefined;
 };
 
 export type TabParamList = {
+  Home: undefined;
   Class: undefined;
   Puzzle: undefined;
-  Plans: undefined;
   Game: undefined;
   Shop: undefined;
 };
@@ -74,10 +76,10 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: icon('🏠') }} />
       <Tab.Screen name="Class" component={ClassScreen} options={{ tabBarIcon: icon('📚') }} />
       <Tab.Screen name="Puzzle" component={PuzzleScreen} options={{ tabBarIcon: icon('🧩') }} />
       <Tab.Screen name="Game" component={GameScreen} options={{ tabBarIcon: icon('♟️') }} />
-      <Tab.Screen name="Plans" component={SubscriptionsScreen} options={{ tabBarLabel: 'Plans', tabBarIcon: icon('⭐') }} />
       <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarIcon: icon('🛍️') }} />
     </Tab.Navigator>
   );
@@ -112,6 +114,7 @@ export function RootNavigator() {
           <Stack.Screen name="Coach" component={CoachScreen} />
           <Stack.Screen name="Lesson" component={LessonScreen} />
           <Stack.Screen name="Openings" component={OpeningsScreen} />
+          <Stack.Screen name="Plans" component={SubscriptionsScreen} options={{ title: 'Plans' }} />
           <Stack.Screen name="LiveGame" component={LiveGameScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayVsComputer" component={PlayVsComputerScreen} options={{ headerShown: false }} />

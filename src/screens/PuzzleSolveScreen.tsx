@@ -7,6 +7,7 @@ import { Button } from '../components/ui';
 import { colors, radius, spacing, typography } from '../theme';
 import { puzzles } from '../data/puzzles';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare } from '../game/chessHelpers';
+import { useProgress, XP_PUZZLE } from '../game/ProgressContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -14,19 +15,32 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PuzzleSolve'>;
 type Status = 'idle' | 'wrong' | 'solved';
 
 export function PuzzleSolveScreen({ route, navigation }: Props) {
-  const puzzle = puzzles.find((p) => p.id === route.params.id) ?? puzzles[0];
+  const puzzle = route.params.puzzle ?? puzzles.find((p) => p.id === route.params.id) ?? puzzles[0];
   const gameRef = useRef(new Chess(puzzle.fen));
+  const solIndexRef = useRef(0);
+  const awardedRef = useRef(false);
   const { width } = useWindowDimensions();
   const boardSize = Math.min(width - spacing.md * 2, 360);
+  const { awardPuzzleSolved } = useProgress();
 
+  const playerColor = new Chess(puzzle.fen).turn(); // 'w' | 'b'
   const [fen, setFen] = useState(gameRef.current.fen());
   const [selected, setSelected] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [status, setStatus] = useState<Status>('idle');
 
+  const solve = useCallback(() => {
+    setStatus('solved');
+    if (!awardedRef.current) {
+      awardedRef.current = true;
+      awardPuzzleSolved();
+    }
+  }, [awardPuzzleSolved]);
+
   const reset = useCallback(() => {
     gameRef.current = new Chess(puzzle.fen);
+    solIndexRef.current = 0;
     setFen(gameRef.current.fen());
     setSelected(null);
     setHighlights([]);
@@ -42,14 +56,27 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
       if (selected) {
         const mv = tryMove(game, selected, square);
         if (mv) {
-          if (mv.san === puzzle.solution[0]) {
+          const expected = puzzle.solution[solIndexRef.current];
+          if (mv.san === expected) {
+            solIndexRef.current += 1;
             setLastMove({ from: mv.from, to: mv.to });
             setSelected(null);
             setHighlights([]);
             setFen(game.fen());
-            setStatus('solved');
+            if (solIndexRef.current >= puzzle.solution.length) {
+              solve();
+            } else {
+              // auto-play the opponent's reply
+              setTimeout(() => {
+                const reply = game.move(puzzle.solution[solIndexRef.current]);
+                solIndexRef.current += 1;
+                if (reply) setLastMove({ from: reply.from, to: reply.to });
+                setFen(game.fen());
+                if (solIndexRef.current >= puzzle.solution.length) solve();
+              }, 350);
+            }
           } else {
-            game.undo(); // wrong — take it back
+            game.undo();
             setSelected(null);
             setHighlights([]);
             setStatus('wrong');
@@ -66,26 +93,32 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
         setHighlights([]);
       }
     },
-    [selected, status, puzzle.solution],
+    [selected, status, puzzle.solution, solve],
   );
 
   const showSolution = useCallback(() => {
     const game = new Chess(puzzle.fen);
-    const mv = game.move(puzzle.solution[0]);
+    let last: { from: string; to: string } | null = null;
+    for (const san of puzzle.solution) {
+      const mv = game.move(san);
+      if (mv) last = { from: mv.from, to: mv.to };
+    }
     gameRef.current = game;
-    if (mv) setLastMove({ from: mv.from, to: mv.to });
-    setFen(game.fen());
+    solIndexRef.current = puzzle.solution.length;
+    setLastMove(last);
     setSelected(null);
     setHighlights([]);
+    setFen(game.fen());
     setStatus('solved');
   }, [puzzle.fen, puzzle.solution]);
 
+  const sideLabel = playerColor === 'w' ? 'White' : 'Black';
   const banner =
     status === 'solved'
-      ? { text: `Solved! ${puzzle.solution[0]}`, color: colors.success }
+      ? { text: `Solved!  +${XP_PUZZLE} XP`, color: colors.success }
       : status === 'wrong'
         ? { text: 'Not the winning move — try again', color: colors.danger }
-        : { text: puzzle.kind === 'mate' ? 'Find the checkmate' : 'Win material', color: colors.textMuted };
+        : { text: puzzle.kind === 'mate' ? 'Find the checkmate' : puzzle.kind === 'win' ? 'Win material' : 'Find the best move', color: colors.textMuted };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -106,12 +139,13 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
           highlights={highlights}
           lastMove={lastMove}
           checkSquare={checkedKingSquare(gameRef.current)}
+          flipped={playerColor === 'b'}
         />
       </View>
 
       <View style={[styles.banner, { borderColor: banner.color }]}>
         <Text style={[styles.bannerText, { color: banner.color }]}>{banner.text}</Text>
-        <Text style={styles.hint}>White to move</Text>
+        <Text style={styles.hint}>{sideLabel} to move</Text>
       </View>
 
       <View style={styles.actions}>

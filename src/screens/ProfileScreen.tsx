@@ -1,22 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Screen, Card, Button, SectionHeader, Pill } from '../components/ui';
 import { Logo } from '../components/Logo';
 import { colors, radius, spacing, typography } from '../theme';
 import { useAuth } from '../auth/AuthContext';
+import { useProgress, levelFromXp } from '../game/ProgressContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
-const stats = [
-  { label: 'RATING', value: '1180' },
-  { label: 'STREAK', value: '12🔥' },
-  { label: 'PUZZLES', value: '340' },
-];
-
-export function ProfileScreen(_props: Props) {
+export function ProfileScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
+  const { progress } = useProgress();
+  const stats = [
+    { label: 'LEVEL', value: String(levelFromXp(progress.xp)) },
+    { label: 'STREAK', value: `${progress.streakDays}🔥` },
+    { label: 'PUZZLES', value: String(progress.puzzlesSolved) },
+  ];
   return (
     <Screen>
       <View style={styles.header}>
@@ -41,10 +42,12 @@ export function ProfileScreen(_props: Props) {
 
       <SectionHeader title="Settings" />
       <Card>
+        <Pressable onPress={() => navigation.navigate('Plans')}>
+          <Row label="Membership plans" value="Free now ›" />
+        </Pressable>
         <Row label="Connected accounts" value="Chess.com, Lichess" />
         <Row label="Notifications" value="On" />
         <Row label="Board theme" value="Classic" />
-        <Row label="Restore purchase" value="" />
       </Card>
 
       <Button label="Log out" variant="outline" onPress={() => signOut()} />

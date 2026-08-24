@@ -16,10 +16,10 @@ export type Puzzle = {
   title: string;
   theme: string;
   difficulty: PuzzleDifficulty;
-  /** 'mate' = deliver checkmate; 'win' = win material. */
-  kind: 'mate' | 'win';
+  /** 'mate' = deliver checkmate; 'win' = win material; 'line' = best line (API). */
+  kind: 'mate' | 'win' | 'line';
   fen: string;
-  /** Solution line in SAN (White to move). */
+  /** Solution line in SAN. Even indices = the solver's moves, odd = replies. */
   solution: string[];
 };
 
