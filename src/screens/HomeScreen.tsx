@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Screen, Card } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
+import { Icon, type IconName } from '../components/Icon';
 import { colors, radius, shadow, spacing, typography } from '../theme';
 import { useProgress, levelFromXp, xpIntoLevel, XP_PER_LEVEL, ACHIEVEMENTS } from '../game/ProgressContext';
 import { useAuth } from '../auth/AuthContext';
@@ -16,12 +17,12 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
-const TILES = [
-  { key: 'play', title: 'Play', subtitle: 'Beat the engine', glyph: '♟', color: '#7C3AED' },
-  { key: 'learn', title: 'Learn', subtitle: 'Lessons & openings', glyph: '📚', color: '#1F9E7A' },
-  { key: 'analyse', title: 'Analyse', subtitle: 'Review your games', glyph: '🔍', color: '#E08A2B' },
-  { key: 'game', title: 'Game', subtitle: 'Tournaments & friends', glyph: '🏆', color: '#E0568A' },
-] as const;
+const TILES: { key: string; title: string; subtitle: string; icon: IconName; color: string }[] = [
+  { key: 'play', title: 'Play', subtitle: 'Beat the engine', icon: 'play', color: '#7C3AED' },
+  { key: 'learn', title: 'Learn', subtitle: 'Lessons & openings', icon: 'book', color: '#1F9E7A' },
+  { key: 'analyse', title: 'Analyse', subtitle: 'Review your games', icon: 'search', color: '#E08A2B' },
+  { key: 'game', title: 'Game', subtitle: 'Tournaments & friends', icon: 'trophy', color: '#E0568A' },
+];
 
 export function HomeScreen({ navigation }: Props) {
   const { progress } = useProgress();
@@ -51,7 +52,7 @@ export function HomeScreen({ navigation }: Props) {
             style={({ pressed }) => [styles.tile, pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }]}
           >
             <View style={[styles.iconSquare, { backgroundColor: t.color }]}>
-              <Text style={styles.iconGlyph}>{t.glyph}</Text>
+              <Icon name={t.icon} size={24} color="#fff" />
             </View>
             <Text style={styles.tileTitle}>{t.title}</Text>
             <Text style={styles.tileSub}>{t.subtitle}</Text>
@@ -63,7 +64,10 @@ export function HomeScreen({ navigation }: Props) {
       <Card style={styles.progressCard}>
         <View style={styles.progressTop}>
           <Text style={styles.levelText}>Level {level}</Text>
-          <Text style={styles.streakText}>🔥 {progress.streakDays}-day streak</Text>
+          <View style={styles.streakRow}>
+            <Icon name="flame" size={15} color={colors.gold} />
+            <Text style={styles.streakText}>{progress.streakDays}-day streak</Text>
+          </View>
         </View>
         <View style={styles.xpTrack}>
           <View style={[styles.xpFill, { width: `${(into / XP_PER_LEVEL) * 100}%` }]} />
@@ -100,7 +104,9 @@ export function HomeScreen({ navigation }: Props) {
             const earned = progress.achievements.includes(a.id);
             return (
               <View key={a.id} style={[styles.badge, !earned && styles.badgeLocked]}>
-                <Text style={styles.badgeEmoji}>{earned ? a.emoji : '🔒'}</Text>
+                <View style={[styles.badgeCircle, earned && { backgroundColor: colors.gold }]}>
+                  <Icon name={(earned ? a.icon : 'lock-closed') as IconName} size={18} color={earned ? colors.ink : colors.textFaint} />
+                </View>
                 <Text style={[styles.badgeTitle, !earned && { color: colors.textFaint }]}>{a.title}</Text>
               </View>
             );
@@ -139,6 +145,7 @@ const styles = StyleSheet.create({
   progressCard: { marginTop: spacing.md, backgroundColor: colors.ink },
   progressTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   levelText: { color: colors.onDark, fontSize: 17, fontWeight: '800' },
+  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   streakText: { color: colors.gold, fontSize: 13, fontWeight: '700' },
   xpTrack: { height: 8, backgroundColor: '#2E2E33', borderRadius: 999, marginTop: spacing.sm, overflow: 'hidden' },
   xpFill: { height: 8, backgroundColor: colors.gold, borderRadius: 999 },
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
 
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   badge: { alignItems: 'center', width: 70 },
-  badgeLocked: { opacity: 0.55 },
-  badgeEmoji: { fontSize: 25 },
+  badgeLocked: { opacity: 0.7 },
+  badgeCircle: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   badgeTitle: { fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2, color: colors.ink },
 });

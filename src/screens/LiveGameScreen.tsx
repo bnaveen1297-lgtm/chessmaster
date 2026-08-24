@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChessBoard } from '../components/ChessBoard';
 import { Pill } from '../components/ui';
+import { Icon, type IconName } from '../components/Icon';
 import { colors, radius, spacing } from '../theme';
 import { liveGames } from '../data/content';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -21,8 +22,8 @@ export function LiveGameScreen({ route, navigation }: Props) {
       <View style={styles.topbar}>
         <Text style={styles.back} onPress={() => navigation.goBack()}>‹</Text>
         <View style={styles.players}>
-          <Player name={game.white} color="⚪" />
-          <Player name={game.black} color="⚫" />
+          <Player name={game.white} white />
+          <Player name={game.black} white={false} />
         </View>
         {game.status === 'live' ? <Pill label="LIVE" tone="live" /> : <View style={{ width: 40 }} />}
       </View>
@@ -38,18 +39,18 @@ export function LiveGameScreen({ route, navigation }: Props) {
 
       {/* playback controls */}
       <View style={styles.controls}>
-        {['🎙️', '📷', '⏮', '◀', '⏸', '▶', '⏭'].map((c, i) => (
-          <View key={i} style={styles.ctrl}><Text style={styles.ctrlGlyph}>{c}</Text></View>
+        {(['mic', 'camera', 'play-skip-back', 'play-back', 'pause', 'play', 'play-skip-forward'] as IconName[]).map((c, i) => (
+          <View key={i} style={styles.ctrl}><Icon name={c} size={18} color={colors.onDark} /></View>
         ))}
       </View>
     </SafeAreaView>
   );
 }
 
-function Player({ name, color }: { name: string; color: string }) {
+function Player({ name, white }: { name: string; white: boolean }) {
   return (
     <View style={styles.player}>
-      <Text style={styles.playerAvatar}>{color}</Text>
+      <View style={[styles.playerAvatar, { backgroundColor: white ? '#F4F1E8' : '#2B2B30', borderColor: white ? '#D8D3C4' : '#111' }]} />
       <Text style={styles.playerName}>{name}</Text>
     </View>
   );
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
   back: { color: colors.onDark, fontSize: 30, width: 40 },
   players: { flexDirection: 'row', gap: spacing.md },
   player: { alignItems: 'center' },
-  playerAvatar: { fontSize: 26 },
+  playerAvatar: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, marginBottom: 2 },
   playerName: { color: colors.onDark, fontSize: 11, fontWeight: '600' },
   boardWrap: { alignItems: 'center' },
   info: { alignItems: 'center', gap: spacing.sm },

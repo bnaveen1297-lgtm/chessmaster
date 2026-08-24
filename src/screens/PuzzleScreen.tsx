@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Screen, Card, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
+import { Icon } from '../components/Icon';
 import { colors, spacing, typography } from '../theme';
 import { puzzles, puzzleThemes } from '../data/puzzles';
 import { fetchRandomPuzzle } from '../services/puzzleApi';
@@ -34,7 +35,7 @@ export function PuzzleScreen({ navigation }: Props) {
 
       <Card style={styles.online} onPress={loading ? undefined : randomPuzzle}>
         <View style={styles.onlineRow}>
-          <Text style={styles.onlineGlyph}>♾️</Text>
+          <View style={styles.onlineGlyph}><Icon name="infinite" size={26} color={colors.onDark} /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.onlineTitle}>Unlimited puzzles</Text>
             <Text style={styles.onlineSub}>Fresh tactics from free chess APIs</Text>
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   themeHeader: { ...typography.label, color: colors.gold, marginTop: spacing.md, marginBottom: spacing.sm },
   online: { backgroundColor: colors.ink, borderColor: colors.ink },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  onlineGlyph: { fontSize: 26 },
+  onlineGlyph: { width: 28, alignItems: 'center' },
   onlineTitle: { ...typography.h3, color: colors.onDark },
   onlineSub: { ...typography.muted, color: '#C9C9CF' },
   onlineCta: { color: colors.gold, fontWeight: '800' },

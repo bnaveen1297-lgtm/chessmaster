@@ -136,13 +136,13 @@ export const plans: Plan[] = [
 
 /* --------------------------------------------------------------------- GAME */
 
-export type GameMode = { id: string; title: string; blurb: string; glyph: string };
+export type GameMode = { id: string; title: string; blurb: string; icon: string };
 
 export const gameModes: GameMode[] = [
-  { id: 'tournaments', title: 'Play Tournaments', blurb: 'Join open arenas and climb the boards.', glyph: '🏆' },
-  { id: 'friends', title: 'Play with Friends', blurb: 'Two players, one device (pass & play).', glyph: '👥' },
-  { id: 'computer', title: 'Practice vs Computer', blurb: 'Train against bots at every level.', glyph: '🤖' },
-  { id: 'clock', title: 'Digital Chess Clock', blurb: 'Use a real clock for OTB practice.', glyph: '⏱️' },
+  { id: 'tournaments', title: 'Play Tournaments', blurb: 'Join open arenas and climb the boards.', icon: 'trophy' },
+  { id: 'friends', title: 'Play with Friends', blurb: 'Two players, one device (pass & play).', icon: 'people' },
+  { id: 'computer', title: 'Practice vs Computer', blurb: 'Train against bots at every level.', icon: 'hardware-chip' },
+  { id: 'clock', title: 'Digital Chess Clock', blurb: 'Use a real clock for OTB practice.', icon: 'timer' },
 ];
 
 export type OpenTournament = { id: string; name: string; format: string; players: number; startsIn: string };
@@ -179,11 +179,11 @@ export const prepPlan = [
 
 /* --------------------------------------------------------------------- SHOP */
 
-export type Product = { id: string; name: string; blurb: string; color: string; glyph: string };
+export type Product = { id: string; name: string; blurb: string; color: string; icon: string };
 
 export const products: Product[] = [
-  { id: 's1', name: 'Chess Board Set', blurb: 'Chess board and chess pieces.', color: colors.cyan, glyph: '♟️' },
-  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized ChessMaster tees.', color: colors.lavender, glyph: '👕' },
-  { id: 's3', name: 'Chess Pieces', blurb: 'Buy a full set or single pieces.', color: colors.brown, glyph: '♞' },
-  { id: 's4', name: 'Chess Clock', blurb: 'Tournament-grade digital clock.', color: colors.teal, glyph: '⏱️' },
+  { id: 's1', name: 'Chess Board Set', blurb: 'Chess board and chess pieces.', color: colors.cyan, icon: 'grid' },
+  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized ChessMaster tees.', color: colors.lavender, icon: 'shirt' },
+  { id: 's3', name: 'Chess Pieces', blurb: 'Buy a full set or single pieces.', color: colors.brown, icon: 'cube' },
+  { id: 's4', name: 'Chess Clock', blurb: 'Tournament-grade digital clock.', color: colors.teal, icon: 'timer' },
 ];

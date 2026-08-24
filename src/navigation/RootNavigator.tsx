@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors } from '../theme';
 import { useAuth } from '../auth/AuthContext';
+import { Icon, type IconName } from '../components/Icon';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { SignInScreen } from '../screens/SignInScreen';
@@ -52,12 +53,10 @@ export type TabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-function TabIcon({ glyph, color }: { glyph: string; color: string }) {
-  return <Text style={{ fontSize: 18, color }}>{glyph}</Text>;
-}
-const icon = (glyph: string) =>
+const tabIcon = (base: string) =>
   // eslint-disable-next-line react/display-name
-  ({ color }: { color: string }) => <TabIcon glyph={glyph} color={color} />;
+  ({ color, focused }: { color: string; focused: boolean }) =>
+    <Icon name={(focused ? base : `${base}-outline`) as IconName} color={color} size={23} />;
 
 function MainTabs() {
   return (
@@ -76,11 +75,11 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: icon('🏠') }} />
-      <Tab.Screen name="Class" component={ClassScreen} options={{ tabBarIcon: icon('📚') }} />
-      <Tab.Screen name="Puzzle" component={PuzzleScreen} options={{ tabBarIcon: icon('🧩') }} />
-      <Tab.Screen name="Game" component={GameScreen} options={{ tabBarIcon: icon('♟️') }} />
-      <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarIcon: icon('🛍️') }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: tabIcon('home') }} />
+      <Tab.Screen name="Class" component={ClassScreen} options={{ tabBarLabel: 'Learn', tabBarIcon: tabIcon('book') }} />
+      <Tab.Screen name="Puzzle" component={PuzzleScreen} options={{ tabBarIcon: tabIcon('extension-puzzle') }} />
+      <Tab.Screen name="Game" component={GameScreen} options={{ tabBarIcon: tabIcon('game-controller') }} />
+      <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarIcon: tabIcon('bag-handle') }} />
     </Tab.Navigator>
   );
 }

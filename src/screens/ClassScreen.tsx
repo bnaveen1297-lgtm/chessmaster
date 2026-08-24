@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Screen, Card, Segmented, Button, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { classLevels, languageSchedules, curriculum, liveGames } from '../data/content';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -34,7 +35,7 @@ export function ClassScreen({ navigation }: Props) {
               {live.white} vs {live.black}
             </Text>
             <Text style={styles.olympiadMeta}>{live.event} · move {live.moves}</Text>
-            <View style={styles.playBadge}><Text style={styles.playGlyph}>▶</Text></View>
+            <View style={styles.playBadge}><Icon name="play" size={18} color={colors.ink} /></View>
           </Card>
 
           <Text style={typography.h3}>Live coaching now</Text>
@@ -44,7 +45,7 @@ export function ClassScreen({ navigation }: Props) {
           <View style={styles.langRow}>
             {['தமிழ்', 'Hindi', 'English', 'Russian'].map((l) => (
               <Card key={l} style={styles.langChip}>
-                <View style={styles.playBadgeSm}><Text style={styles.playGlyphSm}>▶</Text></View>
+                <View style={styles.playBadgeSm}><Icon name="play" size={14} color={colors.ink} /></View>
                 <Text style={styles.langText}>{l}</Text>
               </Card>
             ))}
@@ -81,7 +82,7 @@ export function ClassScreen({ navigation }: Props) {
           ))}
 
           <Card style={styles.openingCard} onPress={() => navigation.navigate('Openings')}>
-            <Text style={styles.openingGlyph}>♟️</Text>
+            <View style={styles.openingGlyph}><Icon name="library" size={24} color={colors.gold} /></View>
             <View style={{ flex: 1 }}>
               <Text style={typography.h3}>Opening Book</Text>
               <Text style={typography.muted}>Named openings, lines and ideas (ECO).</Text>
@@ -104,7 +105,7 @@ export function ClassScreen({ navigation }: Props) {
                 {unit.lessons.map((lesson) => (
                   <Pressable key={lesson.id} style={styles.lessonRow} onPress={() => navigation.navigate('Lesson', { id: lesson.id })}>
                     <View style={[styles.dot, lesson.done && { backgroundColor: colors.success, borderColor: colors.success }]}>
-                      {lesson.done && <Text style={styles.check}>✓</Text>}
+                      {lesson.done && <Icon name="checkmark" size={13} color={colors.onDark} />}
                     </View>
                     <Text style={[styles.lessonTitle, lesson.done && styles.lessonDone]}>{lesson.title}</Text>
                     <Text style={styles.chev}>›</Text>
@@ -150,6 +151,6 @@ const styles = StyleSheet.create({
   lessonTitle: { ...typography.body, flex: 1 },
   lessonDone: { color: colors.textMuted, textDecorationLine: 'line-through' },
   openingCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.md },
-  openingGlyph: { fontSize: 26 },
+  openingGlyph: { width: 26, alignItems: 'center' },
   chev: { fontSize: 20, color: colors.textFaint },
 });

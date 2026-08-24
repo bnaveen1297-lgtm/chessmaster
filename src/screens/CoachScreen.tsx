@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button, SectionHeader, Pill } from '../components/ui';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { prepPlan } from '../data/content';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,7 +27,7 @@ export function CoachScreen({ navigation }: Props) {
       </Card>
 
       <Card style={styles.openingLink} onPress={() => navigation.navigate('Openings')}>
-        <Text style={styles.openingGlyph}>♟️</Text>
+        <View style={styles.openingGlyph}><Icon name="library" size={22} color={colors.gold} /></View>
         <View style={{ flex: 1 }}>
           <Text style={typography.h3}>Opening Book</Text>
           <Text style={typography.muted}>Build a repertoire from named ECO openings.</Text>
@@ -57,7 +58,7 @@ export function CoachScreen({ navigation }: Props) {
 function Bullet({ text }: { text: string }) {
   return (
     <View style={styles.bulletRow}>
-      <Text style={styles.bulletMark}>♟️</Text>
+      <View style={styles.bulletMark}><Icon name="chevron-forward" size={14} color={colors.gold} /></View>
       <Text style={[typography.body, { flex: 1 }]}>{text}</Text>
     </View>
   );
@@ -71,8 +72,8 @@ const styles = StyleSheet.create({
   dayBadge: { width: 46, height: 46, borderRadius: radius.md, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
   dayText: { ...typography.h3, color: colors.gold },
   bulletRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  bulletMark: { fontSize: 15 },
+  bulletMark: { width: 16, alignItems: 'center' },
   openingLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  openingGlyph: { fontSize: 24 },
+  openingGlyph: { width: 24, alignItems: 'center' },
   chev: { fontSize: 20, color: colors.textFaint },
 });

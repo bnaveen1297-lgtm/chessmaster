@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button, Pill, SectionHeader } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
+import { Icon, type IconName } from '../components/Icon';
 import { colors, spacing, typography } from '../theme';
 import { gameModes, openTournaments, liveGames } from '../data/content';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -24,12 +25,12 @@ export function GameScreen({ navigation }: Props) {
       {/* ChessMaster power features */}
       <View style={styles.featureRow}>
         <Card style={[styles.feature, { backgroundColor: colors.dark, borderColor: colors.dark }]} onPress={() => navigation.navigate('Analyze')}>
-          <Text style={styles.featureGlyph}>🔍</Text>
+          <View style={styles.featureGlyph}><Icon name="search" size={22} color="#fff" /></View>
           <Text style={styles.featureTitleDark}>Analyze your games</Text>
           <Text style={styles.featureBlurbDark}>Import from Chess.com, Lichess or PGN.</Text>
         </Card>
         <Card style={[styles.feature, { backgroundColor: colors.gold, borderColor: colors.gold }]} onPress={() => navigation.navigate('Coach')}>
-          <Text style={styles.featureGlyph}>🧠</Text>
+          <View style={styles.featureGlyph}><Icon name="bulb" size={22} color={colors.ink} /></View>
           <Text style={styles.featureTitle}>Prep Coach</Text>
           <Text style={styles.featureBlurb}>Build a plan for your next tournament.</Text>
         </Card>
@@ -58,10 +59,15 @@ export function GameScreen({ navigation }: Props) {
                   : undefined
             }
           >
-            <Text style={styles.modeGlyph}>{m.glyph}</Text>
+            <View style={styles.modeGlyph}><Icon name={m.icon as IconName} size={22} color={colors.ink} /></View>
             <Text style={typography.h3}>{m.title}</Text>
             <Text style={typography.muted}>{m.blurb}</Text>
-            {(m.id === 'computer' || m.id === 'friends') && <Text style={styles.playable}>▶ Playable now</Text>}
+            {(m.id === 'computer' || m.id === 'friends') && (
+              <View style={styles.playableRow}>
+                <Icon name="play-circle" size={13} color={colors.success} />
+                <Text style={styles.playable}>Playable now</Text>
+              </View>
+            )}
           </Card>
         ))}
       </View>
@@ -87,7 +93,7 @@ export function GameScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   featureRow: { flexDirection: 'row', gap: spacing.md },
   feature: { flex: 1, minHeight: 130 },
-  featureGlyph: { fontSize: 24, marginBottom: spacing.sm },
+  featureGlyph: { marginBottom: spacing.sm },
   featureTitle: { ...typography.h3, color: colors.ink },
   featureBlurb: { ...typography.muted, color: 'rgba(20,20,20,0.75)' },
   featureTitleDark: { ...typography.h3, color: colors.onDark },
@@ -98,6 +104,7 @@ const styles = StyleSheet.create({
   liveMatch: { ...typography.h3, marginTop: spacing.sm },
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   mode: { width: '47%', marginBottom: 0 },
-  modeGlyph: { fontSize: 22, marginBottom: spacing.xs },
-  playable: { ...typography.label, color: colors.success, marginTop: spacing.xs },
+  modeGlyph: { marginBottom: spacing.xs },
+  playableRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+  playable: { ...typography.label, color: colors.success },
 });

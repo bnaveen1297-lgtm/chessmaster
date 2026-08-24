@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chess } from 'chess.js';
 import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -76,8 +77,9 @@ export function PlayLocalScreen({ navigation }: Props) {
       <View style={styles.topbar}>
         <Text style={styles.back} onPress={() => navigation.goBack()}>‹</Text>
         <Text style={styles.title}>Play with a Friend</Text>
-        <Pressable onPress={() => setAutoFlip((v) => !v)}>
-          <Text style={[styles.flip, autoFlip && styles.flipOn]}>⇅ Flip</Text>
+        <Pressable onPress={() => setAutoFlip((v) => !v)} style={styles.flipBtn}>
+          <Icon name="swap-vertical" size={16} color={autoFlip ? colors.gold : colors.textFaint} />
+          <Text style={[styles.flip, autoFlip && styles.flipOn]}>Flip</Text>
         </Pressable>
       </View>
 
@@ -125,6 +127,7 @@ const styles = StyleSheet.create({
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   back: { fontSize: 30, width: 40, color: colors.ink },
   title: { ...typography.h3 },
+  flipBtn: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   flip: { ...typography.muted, fontWeight: '700', color: colors.textFaint },
   flipOn: { color: colors.gold },
   playerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 4 },

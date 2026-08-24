@@ -27,16 +27,16 @@ export const XP_PUZZLE = 20;
 export const XP_WIN = 40;
 export const XP_PLAY = 10;
 
-export type Achievement = { id: string; title: string; emoji: string; test: (p: Progress) => boolean };
+export type Achievement = { id: string; title: string; icon: string; test: (p: Progress) => boolean };
 
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_puzzle', title: 'First Solve', emoji: '🧩', test: (p) => p.puzzlesSolved >= 1 },
-  { id: 'ten_puzzles', title: 'Tactician', emoji: '🎯', test: (p) => p.puzzlesSolved >= 10 },
-  { id: 'fifty_puzzles', title: 'Puzzle Hunter', emoji: '🏹', test: (p) => p.puzzlesSolved >= 50 },
-  { id: 'first_win', title: 'First Win', emoji: '🏆', test: (p) => p.gamesWon >= 1 },
-  { id: 'streak_3', title: '3-Day Streak', emoji: '🔥', test: (p) => p.streakDays >= 3 },
-  { id: 'streak_7', title: 'Week Warrior', emoji: '⚡', test: (p) => p.streakDays >= 7 },
-  { id: 'level_5', title: 'Rising Star', emoji: '⭐', test: (p) => levelFromXp(p.xp) >= 5 },
+  { id: 'first_puzzle', title: 'First Solve', icon: 'extension-puzzle', test: (p) => p.puzzlesSolved >= 1 },
+  { id: 'ten_puzzles', title: 'Tactician', icon: 'ribbon', test: (p) => p.puzzlesSolved >= 10 },
+  { id: 'fifty_puzzles', title: 'Puzzle Hunter', icon: 'medal', test: (p) => p.puzzlesSolved >= 50 },
+  { id: 'first_win', title: 'First Win', icon: 'trophy', test: (p) => p.gamesWon >= 1 },
+  { id: 'streak_3', title: '3-Day Streak', icon: 'flame', test: (p) => p.streakDays >= 3 },
+  { id: 'streak_7', title: 'Week Warrior', icon: 'flash', test: (p) => p.streakDays >= 7 },
+  { id: 'level_5', title: 'Rising Star', icon: 'star', test: (p) => levelFromXp(p.xp) >= 5 },
 ];
 
 export function levelFromXp(xp: number): number {

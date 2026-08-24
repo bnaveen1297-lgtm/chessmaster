@@ -17,7 +17,7 @@ export function SubscriptionsScreen({ navigation }: Props) {
       {/* Free-to-use now (pricing revisited later) */}
       <Card style={styles.freeBanner}>
         <Pill label="LAUNCH" tone="gold" />
-        <Text style={styles.freeTitle}>Everything's free right now 🎉</Text>
+        <Text style={styles.freeTitle}>Everything's free right now</Text>
         <Text style={styles.freeBlurb}>
           All classes, puzzles, Olympiad live, and the game analyzer are unlocked
           during launch. Paid plans arrive later.

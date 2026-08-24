@@ -28,7 +28,7 @@ export function SignUpScreen({ navigation }: Props) {
       <Input placeholder="First Name" value={firstName} onChangeText={setFirstName} />
       <Input placeholder="Last Name" value={lastName} onChangeText={setLastName} />
       <Input placeholder="Date of Birth" />
-      <Text style={styles.perk}>🍫 Get a surprise every year on your Birthday</Text>
+      <Text style={styles.perk}>Get a surprise every year on your Birthday</Text>
       <Input placeholder="Country (India)" />
 
       {authError && <Text style={styles.error}>{authError}</Text>}

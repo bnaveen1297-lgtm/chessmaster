@@ -15,7 +15,7 @@ export function ProfileScreen({ navigation }: Props) {
   const { progress } = useProgress();
   const stats = [
     { label: 'LEVEL', value: String(levelFromXp(progress.xp)) },
-    { label: 'STREAK', value: `${progress.streakDays}🔥` },
+    { label: 'STREAK', value: `${progress.streakDays}` },
     { label: 'PUZZLES', value: String(progress.puzzlesSolved) },
   ];
   return (

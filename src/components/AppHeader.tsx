@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Logo } from './Logo';
+import { Icon } from './Icon';
 import { colors, spacing, typography } from '../theme';
 
 /** Top bar used across the main tab screens: avatar · title · search/bell. */
@@ -12,8 +13,8 @@ export function AppHeader({ title, onProfile }: { title: string; onProfile?: () 
           <Logo size={30} />
         </Pressable>
         <View style={styles.icons}>
-          <Text style={styles.icon}>🔍</Text>
-          <Text style={styles.icon}>🔔</Text>
+          <Icon name="search" size={20} color={colors.textMuted} />
+          <Icon name="notifications-outline" size={20} color={colors.textMuted} />
         </View>
       </View>
       <Text style={typography.h1}>{title}</Text>
