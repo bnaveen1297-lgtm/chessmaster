@@ -10,6 +10,9 @@ expo-env.d.ts
 # vercel
 .vercel/
 
+# test artifacts
+.tsc-test/
+
 # native
 *.orig.*
 *.jks

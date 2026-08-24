@@ -28,3 +28,6 @@ jobs:
 
       - name: Verify puzzles
         run: npm run verify:puzzles
+
+      - name: Chess logic tests
+        run: npm run test:chess
