@@ -10,7 +10,7 @@ import {
   StyleProp,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, radius, spacing, typography } from '../theme';
+import { colors, radius, shadow, spacing, typography } from '../theme';
 
 export function Screen({
   children,
@@ -192,9 +192,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.md,
+    ...shadow.card,
   },
   sectionHeader: {
     flexDirection: 'row',

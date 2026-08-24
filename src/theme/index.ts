@@ -10,11 +10,11 @@ export const colors = {
   gold: '#C9A24B', // accent (section numbers, highlights)
   goldSoft: '#E7D3A1',
 
-  // surfaces (light-first)
-  bg: '#FFFFFF',
-  bgAlt: '#F5F5F6',
+  // surfaces (iOS grouped look: gray ground, white cards)
+  bg: '#F2F2F7',
+  bgAlt: '#E9E9EF',
   surface: '#FFFFFF',
-  border: '#E7E7EA',
+  border: '#E4E4EA',
 
   // text
   text: '#141414',
@@ -57,11 +57,22 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  sm: 8,
+  sm: 10,
   md: 14,
-  lg: 20,
-  xl: 28,
+  lg: 18,
+  xl: 26,
   pill: 999,
+} as const;
+
+/** iOS-style soft card elevation. */
+export const shadow = {
+  card: {
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
 } as const;
 
 export const typography = {
