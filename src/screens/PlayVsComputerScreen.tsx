@@ -9,6 +9,7 @@ import { colors, radius, spacing, typography } from '../theme';
 import { bestMove, LEVELS, type Level } from '../engine/ai';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
 import { useProgress } from '../game/ProgressContext';
+import { saveGame } from '../game/history';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -41,8 +42,10 @@ export function PlayVsComputerScreen({ navigation }: Props) {
       // Player is White; black-to-move at checkmate means White delivered it.
       const won = g.isCheckmate() && g.turn() === 'b';
       awardGameResult(won);
+      const result = g.isCheckmate() ? (g.turn() === 'w' ? '0-1' : '1-0') : '1/2-1/2';
+      saveGame({ mode: 'computer', result, pgn: g.pgn(), white: 'You', black: `Computer (${level.label})` });
     }
-  }, [awardGameResult]);
+  }, [awardGameResult, level.label]);
 
   const runEngine = useCallback(() => {
     const game = gameRef.current;

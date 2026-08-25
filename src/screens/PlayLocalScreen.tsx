@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chess } from 'chess.js';
@@ -7,6 +7,7 @@ import { Button } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
+import { saveGame } from '../game/history';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -28,6 +29,18 @@ export function PlayLocalScreen({ navigation }: Props) {
   const sync = useCallback(() => setFen(gameRef.current.fen()), []);
   const flipped = autoFlip && game.turn() === 'b';
   const gameOver = game.isGameOver();
+  const savedRef = useRef(false);
+
+  // Save the finished game to history once.
+  useEffect(() => {
+    const g = gameRef.current;
+    if (g.isGameOver() && !savedRef.current) {
+      savedRef.current = true;
+      const result = g.isCheckmate() ? (g.turn() === 'w' ? '0-1' : '1-0') : '1/2-1/2';
+      saveGame({ mode: 'friend', result, pgn: g.pgn(), white: 'White', black: 'Black' });
+    }
+    if (!g.isGameOver()) savedRef.current = false;
+  }, [fen]);
 
   const onSquarePress = useCallback(
     (square: string) => {

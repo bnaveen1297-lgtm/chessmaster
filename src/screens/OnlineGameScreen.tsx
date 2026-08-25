@@ -18,6 +18,7 @@ import {
   type Match,
 } from '../services/online';
 import { useProgress } from '../game/ProgressContext';
+import { saveGame } from '../game/history';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -102,14 +103,23 @@ export function OnlineGameScreen({ route, navigation }: Props) {
     return () => unsubscribe(ch);
   }, [matchId, load]);
 
-  // Award XP once when the game finishes.
+  // Award XP + save to history once when the game finishes.
   useEffect(() => {
     if (match?.status === 'finished' && myColor && !awardedRef.current) {
       awardedRef.current = true;
       const won = (match.result === '1-0' && myColor === 'w') || (match.result === '0-1' && myColor === 'b');
       awardGameResult(won);
+      const oppId = myColor === 'w' ? match.black_id : match.white_id;
+      const oppName = oppId ? names[oppId] ?? 'Opponent' : 'Opponent';
+      saveGame({
+        mode: 'online',
+        result: match.result ?? '1/2-1/2',
+        pgn: match.pgn,
+        white: myColor === 'w' ? 'You' : oppName,
+        black: myColor === 'b' ? 'You' : oppName,
+      });
     }
-  }, [match?.status, match?.result, myColor, awardGameResult]);
+  }, [match?.status, match?.result, myColor, awardGameResult, names, match?.black_id, match?.white_id, match?.pgn]);
 
   const isMyTurn = !!match && match.status === 'active' && myColor !== null && game.turn() === myColor;
 

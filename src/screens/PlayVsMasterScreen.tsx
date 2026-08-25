@@ -10,6 +10,7 @@ import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from
 import { bestMove } from '../engine/ai';
 import { getMasterGame } from '../data/masters';
 import { useProgress } from '../game/ProgressContext';
+import { saveGame } from '../game/history';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -102,6 +103,14 @@ export function PlayVsMasterScreen({ route, navigation }: Props) {
       let won = false;
       if (game.isCheckmate()) won = game.turn() !== side; // side to move is mated
       awardGameResult(won);
+      const result = game.isCheckmate() ? (game.turn() === 'w' ? '0-1' : '1-0') : '1/2-1/2';
+      saveGame({
+        mode: 'master',
+        result,
+        pgn: game.pgn(),
+        white: side === 'w' ? 'You' : master.white,
+        black: side === 'b' ? 'You' : master.black,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameOver]);
