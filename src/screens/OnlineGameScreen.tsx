@@ -10,8 +10,7 @@ import {
   getMatch,
   subscribeMatch,
   unsubscribe,
-  pushMove,
-  reportResult,
+  makeMove,
   resign,
   offerDraw,
   acceptDraw,
@@ -119,27 +118,24 @@ export function OnlineGameScreen({ route, navigation }: Props) {
       if (!match || !isMyTurn) return;
       const g = rebuild(match);
       if (selected) {
+        let mv = null;
         try {
-          const mv = g.move({ from: selected, to: square, promotion: 'q' });
-          if (mv) {
-            setSelected(null);
-            setHighlights([]);
-            const next = { fen: g.fen(), pgn: g.pgn(), turn: g.turn() as 'w' | 'b' };
-            setMatch({ ...match, ...next }); // optimistic
-            try {
-              await pushMove(match.id, next);
-              if (g.isGameOver()) {
-                const result = g.isCheckmate() ? (g.turn() === 'w' ? '0-1' : '1-0') : '1/2-1/2';
-                await reportResult(match.id, result);
-              }
-            } catch (e: any) {
-              setError(e?.message ?? 'Move failed to send.');
-              load();
-            }
-            return;
-          }
+          mv = g.move({ from: selected, to: square, promotion: 'q' });
         } catch {
-          /* illegal — fall through to reselect */
+          mv = null; // illegal — fall through to reselect
+        }
+        if (mv) {
+          setSelected(null);
+          setHighlights([]);
+          // Optimistic local update; the server validates and Realtime confirms.
+          setMatch({ ...match, fen: g.fen(), pgn: g.pgn(), turn: g.turn() as 'w' | 'b' });
+          try {
+            await makeMove(match.id, mv.from, mv.to, mv.promotion);
+          } catch (e: any) {
+            setError(e?.message ?? 'Move rejected.');
+            load(); // reconcile with authoritative state
+          }
+          return;
         }
       }
       if (isOwnPiece(g, square) && g.get(square as any)?.color === myColor) {
@@ -245,7 +241,7 @@ export function OnlineGameScreen({ route, navigation }: Props) {
             <Button
               label="Resign"
               variant="outline"
-              onPress={() => confirm('Resign?', 'This counts as a loss.', () => resign(match.id, myColor).catch((e) => setError(e.message)))}
+              onPress={() => confirm('Resign?', 'This counts as a loss.', () => resign(match.id).catch((e) => setError(e.message)))}
             />
           </View>
         </View>

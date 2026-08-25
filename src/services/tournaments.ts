@@ -1,20 +1,33 @@
 import { supabase } from './supabase';
-import {
-  roundRobinSchedule,
-  knockoutFirstRound,
-  pairWinners,
-  knockoutRounds,
-  type Pairing,
-  type TournamentFormat,
-} from '../tournament/pairing';
+import type { TournamentFormat } from '../tournament/pairing';
 import { currentUserId, type Match } from './online';
+
+/** Call an authoritative Edge Function (round generation runs server-side). */
+async function invokeFn<T = any>(name: string, body: Record<string, unknown>): Promise<T> {
+  if (!supabase) throw new Error('Tournaments need a connection. Sign in with an account.');
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (error) {
+    let msg = error.message || 'Server error.';
+    try {
+      const ctx = (error as any).context;
+      const parsed = ctx && typeof ctx.json === 'function' ? await ctx.json() : null;
+      if (parsed?.error) msg = parsed.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(msg);
+  }
+  if (data && (data as any).error) throw new Error((data as any).error);
+  return data as T;
+}
 
 /**
  * Tournaments over Supabase. Two formats: round-robin (everyone plays everyone)
- * and knockout (single elimination). Pairings are computed with the pure engine
- * in src/tournament/pairing.ts and persisted via the create_tournament_round
- * RPC; results + scoring flow through report_match_result. Anyone can create
- * one; the organizer starts it and advances rounds.
+ * and knockout (single elimination). Reads (list, standings, pairings) are
+ * client-side; start/advance go through the `tournament` Edge Function, which
+ * generates pairings server-side (same engine as src/tournament/pairing.ts) and
+ * creates the boards with the service role. Anyone can create/join; the
+ * organizer starts and advances rounds.
  */
 
 export type Tournament = {
@@ -135,38 +148,12 @@ export async function standings(tid: string): Promise<TournamentPlayer[]> {
   return [...players].sort((a, b) => b.score - a.score || a.joined_at.localeCompare(b.joined_at));
 }
 
-function toJson(pairings: Pairing[]) {
-  return pairings.map((p) => ({ white: p.white, black: p.black, board: p.board }));
-}
-
 /**
- * Start the tournament: seed players by join order, compute round 1, persist it.
- * (Organizer only — enforced by the RPC.)
+ * Start the tournament (organizer only). Pairings are generated and the boards
+ * are created server-side by the `tournament` Edge Function.
  */
 export async function startTournament(t: Tournament): Promise<void> {
-  const players = await listPlayers(t.id); // ordered by joined_at = seed order
-  const ids = players.map((p) => p.user_id);
-  if (ids.length < 2) throw new Error('Need at least 2 players to start.');
-
-  let firstRound: Pairing[];
-  let totalRounds: number;
-  if (t.format === 'roundrobin') {
-    const schedule = roundRobinSchedule(ids);
-    firstRound = schedule[0].pairings;
-    totalRounds = schedule.length;
-  } else {
-    const r1 = knockoutFirstRound(ids);
-    firstRound = r1.pairings;
-    totalRounds = knockoutRounds(ids.length);
-  }
-
-  await client().from('tournaments').update({ total_rounds: totalRounds }).eq('id', t.id);
-  const { error } = await client().rpc('create_tournament_round', {
-    p_tid: t.id,
-    p_round: 1,
-    p_pairings: toJson(firstRound),
-  });
-  if (error) throw error;
+  await invokeFn('tournament', { action: 'start', tournamentId: t.id });
 }
 
 /** Whether every board in the given round has a result. */
@@ -176,51 +163,14 @@ export async function roundComplete(tid: string, round: number): Promise<boolean
 }
 
 /**
- * Advance to the next round (organizer only). Returns 'finished' when the event
- * is over, or the new round number.
+ * Advance to the next round (organizer only). The server verifies the round is
+ * complete, computes the next pairings and creates the boards. Returns
+ * 'finished' when the event is over, or the new round number.
  */
 export async function advanceRound(t: Tournament): Promise<'finished' | number> {
-  const current = t.current_round;
-  if (!(await roundComplete(t.id, current))) {
-    throw new Error('All games in this round must finish first.');
-  }
-  const players = await listPlayers(t.id);
-  const ids = players.map((p) => p.user_id);
-  const nextRound = current + 1;
-
-  if (t.format === 'roundrobin') {
-    const schedule = roundRobinSchedule(ids);
-    if (nextRound > schedule.length) {
-      await client().from('tournaments').update({ status: 'finished' }).eq('id', t.id);
-      return 'finished';
-    }
-    const { error } = await client().rpc('create_tournament_round', {
-      p_tid: t.id,
-      p_round: nextRound,
-      p_pairings: toJson(schedule[nextRound - 1].pairings),
-    });
-    if (error) throw error;
-    return nextRound;
-  }
-
-  // knockout: winners of this round, in bracket (board) order.
-  const rows = await matchesForRound(t.id, current);
-  const winners: string[] = [];
-  for (const m of rows.sort((a, b) => (a.board ?? 0) - (b.board ?? 0))) {
-    if (m.result === '1-0' && m.white_id) winners.push(m.white_id);
-    else if (m.result === '0-1' && m.black_id) winners.push(m.black_id);
-    else if (m.white_id) winners.push(m.white_id); // bye / draw fallback
-  }
-  const next = pairWinners(winners, nextRound);
-  if (!next) {
-    await client().from('tournaments').update({ status: 'finished' }).eq('id', t.id);
-    return 'finished';
-  }
-  const { error } = await client().rpc('create_tournament_round', {
-    p_tid: t.id,
-    p_round: nextRound,
-    p_pairings: toJson(next.pairings),
+  const res = await invokeFn<{ finished?: boolean; round?: number }>('tournament', {
+    action: 'advance',
+    tournamentId: t.id,
   });
-  if (error) throw error;
-  return nextRound;
+  return res.finished ? 'finished' : (res.round ?? t.current_round + 1);
 }

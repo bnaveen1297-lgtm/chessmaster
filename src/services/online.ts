@@ -2,13 +2,13 @@ import { supabase } from './supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /**
- * Online 1v1 play over Supabase.
+ * Online 1v1 play over Supabase — server-authoritative.
  *
- * A `matches` row is the shared game state (fen / pgn / turn / result). Both
- * clients validate moves locally with chess.js, then write the new position to
- * the row; the opponent receives it via a Realtime Postgres-changes stream.
- * Result reporting goes through the report_match_result RPC so tournament
- * scoring stays atomic and tamper-resistant.
+ * A `matches` row is the shared game state (fen / pgn / turn / result). Reads
+ * and the live stream stay client-side (Realtime Postgres changes), but every
+ * WRITE — create, join, move, resign, draw — goes through the `match` Edge
+ * Function, which validates the move with chess.js and writes with the service
+ * role. Clients can't write game state directly (migration 0003).
  */
 
 export type MatchStatus = 'open' | 'active' | 'finished' | 'aborted';
@@ -32,8 +32,6 @@ export type Match = {
   updated_at: string;
 };
 
-const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-
 function client() {
   if (!supabase) {
     throw new Error('Online play needs a connection. Create a real account and sign in to play others.');
@@ -46,6 +44,29 @@ export function onlineAvailable(): boolean {
   return !!supabase;
 }
 
+/**
+ * Call an authoritative Edge Function. All game writes (create/join/move/resign/
+ * draw) go through the server, which validates them with chess.js — clients can't
+ * write game state directly (see migration 0003).
+ */
+async function invokeFn<T = any>(name: string, body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await client().functions.invoke(name, { body });
+  if (error) {
+    // Surface the function's own error message when present.
+    let msg = error.message || 'Server error.';
+    try {
+      const ctx = (error as any).context;
+      const parsed = ctx && typeof ctx.json === 'function' ? await ctx.json() : null;
+      if (parsed?.error) msg = parsed.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(msg);
+  }
+  if (data && (data as any).error) throw new Error((data as any).error);
+  return data as T;
+}
+
 export async function currentUserId(): Promise<string> {
   const { data } = await client().auth.getUser();
   const id = data.user?.id;
@@ -53,16 +74,10 @@ export async function currentUserId(): Promise<string> {
   return id;
 }
 
-/** Create an open challenge that anyone can join. */
+/** Create an open challenge that anyone can join (server-side). */
 export async function createOpenMatch(timeControl = 'unlimited'): Promise<Match> {
-  const uid = await currentUserId();
-  const { data, error } = await client()
-    .from('matches')
-    .insert({ white_id: uid, status: 'open', time_control: timeControl, fen: START_FEN, turn: 'w' })
-    .select()
-    .single();
-  if (error) throw error;
-  return data as Match;
+  const { match } = await invokeFn<{ match: Match }>('match', { action: 'create', timeControl });
+  return match;
 }
 
 /** Open challenges from other players (not your own, not tournament boards). */
@@ -93,20 +108,10 @@ export async function listMyActiveMatches(): Promise<Match[]> {
   return (data ?? []) as Match[];
 }
 
-/** Join an open challenge as Black. Throws if it was already taken. */
+/** Join an open challenge as Black (server-side). Throws if already taken. */
 export async function joinMatch(id: string): Promise<Match> {
-  const uid = await currentUserId();
-  const { data, error } = await client()
-    .from('matches')
-    .update({ black_id: uid, status: 'active', updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('status', 'open')
-    .is('black_id', null)
-    .select()
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) throw new Error('That game was just taken — try another.');
-  return data as Match;
+  const { match } = await invokeFn<{ match: Match }>('match', { action: 'join', matchId: id });
+  return match;
 }
 
 export async function getMatch(id: string): Promise<Match> {
@@ -115,33 +120,30 @@ export async function getMatch(id: string): Promise<Match> {
   return data as Match;
 }
 
-/** Push a played move (new fen/pgn/turn) to the shared row. */
-export async function pushMove(id: string, next: { fen: string; pgn: string; turn: 'w' | 'b' }): Promise<void> {
-  const { error } = await client()
-    .from('matches')
-    .update({ ...next, draw_offer_by: null, updated_at: new Date().toISOString() })
-    .eq('id', id);
-  if (error) throw error;
+/**
+ * Send a move to the server. The server validates legality against the stored
+ * position and writes the new state; the board updates arrive via Realtime.
+ * Returns { gameOver, result } so the caller can react immediately.
+ */
+export async function makeMove(
+  id: string,
+  from: string,
+  to: string,
+  promotion?: string,
+): Promise<{ gameOver: boolean; result: string | null; fen: string }> {
+  return invokeFn('match', { action: 'move', matchId: id, from, to, promotion });
 }
 
-/** Report a final result. `result` is '1-0' | '0-1' | '1/2-1/2'. */
-export async function reportResult(id: string, result: string): Promise<void> {
-  const { error } = await client().rpc('report_match_result', { p_match: id, p_result: result });
-  if (error) throw error;
-}
-
-export async function resign(id: string, myColor: 'w' | 'b'): Promise<void> {
-  await reportResult(id, myColor === 'w' ? '0-1' : '1-0');
+export async function resign(id: string): Promise<void> {
+  await invokeFn('match', { action: 'resign', matchId: id });
 }
 
 export async function offerDraw(id: string): Promise<void> {
-  const uid = await currentUserId();
-  const { error } = await client().from('matches').update({ draw_offer_by: uid }).eq('id', id);
-  if (error) throw error;
+  await invokeFn('match', { action: 'offer_draw', matchId: id });
 }
 
 export async function acceptDraw(id: string): Promise<void> {
-  await reportResult(id, '1/2-1/2');
+  await invokeFn('match', { action: 'accept_draw', matchId: id });
 }
 
 /** Subscribe to live updates for one match. Returns the channel to remove later. */
