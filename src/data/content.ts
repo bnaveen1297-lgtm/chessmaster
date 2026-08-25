@@ -78,6 +78,25 @@ export const curriculum: CurriculumUnit[] = [
   },
 ];
 
+/** All lesson ids in curriculum order. */
+export const orderedLessonIds: string[] = curriculum.flatMap((u) => u.lessons.map((l) => l.id));
+
+/** The next lesson after `id` in curriculum order, or null at the end. */
+export function nextLessonId(id: string): string | null {
+  const i = orderedLessonIds.indexOf(id);
+  return i >= 0 && i < orderedLessonIds.length - 1 ? orderedLessonIds[i + 1] : null;
+}
+
+/** The first not-yet-completed lesson (for a "Continue learning" resume). */
+export function firstIncompleteLesson(completed: string[]): { id: string; title: string } | null {
+  for (const u of curriculum) {
+    for (const l of u.lessons) {
+      if (!completed.includes(l.id)) return { id: l.id, title: l.title };
+    }
+  }
+  return null;
+}
+
 /* ------------------------------------------------------------- OLYMPIAD LIVE */
 
 export type LiveGame = {

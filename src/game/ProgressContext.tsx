@@ -20,12 +20,14 @@ export type Progress = {
   solvedToday: number;
   goalDate: string; // YYYY-MM-DD the solvedToday counter belongs to
   achievements: string[];
+  lessonsCompleted: string[]; // curriculum lesson ids (device-local)
 };
 
 export const XP_PER_LEVEL = 100;
 export const XP_PUZZLE = 20;
 export const XP_WIN = 40;
 export const XP_PLAY = 10;
+export const XP_LESSON = 15;
 
 export type Achievement = { id: string; title: string; icon: string; test: (p: Progress) => boolean };
 
@@ -37,6 +39,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'streak_3', title: '3-Day Streak', icon: 'flame', test: (p) => p.streakDays >= 3 },
   { id: 'streak_7', title: 'Week Warrior', icon: 'flash', test: (p) => p.streakDays >= 7 },
   { id: 'level_5', title: 'Rising Star', icon: 'star', test: (p) => levelFromXp(p.xp) >= 5 },
+  { id: 'first_lesson', title: 'Student', icon: 'book', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 1 },
+  { id: 'graduate', title: 'Graduate', icon: 'school', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 11 },
 ];
 
 export function levelFromXp(xp: number): number {
@@ -68,6 +72,7 @@ const DEFAULT: Progress = {
   solvedToday: 0,
   goalDate: '',
   achievements: [],
+  lessonsCompleted: [],
 };
 
 type Ctx = {
@@ -75,6 +80,7 @@ type Ctx = {
   level: number;
   awardPuzzleSolved: () => void;
   awardGameResult: (won: boolean) => void;
+  markLessonComplete: (id: string) => void;
   newlyEarned: string | null;
   clearNewlyEarned: () => void;
 };
@@ -94,6 +100,7 @@ function fromRow(row: any): Progress {
     solvedToday: row.solved_today ?? 0,
     goalDate: row.goal_date ?? '',
     achievements: row.achievements ?? [],
+    lessonsCompleted: [], // cloud row doesn't track this; merged from device on load
   };
 }
 function toRow(p: Progress, userId: string) {
@@ -138,7 +145,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setProgress(fromRow(data));
+        // Cloud is source of truth for stats, but lesson completion is
+        // device-local, so preserve it across the load.
+        if (data) setProgress((prev) => ({ ...fromRow(data), lessonsCompleted: prev.lessonsCompleted }));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -209,16 +218,29 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     });
   }, [save]);
 
+  const markLessonComplete = useCallback((id: string) => {
+    setProgress((prev) => {
+      const done = prev.lessonsCompleted ?? [];
+      if (done.includes(id)) return prev;
+      let next = withDaily(prev);
+      next = { ...next, lessonsCompleted: [...done, id], xp: next.xp + XP_LESSON };
+      next = applyAchievements(next);
+      save(next);
+      return next;
+    });
+  }, [save]);
+
   const value = useMemo<Ctx>(
     () => ({
       progress,
       level: levelFromXp(progress.xp),
       awardPuzzleSolved,
       awardGameResult,
+      markLessonComplete,
       newlyEarned,
       clearNewlyEarned: () => setNewlyEarned(null),
     }),
-    [progress, newlyEarned, awardPuzzleSolved, awardGameResult],
+    [progress, newlyEarned, awardPuzzleSolved, awardGameResult, markLessonComplete],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

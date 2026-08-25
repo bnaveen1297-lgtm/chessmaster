@@ -6,7 +6,7 @@ import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
 import { Icon, type IconName } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
-import { puzzles } from '../data/puzzles';
+import { puzzles, themeTip } from '../data/puzzles';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare } from '../game/chessHelpers';
 import { useProgress, XP_PUZZLE } from '../game/ProgressContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -152,7 +152,7 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
         <Icon name={banner.icon} size={20} color={banner.color} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.bannerText, { color: banner.color }]}>{banner.text}</Text>
-          <Text style={styles.hint}>{sideLabel} to move</Text>
+          <Text style={styles.hint}>{status === 'solved' ? themeTip(puzzle.theme) : `${sideLabel} to move`}</Text>
         </View>
       </View>
 
