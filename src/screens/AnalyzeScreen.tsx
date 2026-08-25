@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ActivityIndicator, LayoutChangeEvent } from 'react-native';
+import Svg, { Path, Line } from 'react-native-svg';
 import { Screen, Card, Button } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { Icon } from '../components/Icon';
@@ -10,13 +11,29 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Analyze'>;
 
+// Distinct colors per label (Chess.com-like palette, mapped to our theme).
 const CLASS_COLOR: Record<MoveClass, string> = {
+  Brilliant: colors.teal,
+  Great: colors.info,
   Best: colors.success,
   Good: colors.textMuted,
+  Book: colors.textFaint,
   Inaccuracy: colors.warning,
   Mistake: colors.orange,
+  Miss: colors.purple,
   Blunder: colors.danger,
 };
+
+// Labels that represent a loss worth showing a centipawn drop + engine line for.
+const LOSS_CLASSES = new Set<MoveClass>(['Inaccuracy', 'Mistake', 'Miss', 'Blunder']);
+
+/** Color the accuracy number by quality. */
+function accuracyColor(pct: number): string {
+  if (pct >= 90) return colors.success;
+  if (pct >= 80) return colors.info;
+  if (pct >= 60) return colors.warning;
+  return colors.danger;
+}
 
 export function AnalyzeScreen({ route, navigation }: Props) {
   const incoming = route.params?.pgn;
@@ -99,27 +116,47 @@ export function AnalyzeScreen({ route, navigation }: Props) {
       {report && !busy && (
         <View>
           <Text style={styles.label}>REPORT</Text>
+
+          <Card style={styles.openingCard}>
+            <View style={styles.openingGlyph}><Icon name="book" size={16} color={colors.tint} /></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.openingLabel}>OPENING</Text>
+              <Text style={styles.openingName}>{report.openingName}</Text>
+            </View>
+            <Text style={styles.resultText}>{report.result === '*' ? '' : report.result}</Text>
+          </Card>
+
           <View style={styles.statRow}>
             <SideCard title="White" side={report.white} />
             <SideCard title="Black" side={report.black} />
           </View>
 
+          <Text style={styles.label}>EVALUATION</Text>
+          <Card>
+            <EvalGraph series={report.evalSeries} />
+            <View style={styles.evalLegend}>
+              <Text style={styles.evalLegendText}>White</Text>
+              <Text style={styles.evalLegendText}>Black</Text>
+            </View>
+          </Card>
+
           <Text style={styles.label}>MOVE BY MOVE</Text>
           <Card style={styles.moveCard}>
             {report.moves.map((m, i) => {
-              const show = m.classification !== 'Best' && m.classification !== 'Good';
+              const showLoss = LOSS_CLASSES.has(m.classification);
+              const tagColor = CLASS_COLOR[m.classification];
               return (
                 <View key={m.ply} style={[styles.moveBlock, i > 0 && styles.moveDivider]}>
                   <View style={styles.moveRow}>
                     <Text style={styles.moveNo}>{m.color === 'w' ? `${m.moveNo}.` : `${m.moveNo}…`}</Text>
                     <Text style={styles.moveSan}>{m.san}</Text>
-                    <View style={[styles.tag, { backgroundColor: CLASS_COLOR[m.classification] + '22' }]}>
-                      <View style={[styles.tagDot, { backgroundColor: CLASS_COLOR[m.classification] }]} />
-                      <Text style={[styles.tagText, { color: CLASS_COLOR[m.classification] }]}>{m.classification}</Text>
+                    <View style={[styles.tag, { backgroundColor: tagColor + '22' }]}>
+                      <View style={[styles.tagDot, { backgroundColor: tagColor }]} />
+                      <Text style={[styles.tagText, { color: tagColor }]}>{m.classification}</Text>
                     </View>
-                    {show && m.cpLoss > 0 && <Text style={styles.cp}>−{(m.cpLoss / 100).toFixed(1)}</Text>}
+                    {showLoss && m.cpLoss > 0 && <Text style={styles.cp}>−{(m.cpLoss / 100).toFixed(1)}</Text>}
                   </View>
-                  {show && m.bestSan !== m.san && (
+                  {showLoss && m.bestSan !== m.san && (
                     <Text style={styles.bestLine}>engine preferred <Text style={styles.bestSan}>{m.bestSan}</Text></Text>
                   )}
                 </View>
@@ -127,8 +164,9 @@ export function AnalyzeScreen({ route, navigation }: Props) {
             })}
           </Card>
           <Text style={styles.footnote}>
-            Centipawn loss vs. the engine's best move. Depth-2 quick review — a
-            deeper Stockfish pass comes with the backend.
+            Win% and accuracy use the Lichess/Chess.com model; centipawn loss is
+            vs. the engine's best move. Depth-2 quick review — a deeper Stockfish
+            pass comes with the backend.
           </Text>
         </View>
       )}
@@ -140,7 +178,7 @@ function SideCard({ title, side }: { title: string; side: SideReport }) {
   return (
     <Card style={styles.sideCard}>
       <Text style={styles.sideLabel}>{title.toUpperCase()}</Text>
-      <Text style={styles.accuracy}>{side.accuracy}%</Text>
+      <Text style={[styles.accuracy, { color: accuracyColor(side.accuracy) }]}>{side.accuracy}%</Text>
       <Text style={styles.sideMeta}>accuracy · {side.acpl} acpl</Text>
       <View style={styles.countRow}>
         <Count n={side.blunder} label="Blunders" color={colors.danger} />
@@ -148,6 +186,41 @@ function SideCard({ title, side }: { title: string; side: SideReport }) {
         <Count n={side.inaccuracy} label="Inacc." color={colors.warning} />
       </View>
     </Card>
+  );
+}
+
+/**
+ * A small self-contained area chart of White's win% across the game.
+ * Above the 50% midline favors White; below favors Black.
+ */
+function EvalGraph({ series }: { series: number[] }) {
+  const [width, setWidth] = useState(0);
+  const height = 96;
+  const onLayout = useCallback((e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width), []);
+
+  const n = series.length;
+  const x = (i: number) => (n <= 1 ? width / 2 : (i / (n - 1)) * width);
+  const y = (pct: number) => height - (pct / 100) * height; // 100% (White) at top
+
+  let linePath = '';
+  let areaPath = '';
+  if (width > 0 && n > 0) {
+    const pts = series.map((p, i) => `${x(i).toFixed(1)},${y(p).toFixed(1)}`);
+    linePath = 'M' + pts.join(' L');
+    areaPath = `M${x(0).toFixed(1)},${height} L` + pts.join(' L') + ` L${x(n - 1).toFixed(1)},${height} Z`;
+  }
+  const mid = y(50);
+
+  return (
+    <View onLayout={onLayout} style={{ height }}>
+      {width > 0 && n > 0 && (
+        <Svg width={width} height={height}>
+          {areaPath ? <Path d={areaPath} fill={colors.tint} fillOpacity={0.12} /> : null}
+          <Line x1={0} y1={mid} x2={width} y2={mid} stroke={colors.border} strokeWidth={1} strokeDasharray="4 4" />
+          {linePath ? <Path d={linePath} stroke={colors.tint} strokeWidth={2} fill="none" /> : null}
+        </Svg>
+      )}
+    </View>
   );
 }
 
@@ -183,6 +256,13 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg },
   errorCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
   errorText: { color: colors.danger, fontWeight: '600', flex: 1 },
+  openingCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
+  openingGlyph: { width: 34, height: 34, borderRadius: 9, backgroundColor: colors.tint + '18', alignItems: 'center', justifyContent: 'center' },
+  openingLabel: { ...typography.label, color: colors.textFaint },
+  openingName: { ...typography.h3, fontSize: 16 },
+  resultText: { ...typography.h3, color: colors.textMuted, fontVariant: ['tabular-nums'] },
+  evalLegend: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
+  evalLegendText: { ...typography.label, color: colors.textFaint },
   statRow: { flexDirection: 'row', gap: spacing.md },
   sideCard: { flex: 1 },
   sideLabel: { ...typography.label, color: colors.textMuted },

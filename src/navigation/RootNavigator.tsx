@@ -32,6 +32,7 @@ import { MasterBaseScreen } from '../screens/MasterBaseScreen';
 import { MasterGameScreen } from '../screens/MasterGameScreen';
 import { PlayVsMasterScreen } from '../screens/PlayVsMasterScreen';
 import { OlympiadScreen } from '../screens/OlympiadScreen';
+import { LiveBoardsScreen } from '../screens/LiveBoardsScreen';
 import { GamesHistoryScreen } from '../screens/GamesHistoryScreen';
 import { ImportGamesScreen } from '../screens/ImportGamesScreen';
 import { OpeningTrainerScreen } from '../screens/OpeningTrainerScreen';
@@ -59,6 +60,7 @@ export type RootStackParamList = {
   MasterGame: { id: string };
   PlayVsMaster: { id: string; side: 'w' | 'b' };
   Olympiad: undefined;
+  LiveBoards: undefined;
   GamesHistory: undefined;
   ImportGames: undefined;
   OpeningTrainer: { eco: string };
@@ -148,6 +150,7 @@ export function RootNavigator() {
           <Stack.Screen name="MasterGame" component={MasterGameScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayVsMaster" component={PlayVsMasterScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Olympiad" component={OlympiadScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LiveBoards" component={LiveBoardsScreen} options={{ headerShown: false }} />
           <Stack.Screen name="GamesHistory" component={GamesHistoryScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ImportGames" component={ImportGamesScreen} options={{ headerShown: false }} />
           <Stack.Screen name="OpeningTrainer" component={OpeningTrainerScreen} options={{ headerShown: false }} />

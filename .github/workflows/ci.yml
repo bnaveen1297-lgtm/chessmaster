@@ -40,3 +40,6 @@ jobs:
 
       - name: Import parser tests
         run: npm run test:import
+
+      - name: Puzzle DB converter tests
+        run: npm run test:puzzledb

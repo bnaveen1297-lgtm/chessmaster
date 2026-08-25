@@ -102,7 +102,7 @@ console.log('— engine (bestMove / self-play) —');
 console.log('— analyzer —');
 {
   const rep = analyze.analyzeGame(analyze.SAMPLE_PGN, 2);
-  const valid = new Set(['Best', 'Good', 'Inaccuracy', 'Mistake', 'Blunder']);
+  const valid = new Set(['Book', 'Brilliant', 'Great', 'Best', 'Good', 'Inaccuracy', 'Miss', 'Mistake', 'Blunder']);
   ok(rep.white.accuracy >= 0 && rep.white.accuracy <= 100, 'white accuracy in [0,100]');
   ok(rep.black.accuracy >= 0 && rep.black.accuracy <= 100, 'black accuracy in [0,100]');
   ok(rep.moves.every((m) => valid.has(m.classification)), 'all moves have a valid classification');

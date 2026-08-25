@@ -45,6 +45,18 @@ export function OlympiadScreen({ navigation }: Props) {
           {phase === 'finished' && <Text style={styles.countSub}>The 46th Olympiad has concluded.</Text>}
         </View>
 
+        {/* Live boards — streams during the event, links to the broadcast screen */}
+        <Card style={styles.liveCard} onPress={() => navigation.navigate('LiveBoards')}>
+          <View style={styles.liveBadge}>
+            <Icon name="radio" size={20} color="#fff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.liveTitle}>Live boards</Text>
+            <Text style={styles.liveSub}>Follow the games live during the event</Text>
+          </View>
+          <Icon name="chevron-forward" size={18} color={colors.textFaint} />
+        </Card>
+
         {/* Event facts */}
         <Group style={{ marginTop: spacing.md }}>
           <Row first title="Dates" left={<TileIcon name="calendar" />} right={<Text style={styles.val}>{olympiadDates}</Text>} />
@@ -137,6 +149,10 @@ const styles = StyleSheet.create({
   codeBadge: { width: 40, height: 30, borderRadius: 8, backgroundColor: colors.samarkandDeep, alignItems: 'center', justifyContent: 'center' },
   codeText: { color: '#fff', fontWeight: '800', fontSize: 12 },
   boardBadge: { width: 30, height: 30, borderRadius: 8, backgroundColor: colors.samarkand, alignItems: 'center', justifyContent: 'center' },
+  liveCard: { marginTop: spacing.md, marginBottom: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  liveBadge: { width: 40, height: 40, borderRadius: 10, backgroundColor: colors.samarkand, alignItems: 'center', justifyContent: 'center' },
+  liveTitle: { ...typography.h3 },
+  liveSub: { ...typography.muted, marginTop: 1 },
   allCard: { marginTop: spacing.xs },
   allRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   allText: { ...typography.h3, flex: 1 },
