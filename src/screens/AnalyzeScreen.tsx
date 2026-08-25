@@ -18,7 +18,7 @@ const CLASS_COLOR: Record<MoveClass, string> = {
   Blunder: colors.danger,
 };
 
-export function AnalyzeScreen({ route }: Props) {
+export function AnalyzeScreen({ route, navigation }: Props) {
   const incoming = route.params?.pgn;
   const [pgn, setPgn] = useState(incoming || SAMPLE_PGN);
   const [report, setReport] = useState<GameReport | null>(null);
@@ -52,9 +52,17 @@ export function AnalyzeScreen({ route }: Props) {
     <Screen>
       <AppHeader eyebrow="ANALYZE" title="Game Report" />
       <Text style={styles.intro}>
-        Paste a PGN and get an engine review — accuracy, blunders, and every move
-        rated. (Chess.com / Lichess username import arrives with the backend.)
+        Paste a PGN and get an engine review — accuracy, blunders, and every move rated.
       </Text>
+
+      <Card style={styles.importCard} onPress={() => navigation.navigate('ImportGames')}>
+        <View style={styles.importGlyph}><Icon name="cloud-download" size={20} color="#fff" /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.importTitle}>Import from Chess.com or Lichess</Text>
+          <Text style={styles.importSub}>Pull your recent games by username</Text>
+        </View>
+        <Icon name="chevron-forward" size={18} color={colors.textFaint} />
+      </Card>
 
       <Text style={styles.label}>YOUR GAME</Text>
       <Card>
@@ -154,6 +162,10 @@ function Count({ n, label, color }: { n: number; label: string; color: string })
 
 const styles = StyleSheet.create({
   intro: { ...typography.muted, marginLeft: spacing.xs, marginBottom: spacing.sm },
+  importCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface },
+  importGlyph: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#1F9E7A', alignItems: 'center', justifyContent: 'center' },
+  importTitle: { ...typography.h3, fontSize: 15 },
+  importSub: { ...typography.muted, fontSize: 12.5 },
   label: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
   pgn: {
     borderWidth: 1,

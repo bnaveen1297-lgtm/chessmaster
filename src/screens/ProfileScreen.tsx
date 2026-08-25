@@ -21,7 +21,7 @@ const STAT_TILES: { key: string; title: string; icon: IconName; color: string }[
 const SETTINGS: { key: string; title: string; value: string; icon: IconName; color: string; dest?: keyof RootStackParamList }[] = [
   { key: 'history', title: 'Your games', value: 'Replay', icon: 'time', color: colors.tint, dest: 'GamesHistory' },
   { key: 'plans', title: 'Membership plans', value: 'Free', icon: 'star', color: '#8E5BE0', dest: 'Plans' },
-  { key: 'accounts', title: 'Connected accounts', value: 'Chess.com, Lichess', icon: 'link', color: '#1F9E7A' },
+  { key: 'accounts', title: 'Import games', value: 'Chess.com · Lichess', icon: 'cloud-download', color: '#1F9E7A', dest: 'ImportGames' },
   { key: 'notifications', title: 'Notifications', value: 'On', icon: 'notifications', color: '#E0568A' },
   { key: 'theme', title: 'Board theme', value: 'Classic', icon: 'color-palette', color: '#E08A2B' },
 ];

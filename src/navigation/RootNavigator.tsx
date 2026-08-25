@@ -33,6 +33,7 @@ import { MasterGameScreen } from '../screens/MasterGameScreen';
 import { PlayVsMasterScreen } from '../screens/PlayVsMasterScreen';
 import { OlympiadScreen } from '../screens/OlympiadScreen';
 import { GamesHistoryScreen } from '../screens/GamesHistoryScreen';
+import { ImportGamesScreen } from '../screens/ImportGamesScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -58,6 +59,7 @@ export type RootStackParamList = {
   PlayVsMaster: { id: string; side: 'w' | 'b' };
   Olympiad: undefined;
   GamesHistory: undefined;
+  ImportGames: undefined;
 };
 
 export type TabParamList = {
@@ -145,6 +147,7 @@ export function RootNavigator() {
           <Stack.Screen name="PlayVsMaster" component={PlayVsMasterScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Olympiad" component={OlympiadScreen} options={{ headerShown: false }} />
           <Stack.Screen name="GamesHistory" component={GamesHistoryScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ImportGames" component={ImportGamesScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

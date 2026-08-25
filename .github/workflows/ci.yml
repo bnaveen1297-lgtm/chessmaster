@@ -37,3 +37,6 @@ jobs:
 
       - name: Tournament pairing tests
         run: npm run test:tournament
+
+      - name: Import parser tests
+        run: npm run test:import
