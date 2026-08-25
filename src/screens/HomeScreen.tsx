@@ -18,11 +18,15 @@ type Props = CompositeScreenProps<
 >;
 
 const TILES: { key: string; title: string; subtitle: string; icon: IconName; color: string }[] = [
-  { key: 'play', title: 'Play', subtitle: 'Beat the engine', icon: 'play', color: '#7C3AED' },
+  { key: 'play', title: 'Play', subtitle: 'Beat the engine', icon: 'play', color: colors.tint },
   { key: 'learn', title: 'Learn', subtitle: 'Lessons & openings', icon: 'book', color: '#1F9E7A' },
-  { key: 'analyse', title: 'Analyse', subtitle: 'Review your games', icon: 'search', color: '#E08A2B' },
+  { key: 'analyse', title: 'Analyse', subtitle: 'Review your games', icon: 'stats-chart', color: '#E08A2B' },
   { key: 'game', title: 'Game', subtitle: 'Tournaments & friends', icon: 'trophy', color: '#E0568A' },
 ];
+
+function greeting() {
+  return 'WELCOME BACK';
+}
 
 export function HomeScreen({ navigation }: Props) {
   const { progress } = useProgress();
@@ -41,7 +45,11 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <Screen>
-      <AppHeader title={`Hi, ${user?.firstName || 'Champion'}`} onProfile={() => navigation.navigate('Profile')} />
+      <AppHeader
+        eyebrow={greeting()}
+        title={user?.firstName || 'Champion'}
+        onProfile={() => navigation.navigate('Profile')}
+      />
 
       {/* Four primary destinations — the first thing you see */}
       <View style={styles.grid}>
@@ -49,10 +57,10 @@ export function HomeScreen({ navigation }: Props) {
           <Pressable
             key={t.key}
             onPress={() => onTile(t.key)}
-            style={({ pressed }) => [styles.tile, pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }]}
+            style={({ pressed }) => [styles.tile, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
           >
             <View style={[styles.iconSquare, { backgroundColor: t.color }]}>
-              <Icon name={t.icon} size={24} color="#fff" />
+              <Icon name={t.icon} size={22} color="#fff" />
             </View>
             <Text style={styles.tileTitle}>{t.title}</Text>
             <Text style={styles.tileSub}>{t.subtitle}</Text>
@@ -60,7 +68,7 @@ export function HomeScreen({ navigation }: Props) {
         ))}
       </View>
 
-      {/* Compact progress strip */}
+      {/* Dark hero: today's progress (the single dark surface, Apple Fitness-style) */}
       <Card style={styles.progressCard}>
         <View style={styles.progressTop}>
           <Text style={styles.levelText}>Level {level}</Text>
@@ -81,11 +89,20 @@ export function HomeScreen({ navigation }: Props) {
         </View>
       </Card>
 
-      {/* Olympiad live */}
+      {/* Olympiad live — light card with red live marker + chevron */}
+      <Text style={styles.sectionLabel}>OLYMPIAD</Text>
       <Card style={styles.liveCard} onPress={() => navigation.navigate('LiveGame', { id: live.id })}>
-        <Text style={styles.liveTag}>● OLYMPIAD LIVE</Text>
-        <Text style={styles.liveMatch}>{live.white} vs {live.black}</Text>
-        <Text style={styles.liveMeta}>{live.event}</Text>
+        <View style={styles.liveRow}>
+          <View style={{ flex: 1 }}>
+            <View style={styles.liveTagRow}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveTag}>LIVE NOW</Text>
+            </View>
+            <Text style={styles.liveMatch}>{live.white} vs {live.black}</Text>
+            <Text style={styles.liveMeta}>{live.event}</Text>
+          </View>
+          <Icon name="chevron-forward" size={20} color={colors.textFaint} />
+        </View>
       </Card>
 
       {/* Stats */}
@@ -133,41 +150,43 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.md,
-    minHeight: 118,
+    minHeight: 116,
     justifyContent: 'space-between',
     ...shadow.card,
   },
-  iconSquare: { width: 46, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  iconGlyph: { fontSize: 24, color: '#fff' },
-  tileTitle: { fontSize: 19, fontWeight: '800', color: colors.ink, marginTop: spacing.sm },
+  iconSquare: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  tileTitle: { fontSize: 18, fontWeight: '700', color: colors.ink, marginTop: spacing.sm, letterSpacing: -0.3 },
   tileSub: { fontSize: 12.5, color: colors.textMuted, marginTop: 1 },
 
   progressCard: { marginTop: spacing.md, backgroundColor: colors.ink },
   progressTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  levelText: { color: colors.onDark, fontSize: 17, fontWeight: '800' },
+  levelText: { color: colors.onDark, fontSize: 17, fontWeight: '700' },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  streakText: { color: colors.gold, fontSize: 13, fontWeight: '700' },
-  xpTrack: { height: 8, backgroundColor: '#2E2E33', borderRadius: 999, marginTop: spacing.sm, overflow: 'hidden' },
+  streakText: { color: colors.gold, fontSize: 13, fontWeight: '600' },
+  xpTrack: { height: 8, backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: 999, marginTop: spacing.sm, overflow: 'hidden' },
   xpFill: { height: 8, backgroundColor: colors.gold, borderRadius: 999 },
   progressBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  progressMeta: { color: '#C9C9CF', fontSize: 11.5 },
-  goalTrack: { height: 6, backgroundColor: '#2E2E33', borderRadius: 999, marginTop: 6, overflow: 'hidden' },
+  progressMeta: { color: 'rgba(255,255,255,0.65)', fontSize: 11.5 },
+  goalTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: 999, marginTop: 6, overflow: 'hidden' },
   goalFill: { height: 6, backgroundColor: colors.success, borderRadius: 999 },
 
-  liveCard: { backgroundColor: colors.dark },
-  liveTag: { color: colors.danger, fontWeight: '800', fontSize: 11, letterSpacing: 0.5 },
-  liveMatch: { ...typography.h3, color: colors.onDark, marginTop: spacing.xs },
-  liveMeta: { color: '#B9B9C0', fontSize: 12 },
+  liveCard: {},
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  liveTagRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger },
+  liveTag: { color: colors.danger, fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
+  liveMatch: { ...typography.h3, color: colors.ink },
+  liveMeta: { color: colors.textMuted, fontSize: 12.5, marginTop: 1 },
 
-  sectionLabel: { ...typography.label, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  sectionLabel: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
   statRow: { flexDirection: 'row', gap: spacing.sm },
   stat: { flex: 1, alignItems: 'center' },
-  statN: { fontSize: 24, fontWeight: '900', color: colors.ink },
-  statLabel: { fontSize: 11, fontWeight: '700', color: colors.textFaint, marginTop: 2 },
+  statN: { fontSize: 26, fontWeight: '800', color: colors.ink, letterSpacing: -0.5 },
+  statLabel: { fontSize: 11, fontWeight: '600', color: colors.textMuted, marginTop: 2 },
 
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   badge: { alignItems: 'center', width: 70 },
   badgeLocked: { opacity: 0.7 },
-  badgeCircle: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  badgeTitle: { fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2, color: colors.ink },
+  badgeCircle: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.fill, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  badgeTitle: { fontSize: 10, fontWeight: '600', textAlign: 'center', marginTop: 2, color: colors.ink },
 });

@@ -74,7 +74,7 @@ export function PuzzleScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  themeHeader: { ...typography.label, color: colors.gold, marginTop: spacing.md, marginBottom: spacing.sm },
+  themeHeader: { ...typography.label, color: colors.textMuted, marginTop: spacing.md, marginBottom: spacing.sm },
   online: { backgroundColor: colors.ink, borderColor: colors.ink },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   onlineGlyph: { width: 28, alignItems: 'center' },
