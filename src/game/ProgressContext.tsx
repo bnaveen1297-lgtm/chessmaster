@@ -40,7 +40,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'streak_7', title: 'Week Warrior', icon: 'flash', test: (p) => p.streakDays >= 7 },
   { id: 'level_5', title: 'Rising Star', icon: 'star', test: (p) => levelFromXp(p.xp) >= 5 },
   { id: 'first_lesson', title: 'Student', icon: 'book', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 1 },
-  { id: 'graduate', title: 'Graduate', icon: 'school', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 11 },
+  { id: 'scholar', title: 'Scholar', icon: 'library', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 20 },
+  { id: 'graduate', title: 'Graduate', icon: 'school', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 40 },
 ];
 
 export function levelFromXp(xp: number): number {

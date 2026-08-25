@@ -57,8 +57,8 @@ export type RootStackParamList = {
   Tournaments: undefined;
   TournamentDetail: { id: string };
   MasterBase: undefined;
-  MasterGame: { id: string };
-  PlayVsMaster: { id: string; side: 'w' | 'b' };
+  MasterGame: { id?: string; game?: import('../data/masters').MasterGame };
+  PlayVsMaster: { id?: string; side: 'w' | 'b'; game?: import('../data/masters').MasterGame };
   Olympiad: undefined;
   LiveBoards: undefined;
   GamesHistory: undefined;

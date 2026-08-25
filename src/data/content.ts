@@ -49,31 +49,90 @@ export type CurriculumUnit = { id: string; title: string; lessons: Lesson[] };
 export const curriculum: CurriculumUnit[] = [
   {
     id: 'u1',
-    title: 'Chess Foundations',
+    title: 'First Steps',
     lessons: [
-      { id: 'l1', title: 'What is chess', minutes: 6, done: true },
-      { id: 'l2', title: 'Uses of playing chess', minutes: 5, done: true },
-      { id: 'l3', title: 'Understanding the board', minutes: 7, done: true },
+      { id: 'l1', title: 'What is chess', minutes: 6, done: false },
+      { id: 'l2', title: 'Uses of playing chess', minutes: 5, done: false },
+      { id: 'l3', title: 'Understanding the board', minutes: 7, done: false },
       { id: 'l4', title: 'Understanding the pawn', minutes: 8, done: false },
       { id: 'l5', title: 'Understanding the King & pieces', minutes: 9, done: false },
-      { id: 'l6', title: 'Understanding basic tactics', minutes: 10, done: false },
     ],
   },
   {
     id: 'u2',
-    title: 'Openings & Tactics',
+    title: 'Basic Tactics',
     lessons: [
-      { id: 'l7', title: 'Opening principles', minutes: 9, done: false },
+      { id: 'l6', title: 'Understanding basic tactics', minutes: 10, done: false },
       { id: 'l8', title: 'Forks & double attacks', minutes: 11, done: false },
       { id: 'l9', title: 'Pins and skewers', minutes: 12, done: false },
+      { id: 'l12', title: 'Discovered attacks', minutes: 10, done: false },
+      { id: 'l13', title: 'The double attack', minutes: 10, done: false },
+      { id: 'l14', title: 'Loose pieces & counting', minutes: 9, done: false },
     ],
   },
   {
     id: 'u3',
-    title: 'Endgame Mastery',
+    title: 'Checkmating Patterns',
+    lessons: [
+      { id: 'l15', title: 'What checkmate really is', minutes: 7, done: false },
+      { id: 'l16', title: 'The back-rank mate', minutes: 9, done: false },
+      { id: 'l17', title: 'King and queen vs king', minutes: 11, done: false },
+      { id: 'l18', title: 'The two-rook ladder mate', minutes: 10, done: false },
+      { id: 'l19', title: 'Smothered mate', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u4',
+    title: 'Opening Principles',
+    lessons: [
+      { id: 'l7', title: 'Opening principles', minutes: 9, done: false },
+      { id: 'l20', title: 'Fighting for the center', minutes: 8, done: false },
+      { id: 'l21', title: 'Development and tempo', minutes: 9, done: false },
+      { id: 'l22', title: 'King safety and castling', minutes: 8, done: false },
+      { id: 'l23', title: 'Common opening traps', minutes: 10, done: false },
+    ],
+  },
+  {
+    id: 'u5',
+    title: 'Positional Play',
+    lessons: [
+      { id: 'l24', title: 'What is positional chess', minutes: 8, done: false },
+      { id: 'l25', title: 'Good and bad bishops', minutes: 9, done: false },
+      { id: 'l26', title: 'Knights and outposts', minutes: 9, done: false },
+      { id: 'l27', title: 'Open files and the rooks', minutes: 10, done: false },
+      { id: 'l28', title: 'Space and the center', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u6',
+    title: 'Pawn Structures',
+    lessons: [
+      { id: 'l29', title: 'Why pawn structure matters', minutes: 8, done: false },
+      { id: 'l30', title: 'Isolated and doubled pawns', minutes: 9, done: false },
+      { id: 'l31', title: 'Passed pawns', minutes: 10, done: false },
+      { id: 'l32', title: 'Pawn chains', minutes: 9, done: false },
+      { id: 'l33', title: 'Backward pawns and holes', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u7',
+    title: 'Endgame Technique',
     lessons: [
       { id: 'l10', title: 'King & pawn endgames', minutes: 14, done: false },
       { id: 'l11', title: 'Rook endgame essentials', minutes: 16, done: false },
+      { id: 'l34', title: 'The opposition and key squares', minutes: 11, done: false },
+      { id: 'l35', title: 'Promoting a passed pawn', minutes: 10, done: false },
+      { id: 'l36', title: 'Basic checkmates', minutes: 12, done: false },
+      { id: 'l37', title: 'Minor-piece endgames', minutes: 12, done: false },
+    ],
+  },
+  {
+    id: 'u8',
+    title: 'Improvement & Practice',
+    lessons: [
+      { id: 'l38', title: 'How to study chess', minutes: 8, done: false },
+      { id: 'l39', title: 'Learning from your own games', minutes: 9, done: false },
+      { id: 'l40', title: 'Building a training routine', minutes: 8, done: false },
     ],
   },
 ];

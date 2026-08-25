@@ -47,6 +47,39 @@ That's it — the app automatically prefers the database once it has rows.
 > import must run from a machine with network + your Supabase service key. The
 > conversion logic is fully unit-tested regardless.
 
+## The master-games database (millions of games)
+
+The **Master Base** ships a small, machine-verified core set of famous games,
+but it can also serve **millions of real master games** from Supabase — the same
+`rnd` random-access pattern as the puzzles.
+
+Raw PGN rows are stored as-is; the app converts a row into the `MasterGame`
+shape it already renders (`src/services/masterRow.ts`, unit-tested by
+`npm run test:masterdb`). In **Master Base**, a "MILLIONS OF GAMES" section
+appears once the database has rows — Shuffle pulls a fresh random batch, and any
+game can be watched, analysed, or played against move-by-move.
+
+### Load the database (one time)
+
+1. Apply the schema — `supabase/migrations/0005_master_games.sql` (table,
+   indexes, RLS public-read, and the `random_master_games` RPC).
+2. Import a PGN collection. Good free sources: the **Lichess Elite database**
+   (2400+ vs 2200+, https://database.nikonoel.fr/), Caissabase, or KingBase.
+   The importer streams from stdin, so memory stays flat at any size:
+
+   ```bash
+   export SUPABASE_URL="https://evmjrxxrfumrggzmtpam.supabase.co"
+   export SUPABASE_SERVICE_ROLE_KEY="<service-role key>"   # server key, NOT the anon key
+   zstd -dc lichess_elite_2024-12.pgn.zst | node scripts/import-pgn-games.mjs
+   # optional: LIMIT=1000000, MIN_ELO=2400, BATCH=500
+   ```
+
+The app automatically shows the DB section once it has rows.
+
+> Same sandbox caveat: `*.supabase.co` and the dump hosts are blocked here, so
+> the import runs from a networked machine with your service key. The converter
+> is fully unit-tested regardless.
+
 ## Live Olympiad boards (the DGT boards)
 
 The physical **DGT boards** at the Olympiad feed the organizer's relay, and

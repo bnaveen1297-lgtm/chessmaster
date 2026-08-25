@@ -19,7 +19,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PlayVsMaster'>;
 type Rec = { from: string; to: string; promotion?: string; san: string; color: 'w' | 'b' };
 
 export function PlayVsMasterScreen({ route, navigation }: Props) {
-  const master = getMasterGame(route.params.id);
+  const master = route.params.game ?? (route.params.id ? getMasterGame(route.params.id) : undefined);
   const side = route.params.side; // human's colour
   const { width } = useWindowDimensions();
   const boardSize = Math.min(width - spacing.md * 2, 380);

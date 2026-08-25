@@ -13,7 +13,7 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 type Props = NativeStackScreenProps<RootStackParamList, 'MasterGame'>;
 
 export function MasterGameScreen({ route, navigation }: Props) {
-  const game = getMasterGame(route.params.id);
+  const game = route.params.game ?? (route.params.id ? getMasterGame(route.params.id) : undefined);
   const { width } = useWindowDimensions();
   const boardSize = Math.min(width - spacing.md * 2, 320);
 
@@ -64,10 +64,10 @@ export function MasterGameScreen({ route, navigation }: Props) {
         </Text>
         <View style={styles.actions}>
           <View style={{ flex: 1 }}>
-            <Button label="Play as White" onPress={() => navigation.navigate('PlayVsMaster', { id: game.id, side: 'w' })} />
+            <Button label="Play as White" onPress={() => navigation.navigate('PlayVsMaster', { game, side: 'w' })} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button label="Play as Black" variant="outline" onPress={() => navigation.navigate('PlayVsMaster', { id: game.id, side: 'b' })} />
+            <Button label="Play as Black" variant="outline" onPress={() => navigation.navigate('PlayVsMaster', { game, side: 'b' })} />
           </View>
         </View>
 

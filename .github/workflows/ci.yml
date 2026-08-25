@@ -43,3 +43,6 @@ jobs:
 
       - name: Puzzle DB converter tests
         run: npm run test:puzzledb
+
+      - name: Master DB converter tests
+        run: npm run test:masterdb

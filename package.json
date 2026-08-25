@@ -17,7 +17,8 @@
     "test:tournament": "tsc src/tournament/pairing.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/test-tournament.js",
     "verify:masters": "tsc src/data/masters.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/verify-masters.js",
     "test:import": "tsc src/services/importGames.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/test-import.js",
-    "test:puzzledb": "tsc src/services/lichessPuzzle.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/test-puzzledb.js"
+    "test:puzzledb": "tsc src/services/lichessPuzzle.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/test-puzzledb.js",
+    "test:masterdb": "tsc src/services/masterRow.ts --module commonjs --target es2019 --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tsc-test && node scripts/test-masterdb.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
