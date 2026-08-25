@@ -1,8 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
-import { Screen, Card, Button, SectionHeader } from '../components/ui';
+import { Screen, Card, Button } from '../components/ui';
+import { AppHeader } from '../components/AppHeader';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { analyzeGame, SAMPLE_PGN, type GameReport, type MoveClass, type SideReport } from '../engine/analyze';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/RootNavigator';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Analyze'>;
 
 const CLASS_COLOR: Record<MoveClass, string> = {
   Best: colors.success,
@@ -12,79 +18,90 @@ const CLASS_COLOR: Record<MoveClass, string> = {
   Blunder: colors.danger,
 };
 
-export function AnalyzeScreen() {
-  const [pgn, setPgn] = useState(SAMPLE_PGN);
+export function AnalyzeScreen({ route }: Props) {
+  const incoming = route.params?.pgn;
+  const [pgn, setPgn] = useState(incoming || SAMPLE_PGN);
   const [report, setReport] = useState<GameReport | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const run = useCallback(() => {
+  const analyze = useCallback((text: string) => {
     setError(null);
     setReport(null);
     setBusy(true);
     // Defer so the spinner paints before the (blocking) analysis runs.
     setTimeout(() => {
       try {
-        setReport(analyzeGame(pgn, 2));
+        setReport(analyzeGame(text, 2));
       } catch (e: any) {
         setError(e?.message ? `Couldn't read that PGN: ${e.message}` : "Couldn't read that PGN.");
       } finally {
         setBusy(false);
       }
     }, 60);
-  }, [pgn]);
+  }, []);
+
+  const run = useCallback(() => analyze(pgn), [analyze, pgn]);
+
+  // If we arrived with a game to review (e.g. from the Master Base), run it.
+  useEffect(() => {
+    if (incoming) analyze(incoming);
+  }, [incoming, analyze]);
 
   return (
     <Screen>
-      <Text style={typography.h1}>Analyze your games</Text>
-      <Text style={[typography.muted, { marginBottom: spacing.md }]}>
-        Paste a PGN and get an engine review — accuracy, blunders, and every
-        move rated. (Chess.com / Lichess username import arrives with the backend.)
+      <AppHeader eyebrow="ANALYZE" title="Game Report" />
+      <Text style={styles.intro}>
+        Paste a PGN and get an engine review — accuracy, blunders, and every move
+        rated. (Chess.com / Lichess username import arrives with the backend.)
       </Text>
 
-      <TextInput
-        style={styles.pgn}
-        value={pgn}
-        onChangeText={setPgn}
-        multiline
-        placeholder="Paste PGN here…"
-        placeholderTextColor={colors.textFaint}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-
-      <View style={styles.actions}>
-        <View style={{ flex: 1 }}><Button label={busy ? 'Analyzing…' : 'Analyze game'} onPress={run} /></View>
-        <View style={{ flex: 1 }}><Button label="Load sample" variant="outline" onPress={() => { setPgn(SAMPLE_PGN); setReport(null); setError(null); }} /></View>
-      </View>
+      <Text style={styles.label}>YOUR GAME</Text>
+      <Card>
+        <TextInput
+          style={styles.pgn}
+          value={pgn}
+          onChangeText={setPgn}
+          multiline
+          placeholder="Paste PGN here…"
+          placeholderTextColor={colors.textFaint}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <View style={styles.actions}>
+          <View style={{ flex: 1 }}><Button label={busy ? 'Analyzing…' : 'Analyze game'} onPress={run} /></View>
+          <View style={{ flex: 1 }}><Button label="Load sample" variant="outline" onPress={() => { setPgn(SAMPLE_PGN); setReport(null); setError(null); }} /></View>
+        </View>
+      </Card>
 
       {busy && (
         <View style={styles.center}>
-          <ActivityIndicator color={colors.gold} />
+          <ActivityIndicator color={colors.tint} />
           <Text style={typography.muted}>Running engine review…</Text>
         </View>
       )}
 
       {error && (
-        <Card style={{ borderColor: colors.danger }}>
-          <Text style={{ color: colors.danger, fontWeight: '600' }}>{error}</Text>
+        <Card style={styles.errorCard}>
+          <Icon name="alert-circle" size={20} color={colors.danger} />
+          <Text style={styles.errorText}>{error}</Text>
         </Card>
       )}
 
       {report && !busy && (
         <View>
-          <SectionHeader title="Report" />
+          <Text style={styles.label}>REPORT</Text>
           <View style={styles.statRow}>
             <SideCard title="White" side={report.white} />
             <SideCard title="Black" side={report.black} />
           </View>
 
-          <SectionHeader title="Move by move" />
-          <Card>
-            {report.moves.map((m) => {
+          <Text style={styles.label}>MOVE BY MOVE</Text>
+          <Card style={styles.moveCard}>
+            {report.moves.map((m, i) => {
               const show = m.classification !== 'Best' && m.classification !== 'Good';
               return (
-                <View key={m.ply}>
+                <View key={m.ply} style={[styles.moveBlock, i > 0 && styles.moveDivider]}>
                   <View style={styles.moveRow}>
                     <Text style={styles.moveNo}>{m.color === 'w' ? `${m.moveNo}.` : `${m.moveNo}…`}</Text>
                     <Text style={styles.moveSan}>{m.san}</Text>
@@ -114,9 +131,9 @@ export function AnalyzeScreen() {
 function SideCard({ title, side }: { title: string; side: SideReport }) {
   return (
     <Card style={styles.sideCard}>
-      <Text style={typography.label}>{title.toUpperCase()}</Text>
+      <Text style={styles.sideLabel}>{title.toUpperCase()}</Text>
       <Text style={styles.accuracy}>{side.accuracy}%</Text>
-      <Text style={typography.muted}>accuracy · {side.acpl} acpl</Text>
+      <Text style={styles.sideMeta}>accuracy · {side.acpl} acpl</Text>
       <View style={styles.countRow}>
         <Count n={side.blunder} label="Blunders" color={colors.danger} />
         <Count n={side.mistake} label="Mistakes" color={colors.orange} />
@@ -136,6 +153,8 @@ function Count({ n, label, color }: { n: number; label: string; color: string })
 }
 
 const styles = StyleSheet.create({
+  intro: { ...typography.muted, marginLeft: spacing.xs, marginBottom: spacing.sm },
+  label: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
   pgn: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -145,19 +164,26 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 13,
     color: colors.text,
-    backgroundColor: colors.bgAlt,
+    backgroundColor: colors.bg,
     fontVariant: ['tabular-nums'],
   },
   actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
   center: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg },
+  errorCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
+  errorText: { color: colors.danger, fontWeight: '600', flex: 1 },
   statRow: { flexDirection: 'row', gap: spacing.md },
   sideCard: { flex: 1 },
-  accuracy: { fontSize: 30, fontWeight: '800', color: colors.text, marginTop: 2 },
-  countRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
+  sideLabel: { ...typography.label, color: colors.textMuted },
+  accuracy: { fontSize: 30, fontWeight: '800', color: colors.ink, letterSpacing: -0.5, marginTop: 2 },
+  sideMeta: { ...typography.muted, fontSize: 12.5 },
+  countRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md },
   count: { alignItems: 'center' },
   countN: { fontSize: 18, fontWeight: '800' },
-  countLabel: { fontSize: 10, color: colors.textFaint, fontWeight: '600' },
-  moveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border },
+  countLabel: { fontSize: 10, color: colors.textFaint, fontWeight: '600', marginTop: 1 },
+  moveCard: { paddingVertical: spacing.xs },
+  moveBlock: { paddingVertical: 4 },
+  moveDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  moveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 6 },
   moveNo: { ...typography.muted, width: 38, fontVariant: ['tabular-nums'] },
   moveSan: { ...typography.body, fontWeight: '700', flex: 1 },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.pill },
@@ -166,5 +192,5 @@ const styles = StyleSheet.create({
   cp: { ...typography.muted, width: 44, textAlign: 'right', color: colors.danger, fontVariant: ['tabular-nums'] },
   bestLine: { ...typography.muted, fontSize: 11, marginLeft: 46, marginTop: -2, marginBottom: 4 },
   bestSan: { color: colors.success, fontWeight: '700' },
-  footnote: { ...typography.muted, marginTop: spacing.md },
+  footnote: { ...typography.muted, marginTop: spacing.md, marginLeft: spacing.xs },
 });

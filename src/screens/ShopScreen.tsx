@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Button } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
 import { Icon, type IconName } from '../components/Icon';
-import { colors, radius, spacing, typography } from '../theme';
+import { colors, radius, shadow, spacing, typography } from '../theme';
 import { products } from '../data/content';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -18,20 +18,22 @@ type Props = CompositeScreenProps<
 export function ShopScreen({ navigation }: Props) {
   return (
     <Screen>
-      <AppHeader title="Shop" onProfile={() => navigation.navigate('Profile')} />
-      <Text style={[typography.muted, { marginBottom: spacing.md }]}>
-        Chess boards, clocks, pieces, T-shirts and books.
-      </Text>
+      <AppHeader eyebrow="STORE" title="Shop" onProfile={() => navigation.navigate('Profile')} />
 
+      <Text style={styles.intro}>Boards, clocks, pieces, tees and books.</Text>
+
+      <Text style={styles.label}>FEATURED GEAR</Text>
       <View style={styles.grid}>
         {products.map((p) => (
-          <View key={p.id} style={[styles.product, { backgroundColor: p.color }]}>
-            <View style={styles.glyph}><Icon name={p.icon as IconName} size={40} color="#fff" /></View>
-            <Text style={styles.name}>{p.name}</Text>
-            <Text style={styles.blurb}>{p.blurb}</Text>
-            <View style={styles.btn}>
-              <Button label="SHOP" variant="light" small />
+          <View key={p.id} style={styles.tile}>
+            <View style={[styles.iconSquare, { backgroundColor: p.color }]}>
+              <Icon name={p.icon as IconName} size={22} color="#fff" />
             </View>
+            <View style={styles.tileBody}>
+              <Text style={styles.name}>{p.name}</Text>
+              <Text style={styles.blurb}>{p.blurb}</Text>
+            </View>
+            <Button label="Shop" variant="outline" small />
           </View>
         ))}
       </View>
@@ -40,10 +42,19 @@ export function ShopScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  intro: { ...typography.muted, marginLeft: spacing.xs, marginBottom: spacing.xs },
+  label: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  product: { width: '47%', borderRadius: radius.lg, padding: spacing.md, minHeight: 200, justifyContent: 'space-between' },
-  glyph: { alignItems: 'center', marginVertical: spacing.md },
-  name: { ...typography.h3, color: colors.onDark },
-  blurb: { ...typography.muted, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
-  btn: { alignSelf: 'stretch', marginTop: spacing.md },
+  tile: {
+    width: '47%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    minHeight: 190,
+    ...shadow.card,
+  },
+  iconSquare: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  tileBody: { flex: 1, marginTop: spacing.sm },
+  name: { fontSize: 16, fontWeight: '700', color: colors.ink, letterSpacing: -0.3 },
+  blurb: { fontSize: 12.5, color: colors.textMuted, marginTop: 2 },
 });

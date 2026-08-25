@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card } from '../components/ui';
+import { AppHeader } from '../components/AppHeader';
 import { colors, spacing, typography } from '../theme';
 import { lessonContent } from '../data/lessons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,16 +15,16 @@ export function LessonScreen({ route }: Props) {
   if (!lesson) {
     return (
       <Screen>
-        <Text style={typography.h1}>Lesson coming soon</Text>
-        <Text style={typography.muted}>This lesson is being written.</Text>
+        <AppHeader eyebrow="LESSON" title="Coming soon" />
+        <Text style={styles.intro}>This lesson is being written.</Text>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <Text style={typography.h1}>{lesson.title}</Text>
-      <View style={{ height: spacing.md }} />
+      <AppHeader eyebrow="SELF-LEARN LESSON" title={lesson.title} />
+      <View style={{ height: spacing.xs }} />
       {lesson.sections.map((s, i) => (
         <Card key={i}>
           {s.heading && <Text style={styles.heading}>{s.heading}</Text>}
@@ -36,7 +37,8 @@ export function LessonScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  heading: { ...typography.h3, color: colors.gold, marginBottom: spacing.xs },
-  body: { ...typography.body, lineHeight: 22 },
+  intro: { ...typography.muted, marginLeft: spacing.xs },
+  heading: { ...typography.h3, color: colors.ink, marginBottom: spacing.xs },
+  body: { ...typography.body, lineHeight: 22, color: colors.text },
   footer: { ...typography.muted, textAlign: 'center', marginTop: spacing.md },
 });

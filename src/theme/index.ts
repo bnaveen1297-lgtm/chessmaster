@@ -47,6 +47,12 @@ export const colors = {
   // board
   boardLight: '#EAD9B0',
   boardDark: '#9B7A4A',
+
+  // Olympiad theme (Samarkand 2026) — Silk Road turquoise + gold, evoking the
+  // blue-tiled domes of Registan. Used only in Olympiad-themed surfaces.
+  samarkand: '#0E9AA7',
+  samarkandDeep: '#0A5C6B',
+  samarkandTile: '#1FB6C4',
 } as const;
 
 export const spacing = {

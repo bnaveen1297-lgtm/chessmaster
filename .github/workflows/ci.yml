@@ -29,5 +29,11 @@ jobs:
       - name: Verify puzzles
         run: npm run verify:puzzles
 
+      - name: Verify master games
+        run: npm run verify:masters
+
       - name: Chess logic tests
         run: npm run test:chess
+
+      - name: Tournament pairing tests
+        run: npm run test:tournament

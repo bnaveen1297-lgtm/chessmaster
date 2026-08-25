@@ -7,6 +7,7 @@ import { colors, radius, shadow, spacing, typography } from '../theme';
 import { useProgress, levelFromXp, xpIntoLevel, XP_PER_LEVEL, ACHIEVEMENTS } from '../game/ProgressContext';
 import { useAuth } from '../auth/AuthContext';
 import { liveGames } from '../data/content';
+import { daysUntilOlympiad, olympiadDates } from '../data/olympiad';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -34,6 +35,7 @@ export function HomeScreen({ navigation }: Props) {
   const level = levelFromXp(progress.xp);
   const into = xpIntoLevel(progress.xp);
   const live = liveGames.find((g) => g.status === 'live')!;
+  const olyDays = daysUntilOlympiad();
   const goalPct = Math.min(1, progress.dailyGoal ? progress.solvedToday / progress.dailyGoal : 0);
 
   const onTile = (key: string) => {
@@ -89,17 +91,28 @@ export function HomeScreen({ navigation }: Props) {
         </View>
       </Card>
 
-      {/* Olympiad live — light card with red live marker + chevron */}
-      <Text style={styles.sectionLabel}>OLYMPIAD</Text>
-      <Card style={styles.liveCard} onPress={() => navigation.navigate('LiveGame', { id: live.id })}>
+      {/* Olympiad — the reason to launch now: Samarkand 2026 countdown */}
+      <Text style={styles.sectionLabel}>THE OLYMPIAD</Text>
+      <Card style={styles.olympiadCard} onPress={() => navigation.navigate('Olympiad')}>
+        <View style={styles.olympiadTop}>
+          <Text style={styles.olympiadEyebrow}>SAMARKAND · UZBEKISTAN</Text>
+          <Icon name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
+        </View>
+        <Text style={styles.olympiadTitle}>46th FIDE Chess Olympiad</Text>
+        <View style={styles.olympiadCountRow}>
+          <Text style={styles.olympiadDays}>{olyDays}</Text>
+          <Text style={styles.olympiadDaysLabel}>days to go · {olympiadDates}</Text>
+        </View>
+      </Card>
+
+      {/* Featured masterpiece + Master Base */}
+      <Text style={styles.sectionLabel}>MASTER BASE</Text>
+      <Card onPress={() => navigation.navigate('MasterGame', { id: 'opera-1858' })}>
         <View style={styles.liveRow}>
+          <View style={[styles.mbGlyph]}><Icon name="play" size={18} color="#fff" /></View>
           <View style={{ flex: 1 }}>
-            <View style={styles.liveTagRow}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveTag}>LIVE NOW</Text>
-            </View>
             <Text style={styles.liveMatch}>{live.white} vs {live.black}</Text>
-            <Text style={styles.liveMeta}>{live.event}</Text>
+            <Text style={styles.liveMeta}>{live.event} · watch, play or analyse</Text>
           </View>
           <Icon name="chevron-forward" size={20} color={colors.textFaint} />
         </View>
@@ -172,11 +185,17 @@ const styles = StyleSheet.create({
 
   liveCard: {},
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  liveTagRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger },
-  liveTag: { color: colors.danger, fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
   liveMatch: { ...typography.h3, color: colors.ink },
   liveMeta: { color: colors.textMuted, fontSize: 12.5, marginTop: 1 },
+  mbGlyph: { width: 40, height: 40, borderRadius: 11, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+
+  olympiadCard: { backgroundColor: colors.samarkandDeep },
+  olympiadTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  olympiadEyebrow: { color: colors.samarkandTile, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  olympiadTitle: { color: '#fff', fontSize: 19, fontWeight: '800', marginTop: 6, letterSpacing: -0.2 },
+  olympiadCountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginTop: spacing.sm },
+  olympiadDays: { color: colors.gold, fontSize: 34, fontWeight: '900', letterSpacing: -1 },
+  olympiadDaysLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12.5, flex: 1 },
 
   sectionLabel: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
   statRow: { flexDirection: 'row', gap: spacing.sm },

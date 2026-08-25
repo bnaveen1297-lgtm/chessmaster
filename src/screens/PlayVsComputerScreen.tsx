@@ -1,9 +1,10 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chess } from 'chess.js';
 import { ChessBoard } from '../components/ChessBoard';
-import { Button } from '../components/ui';
+import { Button, Segmented } from '../components/ui';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { bestMove, LEVELS, type Level } from '../engine/ai';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
@@ -110,29 +111,42 @@ export function PlayVsComputerScreen({ navigation }: Props) {
     sync();
   }, [thinking, sync]);
 
+  const game = gameRef.current;
+  const gameOver = game.isGameOver();
+  const turnName = game.turn() === 'w' ? 'White' : 'Black';
+  const statusLine = gameOver
+    ? statusText(game)
+    : thinking
+      ? 'Computer is thinking…'
+      : `${turnName} to move${game.inCheck() ? ' — check!' : ''}`;
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.topbar}>
         <Text style={styles.back} onPress={() => navigation.goBack()}>‹</Text>
         <Text style={styles.title}>Play vs Computer</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
 
-      <View style={styles.levels}>
-        {LEVELS.map((l) => (
-          <Pressable
-            key={l.id}
-            onPress={() => setLevel(l)}
-            style={[styles.levelChip, level.id === l.id && styles.levelChipOn]}
-          >
-            <Text style={[styles.levelText, level.id === l.id && styles.levelTextOn]}>{l.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <Text style={styles.sectionLabel}>DIFFICULTY</Text>
+      <Segmented
+        options={LEVELS.map((l) => l.label)}
+        value={level.label}
+        onChange={(label) => {
+          const next = LEVELS.find((l) => l.label === label);
+          if (next) setLevel(next);
+        }}
+      />
 
-      <View style={styles.statusRow}>
-        <Text style={styles.status}>{statusText(gameRef.current)}</Text>
-        {thinking && <ActivityIndicator color={colors.gold} size="small" />}
+      {/* Opponent (top) */}
+      <View style={styles.playerRow}>
+        <View style={styles.playerLeft}>
+          <View style={styles.opponentGlyph}>
+            <Icon name="hardware-chip" size={16} color={colors.onDark} />
+          </View>
+          <Text style={styles.playerName}>Computer</Text>
+        </View>
+        {thinking && <ActivityIndicator color={colors.textMuted} size="small" />}
       </View>
 
       <View style={styles.boardWrap}>
@@ -147,6 +161,18 @@ export function PlayVsComputerScreen({ navigation }: Props) {
         />
       </View>
 
+      {/* Player (bottom) */}
+      <View style={styles.playerRow}>
+        <View style={styles.playerLeft}>
+          <View style={styles.turnDot} />
+          <Text style={styles.playerName}>You · White</Text>
+        </View>
+      </View>
+
+      <View style={[styles.status, gameOver && styles.statusOver]}>
+        <Text style={[styles.statusText, gameOver && { color: colors.gold }]}>{statusLine}</Text>
+      </View>
+
       <View style={styles.actions}>
         <View style={{ flex: 1 }}><Button label="New game" onPress={newGame} /></View>
         <View style={{ flex: 1 }}><Button label="Undo" variant="outline" onPress={undo} /></View>
@@ -158,15 +184,17 @@ export function PlayVsComputerScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, padding: spacing.md },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
-  back: { fontSize: 30, width: 24, color: colors.ink },
+  back: { fontSize: 30, width: 40, color: colors.ink },
   title: { ...typography.h3 },
-  levels: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', marginBottom: spacing.sm },
-  levelChip: { paddingVertical: 6, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: colors.bgAlt },
-  levelChipOn: { backgroundColor: colors.ink },
-  levelText: { fontSize: 13, fontWeight: '700', color: colors.textMuted },
-  levelTextOn: { color: colors.onDark },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, marginBottom: spacing.sm, minHeight: 22 },
-  status: { ...typography.body, fontWeight: '600' },
-  boardWrap: { alignItems: 'center', marginVertical: spacing.md },
+  sectionLabel: { ...typography.label, color: colors.textMuted, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  playerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4, minHeight: 30 },
+  playerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  opponentGlyph: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  turnDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: colors.border, backgroundColor: '#F4F1E8' },
+  playerName: { ...typography.body, fontWeight: '700' },
+  boardWrap: { alignItems: 'center', marginVertical: spacing.sm },
+  status: { alignItems: 'center', paddingVertical: spacing.sm },
+  statusOver: { backgroundColor: colors.ink, borderRadius: radius.md },
+  statusText: { ...typography.body, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },
 });

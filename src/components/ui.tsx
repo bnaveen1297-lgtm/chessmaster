@@ -182,24 +182,27 @@ export function Row({
   first?: boolean;
   last?: boolean;
 }) {
-  const Wrapper: any = onPress ? Pressable : View;
-  return (
-    <Wrapper
-      onPress={onPress}
-      style={({ pressed }: { pressed?: boolean }) => [
-        styles.row,
-        first && styles.rowFirst,
-        last && styles.rowLast,
-        pressed && { backgroundColor: colors.fill },
-      ]}
-    >
+  const base = [styles.row, first && styles.rowFirst, last && styles.rowLast];
+  const inner = (
+    <>
       {left ? <View style={styles.rowLeft}>{left}</View> : null}
       <View style={{ flex: 1 }}>
         <Text style={styles.rowTitle}>{title}</Text>
         {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
       </View>
       {right ?? null}
-    </Wrapper>
+    </>
+  );
+  if (!onPress) {
+    return <View style={base}>{inner}</View>;
+  }
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [...base, pressed && { backgroundColor: colors.fill }]}
+    >
+      {inner}
+    </Pressable>
   );
 }
 

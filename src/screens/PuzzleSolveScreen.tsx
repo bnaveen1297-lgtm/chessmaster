@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chess } from 'chess.js';
 import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
+import { Icon, type IconName } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { puzzles } from '../data/puzzles';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare } from '../game/chessHelpers';
@@ -113,19 +114,23 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
   }, [puzzle.fen, puzzle.solution]);
 
   const sideLabel = playerColor === 'w' ? 'White' : 'Black';
-  const banner =
+  const banner: { text: string; color: string; icon: IconName } =
     status === 'solved'
-      ? { text: `Solved!  +${XP_PUZZLE} XP`, color: colors.success }
+      ? { text: `Solved!  +${XP_PUZZLE} XP`, color: colors.success, icon: 'checkmark-circle' }
       : status === 'wrong'
-        ? { text: 'Not the winning move — try again', color: colors.danger }
-        : { text: puzzle.kind === 'mate' ? 'Find the checkmate' : puzzle.kind === 'win' ? 'Win material' : 'Find the best move', color: colors.textMuted };
+        ? { text: 'Not the winning move — try again', color: colors.danger, icon: 'close-circle' }
+        : {
+            text: puzzle.kind === 'mate' ? 'Find the checkmate' : puzzle.kind === 'win' ? 'Win material' : 'Find the best move',
+            color: colors.textMuted,
+            icon: 'search',
+          };
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.topbar}>
         <Text style={styles.back} onPress={() => navigation.goBack()}>‹</Text>
-        <Text style={styles.title}>{puzzle.title}</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.title} numberOfLines={1}>{puzzle.title}</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <Text style={styles.theme}>{puzzle.theme} · {puzzle.difficulty}</Text>
@@ -143,9 +148,12 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
         />
       </View>
 
-      <View style={[styles.banner, { borderColor: banner.color }]}>
-        <Text style={[styles.bannerText, { color: banner.color }]}>{banner.text}</Text>
-        <Text style={styles.hint}>{sideLabel} to move</Text>
+      <View style={styles.banner}>
+        <Icon name={banner.icon} size={20} color={banner.color} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.bannerText, { color: banner.color }]}>{banner.text}</Text>
+          <Text style={styles.hint}>{sideLabel} to move</Text>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -164,12 +172,19 @@ export function PuzzleSolveScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, padding: spacing.md },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  back: { fontSize: 30, width: 24, color: colors.ink },
-  title: { ...typography.h3 },
-  theme: { ...typography.muted, textAlign: 'center', marginTop: 2 },
+  back: { fontSize: 30, width: 40, color: colors.ink },
+  title: { ...typography.h3, flex: 1, textAlign: 'center' },
+  theme: { ...typography.label, color: colors.textMuted, textAlign: 'center', marginTop: spacing.xs },
   boardWrap: { alignItems: 'center', marginVertical: spacing.md },
-  banner: { borderWidth: 1.5, borderRadius: radius.md, padding: spacing.md, alignItems: 'center' },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
   bannerText: { fontSize: 15, fontWeight: '700' },
-  hint: { ...typography.muted, marginTop: 2 },
+  hint: { ...typography.muted, marginTop: 1 },
   actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
 });

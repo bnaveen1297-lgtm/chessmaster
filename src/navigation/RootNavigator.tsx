@@ -24,6 +24,14 @@ import { CoachScreen } from '../screens/CoachScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { LessonScreen } from '../screens/LessonScreen';
 import { OpeningsScreen } from '../screens/OpeningsScreen';
+import { OnlineLobbyScreen } from '../screens/OnlineLobbyScreen';
+import { OnlineGameScreen } from '../screens/OnlineGameScreen';
+import { TournamentsScreen } from '../screens/TournamentsScreen';
+import { TournamentDetailScreen } from '../screens/TournamentDetailScreen';
+import { MasterBaseScreen } from '../screens/MasterBaseScreen';
+import { MasterGameScreen } from '../screens/MasterGameScreen';
+import { PlayVsMasterScreen } from '../screens/PlayVsMasterScreen';
+import { OlympiadScreen } from '../screens/OlympiadScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -31,15 +39,23 @@ export type RootStackParamList = {
   SignUp: undefined;
   Main: undefined;
   Profile: undefined;
-  LiveGame: { id: string };
+  LiveGame: { id?: string; pgn?: string; white?: string; black?: string; event?: string; result?: string };
   PuzzleSolve: { id?: string; puzzle?: import('../data/puzzles').Puzzle };
   PlayVsComputer: undefined;
   PlayLocal: undefined;
-  Analyze: undefined;
+  Analyze: { pgn?: string } | undefined;
   Coach: undefined;
   Lesson: { id: string };
   Openings: undefined;
   Plans: undefined;
+  OnlineLobby: undefined;
+  OnlineGame: { matchId: string; uid: string };
+  Tournaments: undefined;
+  TournamentDetail: { id: string };
+  MasterBase: undefined;
+  MasterGame: { id: string };
+  PlayVsMaster: { id: string; side: 'w' | 'b' };
+  Olympiad: undefined;
 };
 
 export type TabParamList = {
@@ -118,6 +134,14 @@ export function RootNavigator() {
           <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayVsComputer" component={PlayVsComputerScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayLocal" component={PlayLocalScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="OnlineLobby" component={OnlineLobbyScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="OnlineGame" component={OnlineGameScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Tournaments" component={TournamentsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="TournamentDetail" component={TournamentDetailScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MasterBase" component={MasterBaseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MasterGame" component={MasterGameScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PlayVsMaster" component={PlayVsMasterScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Olympiad" component={OlympiadScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

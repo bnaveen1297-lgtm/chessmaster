@@ -85,42 +85,44 @@ export type LiveGame = {
   white: string;
   black: string;
   event: string;
-  eval: string;
-  moves: number;
+  /** Result shown on the card. */
+  result: string;
+  /** Full PGN move text — the board replays these moves. */
+  pgn: string;
   status: 'live' | 'starting';
-  fen: string;
 };
 
+// Featured broadcasts are real, famous games that the board replays move by move.
+// (We can't legally stream live Olympiad boards from a free API, so ChessMaster
+// ships verifiable masterpieces you can watch and learn from — the playback is
+// real chess, driven by chess.js.)
 export const liveGames: LiveGame[] = [
   {
     id: 'g1',
-    white: 'Gukesh D',
-    black: 'Caruana F',
-    event: 'Olympiad · Round 7 · Board 1',
-    eval: '+0.4',
-    moves: 31,
+    white: 'Paul Morphy',
+    black: 'Duke & Count',
+    event: 'The Opera Game · Paris 1858',
+    result: '1-0',
     status: 'live',
-    fen: 'r2q1rk1/pp2bppp/2n1bn2/3p4/3P4/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12',
+    pgn: '1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0',
   },
   {
     id: 'g2',
-    white: 'Ju Wenjun',
-    black: 'Goryachkina A',
-    event: 'Olympiad · Round 7 · Board 1',
-    eval: '−0.2',
-    moves: 24,
+    white: 'Adolf Anderssen',
+    black: 'Lionel Kieseritzky',
+    event: 'The Immortal Game · London 1851',
+    result: '1-0',
     status: 'live',
-    fen: 'r1bqr1k1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w - - 0 9',
+    pgn: '1. e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8. Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15. Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21. Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0',
   },
   {
     id: 'g3',
-    white: 'Firouzja A',
-    black: 'Nakamura H',
-    event: 'Olympiad · Round 7 · Board 2',
-    eval: '=',
-    moves: 0,
-    status: 'starting',
-    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    white: 'Adolf Anderssen',
+    black: 'Jean Dufresne',
+    event: 'The Evergreen Game · Berlin 1852',
+    result: '1-0',
+    status: 'live',
+    pgn: '1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4 7. O-O d3 8. Qb3 Qf6 9. e5 Qg6 10. Re1 Nge7 11. Ba3 b5 12. Qxb5 Rb8 13. Qa4 Bb6 14. Nbd2 Bb7 15. Ne4 Qf5 16. Bxd3 Qh5 17. Nf6+ gxf6 18. exf6 Rg8 19. Rad1 Qxf3 20. Rxe7+ Nxe7 21. Qxd7+ Kxd7 22. Bf5+ Ke8 23. Bd7+ Kf8 24. Bxe7# 1-0',
   },
 ];
 
