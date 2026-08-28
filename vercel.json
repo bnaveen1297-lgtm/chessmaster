@@ -1,7 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "expo export --platform web",
+  "buildCommand": "npx expo export --platform web && mkdir -p dist/app && find dist -maxdepth 1 -mindepth 1 ! -name app -exec mv {} dist/app/ \\; && cp web-landing/index.html dist/index.html",
   "outputDirectory": "dist",
   "framework": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/(.*)", "destination": "/app/index.html" }
+  ]
 }
