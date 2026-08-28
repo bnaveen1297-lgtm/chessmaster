@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #f5f0e6;
+  color: #17313a;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-teal;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-soft;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold transition
+      active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-violet px-5 py-3 text-white hover:bg-violet-ink;
+  }
+  .btn-gold {
+    @apply btn bg-gold-br px-5 py-3 text-[#2a2107] hover:brightness-105;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-transparent px-5 py-3 text-ink hover:border-ink-faint;
+  }
+  .btn-dark {
+    @apply btn bg-ink px-5 py-3 text-white hover:brightness-110;
+  }
+  .chip {
+    @apply cursor-pointer rounded-full px-3.5 py-2 text-sm font-semibold transition;
+  }
+}
+
+/* subtle rise-in used on route mount */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}
+
+/* thin scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cdbfa6 transparent;
+}
