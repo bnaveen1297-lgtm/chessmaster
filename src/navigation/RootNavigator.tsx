@@ -7,8 +7,6 @@ import { useAuth } from '../auth/AuthContext';
 import { Icon, type IconName } from '../components/Icon';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
-import { SignInScreen } from '../screens/SignInScreen';
-import { SignUpScreen } from '../screens/SignUpScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ClassScreen } from '../screens/ClassScreen';
 import { PuzzleScreen } from '../screens/PuzzleScreen';
@@ -39,8 +37,6 @@ import { OpeningTrainerScreen } from '../screens/OpeningTrainerScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
-  SignIn: undefined;
-  SignUp: undefined;
   Main: undefined;
   Profile: undefined;
   LiveGame: { id?: string; pgn?: string; white?: string; black?: string; event?: string; result?: string };
@@ -158,8 +154,6 @@ export function RootNavigator() {
       ) : (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="SignIn" component={SignInScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
         </>
       )}
     </Stack.Navigator>

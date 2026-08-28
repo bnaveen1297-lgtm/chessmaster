@@ -21,6 +21,7 @@ type AuthState = {
   loading: boolean;
   authError: string | null;
   backend: boolean;
+  signInWithGoogle: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (fields: { email: string; password?: string; firstName?: string; lastName?: string }) => Promise<void>;
   signOut: () => Promise<void>;
@@ -76,6 +77,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authError,
       backend: isSupabaseConfigured,
       clearAuthError: () => setAuthError(null),
+
+      signInWithGoogle: async () => {
+        setAuthError(null);
+        if (isSupabaseConfigured && supabase) {
+          const redirectTo =
+            typeof window !== 'undefined' && window.location ? window.location.origin : undefined;
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo },
+          });
+          // On web this redirects the browser to Google; the session is picked
+          // up on return via detectSessionInUrl. Only errors land here.
+          if (error) setAuthError(error.message);
+          return;
+        }
+        // Local mode (no backend configured): sign in a device-only account so
+        // the app is still usable for offline testing.
+        await persistLocal({ id: 'local', email: 'you@chessmaster.app' });
+      },
 
       signIn: async (email, password) => {
         setAuthError(null);
