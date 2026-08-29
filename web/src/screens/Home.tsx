@@ -10,12 +10,12 @@ import { fetchLeaderboard, type LeaderRow } from '@/lib/leaderboard';
 import { IconPlay, IconPuzzle, IconLearn, IconCrown, IconGlobe, IconTrophy } from '@/components/icons';
 
 const QUICK = [
-  { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#1C1C1E' },
-  { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#2FA6CE' },
-  { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#C9A24B' },
-  { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#1C1C1E' },
-  { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#2FA6CE' },
-  { to: '/app/olympiad', label: 'Olympiad', desc: 'Samarkand 2026', Icon: IconGlobe, c: '#C9A24B' },
+  { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#111418' },
+  { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#1E88E5' },
+  { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#111418' },
+  { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#1E88E5' },
+  { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#111418' },
+  { to: '/app/olympiad', label: 'Olympiad', desc: 'Samarkand 2026', Icon: IconGlobe, c: '#1E88E5' },
 ];
 
 function greeting() {

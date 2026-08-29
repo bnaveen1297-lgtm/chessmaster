@@ -4,25 +4,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Empower Chess portfolio: black + white/grey, sky-blue accent, gold highlight.
-        ink: '#1C1C1E', // near-black (primary text + black CTAs)
-        'ink-soft': '#5A5A5F',
-        'ink-faint': '#9A9AA0',
-        plaster: '#F2F2F4', // app ground (light grey)
-        'plaster-2': '#E8E8EC',
-        line: '#E1E1E6',
+        // chesshub360 logo identity: black + azure blue on clean cool-grey/white.
+        ink: '#111418', // near-black (primary text + black surfaces/CTAs)
+        'ink-soft': '#565B63',
+        'ink-faint': '#9096A0',
+        plaster: '#F4F6F8', // app ground (cool light grey)
+        'plaster-2': '#EAEDF1',
+        line: '#E2E6EB',
         surface: '#FFFFFF',
-        // sky-blue accent (portfolio hero) — mapped onto the old "teal" name
-        teal: { DEFAULT: '#2FA6CE', br: '#57C3E6', deep: '#1B6E8C', deep2: '#134F65' },
-        // gold highlight (portfolio section numbers / XP / premium)
+        // azure blue accent (the logo ring) — mapped onto the old "teal" name
+        teal: { DEFAULT: '#1E88E5', br: '#42A5F5', deep: '#1565C0', deep2: '#0D3E86' },
+        // gold reserved for XP / achievements only
         gold: { DEFAULT: '#C9A24B', br: '#DDB962', soft: '#EFDCA8' },
-        // primary action = black (portfolio "Join / Sign In" buttons)
-        violet: { DEFAULT: '#1C1C1E', ink: '#000000' },
+        // primary action = black
+        violet: { DEFAULT: '#111418', ink: '#000000' },
         boardl: '#EED9B6',
         boardd: '#B58863',
         success: '#2E9E6B',
-        danger: '#D3524B',
-        warning: '#D98A24',
+        danger: '#E23B3B',
+        warning: '#E08A24',
       },
       fontFamily: {
         display: ['Montserrat', 'system-ui', 'sans-serif'],

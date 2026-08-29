@@ -3,9 +3,9 @@ import { PageHeader } from '@/components/ui';
 import { IconPlay, IconGlobe, IconTrophy } from '@/components/icons';
 
 const MODES = [
-  { to: '/app/play/computer', label: 'Play the computer', desc: 'Three engine levels — warm up or grind.', icon: '♟', c: '#5B4BE0' },
-  { to: '/app/play/local', label: 'Pass and play', desc: 'Two players, one board, same device.', icon: '♞', c: '#0E9AA7' },
-  { to: '/app/tournaments', label: 'Online & tournaments', desc: 'Real-time 1v1 and live events.', icon: '♛', c: '#C8524B' },
+  { to: '/app/play/computer', label: 'Play the computer', desc: 'Three engine levels — warm up or grind.', icon: '♟', c: '#111418' },
+  { to: '/app/play/local', label: 'Pass and play', desc: 'Two players, one board, same device.', icon: '♞', c: '#1E88E5' },
+  { to: '/app/tournaments', label: 'Online & tournaments', desc: 'Real-time 1v1 and live events.', icon: '♛', c: '#111418' },
 ];
 
 export function PlayHub() {

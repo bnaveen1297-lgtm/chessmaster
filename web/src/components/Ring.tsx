@@ -1,5 +1,5 @@
 export function Ring({
-  value, max, size = 116, stroke = 11, track = '#E7DFCE', color = '#0E9AA7', children,
+  value, max, size = 116, stroke = 11, track = '#E6E9ED', color = '#1E88E5', children,
 }: {
   value: number; max: number; size?: number; stroke?: number; track?: string; color?: string; children?: React.ReactNode;
 }) {

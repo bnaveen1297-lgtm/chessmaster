@@ -156,8 +156,8 @@ function EvalGraph({ series }: { series: number[] }) {
       <svg viewBox={`0 0 ${w} ${h}`} className="h-28 w-full" preserveAspectRatio="none">
         <rect x="0" y="0" width={w} height={h / 2} fill="#ffffff12" />
         <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#ffffff30" strokeWidth="1" />
-        <polygon points={area} fill="#2FA6CE33" />
-        <polyline points={pts} fill="none" stroke="#57C3E6" strokeWidth="2" />
+        <polygon points={area} fill="#1E88E533" />
+        <polyline points={pts} fill="none" stroke="#42A5F5" strokeWidth="2" />
       </svg>
     </div>
   );

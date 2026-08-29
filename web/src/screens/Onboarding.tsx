@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Board } from '@/components/Board';
+import { Wordmark } from '@/components/Wordmark';
 import { usePrefs, BOARD_THEMES, type BoardThemeId, type Level, type PieceStyle, type Role } from '@/game/prefs';
 
 const ROLES: { id: Role; label: string; desc: string; icon: string }[] = [
@@ -38,7 +39,7 @@ export function Onboarding() {
   return (
     <div className="min-h-screen bg-plaster">
       <div className="mx-auto flex max-w-lg flex-col px-5 py-8">
-        <img src="/logo.png" alt="chesshub360" className="mx-auto mb-6 h-9" />
+        <div className="mb-6 flex justify-center"><Wordmark /></div>
         {/* progress */}
         <div className="mb-7 flex gap-1.5">
           {Array.from({ length: steps }).map((_, i) => (

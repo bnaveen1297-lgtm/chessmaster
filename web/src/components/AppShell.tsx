@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthProvider';
 import { useProgress, levelFromXp, xpIntoLevel } from '@/game/progress';
 import { IconHome, IconLearn, IconPuzzle, IconPlay, IconCrown, IconGlobe, IconTrophy, IconChart } from './icons';
+import { Wordmark } from './Wordmark';
 
 const NAV = [
   { to: '/app', label: 'Home', Icon: IconHome, end: true },
@@ -20,12 +21,7 @@ const MORE = [
 
 export function Brand() {
   return (
-    <NavLink to="/app" className="flex items-center gap-2.5">
-      <img src="/icon.png" alt="" className="h-9 w-9 rounded-[10px]" />
-      <span className="font-display text-[19px] font-extrabold lowercase tracking-tight">
-        chess<span className="text-teal">hub</span>360
-      </span>
-    </NavLink>
+    <NavLink to="/app"><Wordmark /></NavLink>
   );
 }
 

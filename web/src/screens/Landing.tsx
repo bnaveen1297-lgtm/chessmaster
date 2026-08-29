@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthProvider';
 import { Board } from '@/components/Board';
+import { Wordmark } from '@/components/Wordmark';
 
 const FEATURES = [
-  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#2FA6CE' },
-  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#C9A24B' },
-  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#1C1C1E' },
-  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#2FA6CE' },
-  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#1C1C1E' },
-  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#C9A24B' },
+  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#1E88E5' },
+  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#111418' },
+  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#1E88E5' },
+  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#111418' },
+  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#1E88E5' },
+  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#111418' },
 ];
 
 function GoogleMark() {
@@ -119,7 +120,7 @@ export function Landing() {
     <div className="min-h-screen bg-plaster text-ink">
       {/* nav */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <img src="/logo.png" alt="chesshub360" className="h-9 sm:h-10" />
+        <Wordmark />
         <a href="#start" className="btn-primary text-sm">Sign in</a>
       </header>
 
@@ -128,7 +129,7 @@ export function Landing() {
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-teal-deep via-teal-deep2 to-[#0a343f] opacity-[0.04]" />
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-8 lg:grid-cols-2 lg:pb-24 lg:pt-14">
           <div>
-            <p className="eyebrow text-gold">Free · Web &amp; mobile · Samarkand 2026</p>
+            <p className="eyebrow">Free · Web &amp; mobile · Samarkand 2026</p>
             <h1 className="mt-4 font-display text-5xl font-black leading-[1.02] sm:text-6xl">
               Your way to become a <span className="bg-gradient-to-r from-teal-br to-teal bg-clip-text text-transparent">King.</span>
             </h1>
@@ -141,10 +142,10 @@ export function Landing() {
               <span>◆ 40-lesson course</span><span>◆ Millions of puzzles</span><span>◆ Real GM games</span>
             </div>
           </div>
-          <div className="mx-auto w-full max-w-sm rounded-3xl bg-gradient-to-b from-[#10424d] to-[#0b333d] p-4 shadow-lift">
-            <div className="mb-3 flex items-center justify-between px-1 text-sm text-[#cfe3e4]"><span className="font-bold text-white">♟ Karpov</span><span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-xs">12:04</span></div>
+          <div className="mx-auto w-full max-w-sm rounded-3xl bg-gradient-to-b from-ink to-[#20242b] p-4 shadow-lift">
+            <div className="mb-3 flex items-center justify-between px-1 text-sm text-white/75"><span className="font-bold text-white">♟ Karpov</span><span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-xs">12:04</span></div>
             <Board fen={ITALIAN} interactive={false} coords />
-            <div className="mt-3 flex items-center justify-between px-1 text-sm text-[#cfe3e4]"><span className="font-bold text-white">♙ You</span><span className="rounded-full bg-gold-soft px-2.5 py-0.5 text-[11px] font-semibold text-teal-deep">Live board</span></div>
+            <div className="mt-3 flex items-center justify-between px-1 text-sm text-white/75"><span className="font-bold text-white">♙ You</span><span className="rounded-full bg-teal px-2.5 py-0.5 text-[11px] font-semibold text-white">Live board</span></div>
           </div>
         </div>
       </section>
@@ -178,9 +179,9 @@ export function Landing() {
       {/* cta */}
       <section className="relative overflow-hidden bg-gradient-to-br from-teal-deep to-teal-deep2 text-white">
         <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-          <p className="eyebrow text-gold">Free forever</p>
+          <p className="eyebrow">Free forever</p>
           <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Ready to become a King?</h2>
-          <p className="mt-4 text-lg text-[#cfe3e4]">Create your free account and everything above is yours.</p>
+          <p className="mt-4 text-lg text-white/75">Create your free account and everything above is yours.</p>
           <div className="mt-8 flex justify-center"><AuthCard dark /></div>
         </div>
       </section>
