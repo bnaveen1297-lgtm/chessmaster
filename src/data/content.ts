@@ -42,7 +42,7 @@ export const languageSchedules: LanguageSchedule[] = [
   { id: 'ta', language: 'தமிழ்', color: colors.brown, days: week },
 ];
 
-/** End-to-end self-learn curriculum (ChessMaster requirement). */
+/** End-to-end self-learn curriculum (chesshub360 requirement). */
 export type Lesson = { id: string; title: string; minutes: number; done: boolean };
 export type CurriculumUnit = { id: string; title: string; lessons: Lesson[] };
 
@@ -171,7 +171,7 @@ export type LiveGame = {
 };
 
 // Featured broadcasts are real, famous games that the board replays move by move.
-// (We can't legally stream live Olympiad boards from a free API, so ChessMaster
+// (We can't legally stream live Olympiad boards from a free API, so chesshub360
 // ships verifiable masterpieces you can watch and learn from — the playback is
 // real chess, driven by chess.js.)
 export const liveGames: LiveGame[] = [
@@ -263,7 +263,7 @@ export type Product = { id: string; name: string; blurb: string; color: string; 
 
 export const products: Product[] = [
   { id: 's1', name: 'Chess Board Set', blurb: 'Chess board and chess pieces.', color: colors.cyan, icon: 'grid' },
-  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized ChessMaster tees.', color: colors.lavender, icon: 'shirt' },
+  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized chesshub360 tees.', color: colors.lavender, icon: 'shirt' },
   { id: 's3', name: 'Chess Pieces', blurb: 'Buy a full set or single pieces.', color: colors.brown, icon: 'cube' },
   { id: 's4', name: 'Chess Clock', blurb: 'Tournament-grade digital clock.', color: colors.teal, icon: 'timer' },
 ];

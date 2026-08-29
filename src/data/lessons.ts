@@ -40,7 +40,7 @@ export const lessonContent: Record<string, LessonContent> = {
     sections: [
       { text: 'Chess trains skills that carry far beyond the board.' },
       { heading: 'What it builds', text: 'Pattern recognition, calculation, patience, and planning under pressure. Studies link regular play to stronger focus and problem-solving.' },
-      { heading: 'A lifelong game', text: 'It is playable at any age, online or over the board, casually or competitively — which is exactly what ChessMaster is built around.' },
+      { heading: 'A lifelong game', text: 'It is playable at any age, online or over the board, casually or competitively — which is exactly what chesshub360 is built around.' },
     ],
   },
   l3: {
@@ -76,7 +76,7 @@ export const lessonContent: Record<string, LessonContent> = {
     sections: [
       { text: 'Tactics are short forcing sequences that win material or deliver mate.' },
       { heading: 'The core patterns', text: 'Fork: one piece attacks two. Pin: a piece cannot move without exposing a more valuable one. Skewer: the reverse of a pin. Discovered attack: moving one piece unveils another’s attack.' },
-      { heading: 'How to improve', text: 'Solve puzzles daily. In ChessMaster, the Puzzle tab is organized by these very themes.' },
+      { heading: 'How to improve', text: 'Solve puzzles daily. In chesshub360, the Puzzle tab is organized by these very themes.' },
     ],
     exercise: {
       fen: '4r1k1/8/8/8/4N3/8/8/6K1 w - - 0 1',

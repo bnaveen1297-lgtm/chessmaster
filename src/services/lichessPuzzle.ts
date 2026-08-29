@@ -57,7 +57,7 @@ function applyUci(game: Chess, uci: string) {
 }
 
 /**
- * Convert a Lichess CSV row into a ChessMaster Puzzle: apply the setup move,
+ * Convert a Lichess CSV row into a chesshub360 Puzzle: apply the setup move,
  * then translate the remaining UCI solution into SAN. Returns null if the row
  * doesn't produce a legal line.
  */
