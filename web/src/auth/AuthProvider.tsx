@@ -9,7 +9,10 @@ type AuthState = {
   authError: string | null;
   backend: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, firstName?: string) => Promise<{ needsConfirm: boolean }>;
   signOut: () => Promise<void>;
+  clearError: () => void;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -60,10 +63,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
         if (error) setAuthError(error.message);
       },
+      signInWithEmail: async (email, password) => {
+        setAuthError(null);
+        if (!supabase) { setAuthError('Sign-in is not configured.'); return; }
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) setAuthError(error.message);
+      },
+      signUpWithEmail: async (email, password, firstName) => {
+        setAuthError(null);
+        if (!supabase) { setAuthError('Sign-up is not configured.'); return { needsConfirm: false }; }
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { full_name: firstName } },
+        });
+        if (error) { setAuthError(error.message); return { needsConfirm: false }; }
+        // If email confirmation is on, there's a user but no session yet.
+        return { needsConfirm: !!data.user && !data.session };
+      },
       signOut: async () => {
         if (supabase) await supabase.auth.signOut();
         setUser(null);
       },
+      clearError: () => setAuthError(null),
     }),
     [user, loading, authError],
   );
