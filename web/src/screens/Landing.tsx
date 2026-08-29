@@ -19,7 +19,7 @@ function GoogleMark() {
 }
 
 function AuthCard({ dark = false }: { dark?: boolean }) {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, authError, clearError } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, continueAsGuest, authError, clearError } = useAuth();
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,6 +67,11 @@ function AuthCard({ dark = false }: { dark?: boolean }) {
           {mode === 'in' ? 'Create an account' : 'Sign in'}
         </button>
       </p>
+      <div className={`mt-3 border-t pt-3 text-center ${dark ? 'border-white/15' : 'border-line'}`}>
+        <button onClick={continueAsGuest} className={`text-sm font-semibold ${dark ? 'text-white/80 hover:text-white' : 'text-ink-soft hover:text-ink'}`}>
+          Explore as guest →
+        </button>
+      </div>
     </div>
   );
 }

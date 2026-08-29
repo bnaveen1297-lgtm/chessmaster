@@ -11,9 +11,14 @@ type AuthState = {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, firstName?: string) => Promise<{ needsConfirm: boolean }>;
+  continueAsGuest: () => void;
+  isGuest: boolean;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
+
+const GUEST_KEY = 'chessmaster.guest';
+const GUEST_USER: User = { id: 'guest', email: 'guest@chessmaster.app', firstName: 'Guest' };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
@@ -29,10 +34,19 @@ function mapUser(u: any): User | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [guest, setGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isGuestStored = false;
+    try {
+      isGuestStored = localStorage.getItem(GUEST_KEY) === '1';
+    } catch {
+      /* ignore */
+    }
+    if (isGuestStored) setGuest(true);
+
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
       return;
@@ -49,10 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthState>(
     () => ({
-      user,
+      user: user ?? (guest ? GUEST_USER : null),
       loading,
       authError,
       backend: isSupabaseConfigured,
+      isGuest: !user && guest,
+      continueAsGuest: () => {
+        try { localStorage.setItem(GUEST_KEY, '1'); } catch { /* ignore */ }
+        setGuest(true);
+      },
       signInWithGoogle: async () => {
         setAuthError(null);
         if (!supabase) {
@@ -82,12 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { needsConfirm: !!data.user && !data.session };
       },
       signOut: async () => {
+        try { localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
+        setGuest(false);
         if (supabase) await supabase.auth.signOut();
         setUser(null);
       },
       clearError: () => setAuthError(null),
     }),
-    [user, loading, authError],
+    [user, guest, loading, authError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
