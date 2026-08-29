@@ -131,7 +131,7 @@ export function Landing() {
           <div>
             <p className="eyebrow">Free · Web &amp; mobile · Samarkand 2026</p>
             <h1 className="mt-4 font-display text-5xl font-black leading-[1.02] sm:text-6xl">
-              Your way to become a <span className="bg-gradient-to-r from-teal-br to-teal bg-clip-text text-transparent">King.</span>
+              Your way to become a <span className="bg-gradient-to-r from-teal-br to-teal bg-clip-text text-transparent">grandmaster.</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg text-ink-soft">
               Learn chess from zero to sharp, solve millions of puzzles, and play the world — online 1v1, live
@@ -180,7 +180,7 @@ export function Landing() {
       <section className="relative overflow-hidden bg-gradient-to-br from-teal-deep to-teal-deep2 text-white">
         <div className="mx-auto max-w-2xl px-5 py-20 text-center">
           <p className="eyebrow">Free forever</p>
-          <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Ready to become a King?</h2>
+          <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Ready to become a grandmaster?</h2>
           <p className="mt-4 text-lg text-white/75">Create your free account and everything above is yours.</p>
           <div className="mt-8 flex justify-center"><AuthCard dark /></div>
         </div>
