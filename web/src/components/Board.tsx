@@ -1,10 +1,6 @@
 import { useMemo } from 'react';
 import { Chess } from 'chess.js';
-
-const GLYPH: Record<string, string> = {
-  wk: '♔', wq: '♕', wr: '♖', wb: '♗', wn: '♘', wp: '♙',
-  bk: '♚', bq: '♛', br: '♜', bb: '♝', bn: '♞', bp: '♟',
-};
+import { Piece } from './Piece';
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -51,7 +47,7 @@ export function Board({
           const isHl = highlights.includes(square);
           const isLast = lastMove && (lastMove.from === square || lastMove.to === square);
           const isCheck = checkSquare === square;
-          const glyph = piece ? GLYPH[piece.color + piece.type] : '';
+          const code = piece ? (piece.color === 'w' ? piece.type.toUpperCase() : piece.type) : '';
           return (
             <button
               key={square}
@@ -60,7 +56,7 @@ export function Board({
               className="relative flex items-center justify-center"
               style={{
                 background: isCheck ? '#e2705f' : light ? '#EAD9B0' : '#9B7A4A',
-                cursor: interactive && onSquarePress && (glyph || isHl) ? 'pointer' : 'default',
+                cursor: interactive && onSquarePress && (code || isHl) ? 'pointer' : 'default',
               }}
               aria-label={square}
             >
@@ -68,22 +64,15 @@ export function Board({
                 <span className="pointer-events-none absolute inset-0" style={{ background: light ? 'rgba(31,182,196,0.28)' : 'rgba(31,182,196,0.34)' }} />
               )}
               {isSel && <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(91,75,224,0.35)' }} />}
-              {glyph && (
-                <span
-                  className="pointer-events-none relative leading-none"
-                  style={{
-                    fontSize: 'clamp(20px, 8.5cqw, 46px)',
-                    color: piece!.color === 'w' ? '#FBFAF6' : '#26221C',
-                    textShadow: piece!.color === 'w' ? '0 1.5px 1px rgba(0,0,0,0.35)' : '0 1px 1px rgba(255,255,255,0.18)',
-                  }}
-                >
-                  {glyph}
+              {code && (
+                <span className="pointer-events-none relative" style={{ width: '86%', height: '86%', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))' }}>
+                  <Piece code={code} />
                 </span>
               )}
-              {isHl && !glyph && (
+              {isHl && !code && (
                 <span className="pointer-events-none absolute" style={{ width: '30%', height: '30%', borderRadius: '9999px', background: 'rgba(23,49,58,0.28)' }} />
               )}
-              {isHl && glyph && (
+              {isHl && code && (
                 <span className="pointer-events-none absolute inset-[6%] rounded-full" style={{ boxShadow: 'inset 0 0 0 3px rgba(23,49,58,0.35)' }} />
               )}
               {coords && ci === (flipped ? 7 : 0) && (
