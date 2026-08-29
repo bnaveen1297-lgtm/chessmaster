@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { BackLink } from '@/components/ui';
+import { ClockFace, TimeControlPicker } from '@/components/Clock';
+import { DEFAULT_TIME_CONTROL, isTimed, useChessClock, type TimeControl } from '@/game/clock';
 import { useProgress } from '@/game/progress';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare, statusText } from '@shared/game/chessHelpers';
 import { bestMove, LEVELS } from '@shared/engine/ai';
@@ -16,57 +18,72 @@ export function PlayComputer() {
   const [thinking, setThinking] = useState(false);
   const [depth, setDepth] = useState(LEVELS[1].depth);
   const [side] = useState<'w' | 'b'>('w');
+  const [tc, setTc] = useState<TimeControl>(DEFAULT_TIME_CONTROL);
   const { awardGameResult } = useProgress();
 
   const game = gameRef.current;
   const sync = useCallback(() => setFen(gameRef.current.fen()), []);
-  const gameOver = game.isGameOver();
+  const boardOver = game.isGameOver();
+  const inProgress = game.history().length > 0;
+
+  const clock = useChessClock(tc, game.turn(), boardOver);
+  const flagged = clock.flagged;
+  const over = boardOver || !!flagged;
 
   // engine reply
   useEffect(() => {
-    if (game.turn() === side || game.isGameOver()) return;
+    if (flagged || game.turn() === side || game.isGameOver()) return;
     setThinking(true);
     const t = setTimeout(() => {
       const g = gameRef.current;
       const san = bestMove(g.fen(), depth);
       if (san) {
         const mv = g.move(san);
-        if (mv) setLastMove({ from: mv.from, to: mv.to });
+        if (mv) { setLastMove({ from: mv.from, to: mv.to }); clock.press(mv.color); }
       }
       setThinking(false);
       sync();
     }, 350);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen]);
+  }, [fen, flagged]);
 
+  // award result once, whether by board end or by flag fall
   useEffect(() => {
-    if (gameOver && !awarded.current) {
-      awarded.current = true;
-      const won = game.isCheckmate() && game.turn() !== side;
-      awardGameResult(won);
-    }
+    if (!over || awarded.current) return;
+    awarded.current = true;
+    const won = flagged ? flagged !== side : game.isCheckmate() && game.turn() !== side;
+    awardGameResult(won);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameOver]);
+  }, [over]);
 
   const onSquare = useCallback((sq: string) => {
     const g = gameRef.current;
-    if (g.isGameOver() || g.turn() !== side || thinking) return;
+    if (g.isGameOver() || flagged || g.turn() !== side || thinking) return;
     if (selected) {
       const mv = tryMove(g, selected, sq);
       if (mv) {
-        setSelected(null); setHighlights([]); setLastMove({ from: mv.from, to: mv.to }); sync(); return;
+        setSelected(null); setHighlights([]); setLastMove({ from: mv.from, to: mv.to });
+        clock.press(mv.color); sync(); return;
       }
     }
     if (isOwnPiece(g, sq) && g.get(sq as any)?.color === side) {
       setSelected(sq); setHighlights(legalTargets(g, sq));
     } else { setSelected(null); setHighlights([]); }
-  }, [selected, side, thinking, sync]);
+  }, [selected, side, thinking, flagged, clock, sync]);
 
   const restart = () => {
     gameRef.current = new Chess(); awarded.current = false;
-    setSelected(null); setHighlights([]); setLastMove(null); sync();
+    setSelected(null); setHighlights([]); setLastMove(null);
+    clock.reset(tc); sync();
   };
+
+  const timed = isTimed(tc);
+  const status = over
+    ? flagged
+      ? `${flagged === 'w' ? 'White' : 'Black'} flagged — ${flagged === side ? 'Computer wins' : 'you win'} on time`
+      : statusText(game)
+    : thinking ? 'Computer is thinking…' : 'Your move.';
 
   return (
     <div className="mx-auto max-w-xl">
@@ -81,12 +98,20 @@ export function PlayComputer() {
         </div>
       </div>
 
-      <PlayerBar name="Computer" dot="#2B2B30" active={game.turn() !== side} thinking={thinking} />
-      <div className="my-2"><Board fen={fen} onSquarePress={onSquare} selected={selected} highlights={highlights} lastMove={lastMove} checkSquare={checkedKingSquare(game)} /></div>
-      <PlayerBar name="You" dot="#F4F1E8" active={game.turn() === side} />
+      <TimeControlPicker value={tc} onChange={setTc} disabled={inProgress} className="mb-4" />
 
-      <div className={`mt-3 rounded-xl px-4 py-3 text-center font-semibold ${gameOver ? 'bg-ink text-gold-soft' : 'text-ink-soft'}`}>
-        {gameOver ? statusText(game) : thinking ? 'Computer is thinking…' : 'Your move.'}
+      <div className="flex items-center justify-between">
+        <PlayerBar name="Computer" dot="#2B2B30" active={game.turn() !== side} thinking={thinking} />
+        {timed && <ClockFace ms={clock.blackMs} active={clock.running === 'b'} />}
+      </div>
+      <div className="my-2"><Board fen={fen} onSquarePress={onSquare} selected={selected} highlights={highlights} lastMove={lastMove} checkSquare={checkedKingSquare(game)} /></div>
+      <div className="flex items-center justify-between">
+        <PlayerBar name="You" dot="#F4F1E8" active={game.turn() === side} />
+        {timed && <ClockFace ms={clock.whiteMs} active={clock.running === 'w'} />}
+      </div>
+
+      <div className={`mt-3 rounded-xl px-4 py-3 text-center font-semibold ${over ? 'bg-ink text-gold-soft' : 'text-ink-soft'}`}>
+        {status}
       </div>
       <div className="mt-3 flex gap-3">
         <button onClick={restart} className="btn-dark flex-1">New game</button>
