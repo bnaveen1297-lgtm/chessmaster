@@ -9,6 +9,8 @@ import { PlayLocal } from '@/screens/PlayLocal';
 import { Learn } from '@/screens/Learn';
 import { Lesson } from '@/screens/Lesson';
 import { Puzzles } from '@/screens/Puzzles';
+import { DailyPuzzle } from '@/screens/DailyPuzzle';
+import { Leaderboard } from '@/screens/Leaderboard';
 import { Masters } from '@/screens/Masters';
 import { MasterGame } from '@/screens/MasterGame';
 import { PlayVsMaster } from '@/screens/PlayVsMaster';
@@ -46,6 +48,8 @@ export default function App() {
       <Route path="/app/learn" element={<RequireAuth><Learn /></RequireAuth>} />
       <Route path="/app/learn/:id" element={<RequireAuth><Lesson /></RequireAuth>} />
       <Route path="/app/puzzles" element={<RequireAuth><Puzzles /></RequireAuth>} />
+      <Route path="/app/daily" element={<RequireAuth><DailyPuzzle /></RequireAuth>} />
+      <Route path="/app/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
       <Route path="/app/masters" element={<RequireAuth><Masters /></RequireAuth>} />
       <Route path="/app/masters/:id" element={<RequireAuth><MasterGame /></RequireAuth>} />
       <Route path="/app/masters/:id/play" element={<RequireAuth><PlayVsMaster /></RequireAuth>} />

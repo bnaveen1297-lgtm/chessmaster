@@ -12,6 +12,7 @@ const NAV = [
   { to: '/app/masters', label: 'Masters', Icon: IconCrown },
 ];
 const MORE = [
+  { to: '/app/leaderboard', label: 'Leaderboard', Icon: IconTrophy },
   { to: '/app/tournaments', label: 'Tournaments', Icon: IconTrophy },
   { to: '/app/olympiad', label: 'Olympiad', Icon: IconGlobe },
   { to: '/app/analyze', label: 'Analyze', Icon: IconChart },
