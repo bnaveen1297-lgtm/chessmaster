@@ -1,0 +1,75 @@
+import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '@/components/ui';
+import { useAuth } from '@/auth/AuthProvider';
+import { useProgress } from '@/game/progress';
+import { puzzleCourse, packDoneId, type PuzzlePack } from '@/data/puzzleCourse';
+import { packSolvedCount } from '@/game/puzzleProgress';
+
+export function PuzzleHub() {
+  const nav = useNavigate();
+  const { user } = useAuth();
+  const { progress } = useProgress();
+  const done = new Set(progress.lessonsCompleted ?? []);
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <PageHeader eyebrow="Puzzles" title="Puzzle courses"
+        sub="A guided path through the essential tactics — one theme at a time. Solve a pack to master its pattern." />
+
+      {/* Free practice entry — keeps the endless solver one tap away. */}
+      <button onClick={() => nav('/app/puzzles/practice')}
+        className="mb-6 flex w-full items-center justify-between rounded-2xl border border-line bg-plaster-2 p-5 text-left transition hover:-translate-y-0.5">
+        <div>
+          <div className="font-display text-lg font-black">Free practice</div>
+          <div className="text-[14px] text-ink-soft">Endless mixed puzzles from the live database — no goals, just reps.</div>
+        </div>
+        <span className="text-2xl">∞</span>
+      </button>
+
+      {puzzleCourse.map((stage) => {
+        const total = stage.packs.length;
+        const complete = stage.packs.filter((p) => done.has(packDoneId(p.id))).length;
+        return (
+          <section key={stage.id} className="mb-8">
+            <div className="mb-1 flex items-baseline justify-between">
+              <h2 className="font-display text-xl font-black">{stage.title}</h2>
+              <span className="text-[13px] font-semibold text-ink-faint">{complete}/{total} packs</span>
+            </div>
+            <p className="mb-4 text-[14px] text-ink-soft">{stage.subtitle}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {stage.packs.map((pack) => (
+                <PackCard key={pack.id} pack={pack} uid={user?.id} done={done.has(packDoneId(pack.id))}
+                  onClick={() => nav(`/app/puzzles/pack/${pack.id}`)} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function PackCard({ pack, uid, done, onClick }: { pack: PuzzlePack; uid?: string; done: boolean; onClick: () => void }) {
+  const solved = Math.min(packSolvedCount(uid, pack.id), pack.goal);
+  const pct = Math.round((solved / pack.goal) * 100);
+  return (
+    <button onClick={onClick} className="card p-5 text-left transition hover:-translate-y-1">
+      <div className="flex items-start justify-between">
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-ink text-xl text-white">{pack.icon}</span>
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${done ? 'bg-success/15 text-success' : 'bg-plaster-2 text-ink-faint'}`}>
+          {done ? '✓ Done' : pack.band}
+        </span>
+      </div>
+      <div className="mt-3 font-display text-lg font-black">{pack.title}</div>
+      <div className="text-[13px] text-ink-soft">{pack.blurb}</div>
+      <div className="mt-3">
+        <div className="mb-1 flex justify-between text-[12px] font-semibold text-ink-faint">
+          <span>{solved} / {pack.goal} solved</span><span>{pct}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-plaster-2">
+          <div className={`h-full rounded-full ${done ? 'bg-success' : 'bg-teal'}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    </button>
+  );
+}
