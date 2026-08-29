@@ -23,7 +23,26 @@ export default defineConfig({
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
       { find: '@shared', replacement: path.resolve(__dirname, '../src') },
+      // The shared ../src modules import bare packages (e.g. chess.js) that are
+      // declared in web/package.json. Because those files live outside web/,
+      // node resolution walks up to the repo-root node_modules, which Vercel
+      // never installs. Pin the bare imports to web/node_modules explicitly.
+      { find: /^chess\.js$/, replacement: path.resolve(__dirname, 'node_modules/chess.js') },
     ],
+  },
+  // The shared modules live in ../src, whose nearest tsconfig is the repo-root
+  // one that `extends: "expo/tsconfig.base"`. On Vercel only web/'s deps are
+  // installed (no root node_modules), so esbuild can't resolve that extends and
+  // the build fails. Supplying tsconfigRaw makes esbuild skip the on-disk
+  // tsconfig lookup entirely and use these options for every file instead.
+  esbuild: {
+    tsconfigRaw: JSON.stringify({
+      compilerOptions: {
+        target: 'es2020',
+        useDefineForClassFields: true,
+        jsx: 'react-jsx',
+      },
+    }),
   },
   server: { fs: { allow: ['..'] } },
 });
