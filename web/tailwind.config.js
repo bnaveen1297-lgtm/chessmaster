@@ -4,32 +4,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#17313A',
-        'ink-soft': '#47616A',
-        'ink-faint': '#8598A0',
-        plaster: '#F5F0E6',
-        'plaster-2': '#EFE8D9',
-        line: '#DDD3C0',
+        // Chess.com-inspired: green + neutral charcoal/white.
+        ink: '#302E2B', // charcoal (primary text / dark surfaces)
+        'ink-soft': '#5C5A55',
+        'ink-faint': '#8B8987',
+        plaster: '#F7F6F5', // app ground (light neutral)
+        'plaster-2': '#ECEBE9',
+        line: '#E4E2DF',
         surface: '#FFFFFF',
-        teal: { DEFAULT: '#0E9AA7', br: '#1FB6C4', deep: '#0A2E37', deep2: '#0C3B46' },
-        gold: { DEFAULT: '#B8912F', br: '#C9A24B', soft: '#E7D3A1' },
-        violet: { DEFAULT: '#5B4BE0', ink: '#4536c9' },
-        boardl: '#EAD9B0',
-        boardd: '#9B7A4A',
-        success: '#2E9E6B',
-        danger: '#C8524B',
+        // brand green — mapped onto the old "teal" name so existing usage flips
+        teal: { DEFAULT: '#81B64C', br: '#95C95C', deep: '#4B7B2E', deep2: '#3C6425' },
+        // secondary premium gold (used sparingly)
+        gold: { DEFAULT: '#C8972F', br: '#E2B34A', soft: '#F2E3B7' },
+        // primary action = green (old "violet" name)
+        violet: { DEFAULT: '#81B64C', ink: '#6C9E3E' },
+        boardl: '#EBECD0',
+        boardd: '#769656',
+        success: '#4E9A4E',
+        danger: '#CA3431',
         warning: '#D98A24',
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', 'monospace'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 10px 26px -16px rgba(10,46,55,0.4)',
-        lift: '0 24px 60px -28px rgba(10,46,55,0.45)',
+        soft: '0 1px 2px rgba(0,0,0,0.06), 0 4px 14px -8px rgba(0,0,0,0.12)',
+        lift: '0 10px 34px -14px rgba(0,0,0,0.28)',
       },
-      borderRadius: { xl2: '18px' },
+      borderRadius: { xl2: '16px' },
     },
   },
   plugins: [],

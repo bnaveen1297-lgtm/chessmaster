@@ -55,33 +55,33 @@ export function Board({
               onClick={interactive && onSquarePress ? () => onSquarePress(square) : undefined}
               className="relative flex items-center justify-center"
               style={{
-                background: isCheck ? '#e2705f' : light ? '#EAD9B0' : '#9B7A4A',
+                background: isCheck ? '#e56b5c' : light ? '#EBECD0' : '#769656',
                 cursor: interactive && onSquarePress && (code || isHl) ? 'pointer' : 'default',
               }}
               aria-label={square}
             >
               {isLast && !isCheck && (
-                <span className="pointer-events-none absolute inset-0" style={{ background: light ? 'rgba(31,182,196,0.28)' : 'rgba(31,182,196,0.34)' }} />
+                <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(255,241,120,0.55)' }} />
               )}
-              {isSel && <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(91,75,224,0.35)' }} />}
+              {isSel && <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(255,241,120,0.62)' }} />}
               {code && (
                 <span className="pointer-events-none relative" style={{ width: '86%', height: '86%', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))' }}>
                   <Piece code={code} />
                 </span>
               )}
               {isHl && !code && (
-                <span className="pointer-events-none absolute" style={{ width: '30%', height: '30%', borderRadius: '9999px', background: 'rgba(23,49,58,0.28)' }} />
+                <span className="pointer-events-none absolute" style={{ width: '30%', height: '30%', borderRadius: '9999px', background: 'rgba(0,0,0,0.14)' }} />
               )}
               {isHl && code && (
-                <span className="pointer-events-none absolute inset-[6%] rounded-full" style={{ boxShadow: 'inset 0 0 0 3px rgba(23,49,58,0.35)' }} />
+                <span className="pointer-events-none absolute inset-[6%] rounded-full" style={{ boxShadow: 'inset 0 0 0 3px rgba(0,0,0,0.18)' }} />
               )}
               {coords && ci === (flipped ? 7 : 0) && (
-                <span className="pointer-events-none absolute left-1 top-0.5 font-mono text-[9px] font-semibold" style={{ color: light ? '#9B7A4A' : '#EAD9B0' }}>
+                <span className="pointer-events-none absolute left-1 top-0.5 text-[9px] font-bold" style={{ color: light ? '#769656' : '#EBECD0' }}>
                   {rankIdx + 1}
                 </span>
               )}
               {coords && ri === 7 && (
-                <span className="pointer-events-none absolute bottom-0.5 right-1 font-mono text-[9px] font-semibold" style={{ color: light ? '#9B7A4A' : '#EAD9B0' }}>
+                <span className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-bold" style={{ color: light ? '#769656' : '#EBECD0' }}>
                   {FILES[fileIdx]}
                 </span>
               )}

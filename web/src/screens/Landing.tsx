@@ -4,12 +4,12 @@ import { useAuth } from '@/auth/AuthProvider';
 import { Board } from '@/components/Board';
 
 const FEATURES = [
-  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#0E9AA7' },
-  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#B8912F' },
-  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#5B4BE0' },
-  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#C8524B' },
-  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#2E9E6B' },
-  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#0E9AA7' },
+  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#81B64C' },
+  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#302E2B' },
+  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#81B64C' },
+  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#302E2B' },
+  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#81B64C' },
+  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#302E2B' },
 ];
 
 function GoogleMark() {
@@ -103,7 +103,7 @@ export function Landing() {
           <div>
             <p className="eyebrow text-gold">Free · Web &amp; mobile · Samarkand 2026</p>
             <h1 className="mt-4 font-display text-5xl font-black leading-[1.02] sm:text-6xl">
-              Your way to become a <span className="bg-gradient-to-r from-gold to-teal bg-clip-text text-transparent">King.</span>
+              Your way to become a <span className="bg-gradient-to-r from-teal-br to-teal bg-clip-text text-transparent">King.</span>
             </h1>
             <p className="mt-5 max-w-lg text-lg text-ink-soft">
               Learn chess from zero to sharp, solve millions of puzzles, and play the world — online 1v1, live
@@ -126,7 +126,7 @@ export function Landing() {
       <section className="bg-ink text-white">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-5 py-8 text-center sm:grid-cols-4">
           {[['40', 'Lessons · 8 units'], ['Millions', 'Puzzles + daily'], ['2', 'Tournament formats'], ['100%', 'Free to play']].map(([n, l]) => (
-            <div key={l}><div className="font-display text-3xl font-black text-gold-br sm:text-4xl">{n}</div><div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-[#8fb0b3]">{l}</div></div>
+            <div key={l}><div className="font-display text-3xl font-black text-teal-br sm:text-4xl">{n}</div><div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-[#8fb0b3]">{l}</div></div>
           ))}
         </div>
       </section>

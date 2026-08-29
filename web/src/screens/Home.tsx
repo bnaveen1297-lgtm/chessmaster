@@ -9,12 +9,12 @@ import { fetchLeaderboard, type LeaderRow } from '@/lib/leaderboard';
 import { IconPlay, IconPuzzle, IconLearn, IconCrown, IconGlobe, IconTrophy } from '@/components/icons';
 
 const QUICK = [
-  { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#5B4BE0' },
-  { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#B8912F' },
-  { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#0E9AA7' },
-  { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#2E9E6B' },
-  { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#C8524B' },
-  { to: '/app/olympiad', label: 'Olympiad', desc: 'Samarkand 2026', Icon: IconGlobe, c: '#0A5C6B' },
+  { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#81B64C' },
+  { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#302E2B' },
+  { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#81B64C' },
+  { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#302E2B' },
+  { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#81B64C' },
+  { to: '/app/olympiad', label: 'Olympiad', desc: 'Samarkand 2026', Icon: IconGlobe, c: '#302E2B' },
 ];
 
 function greeting() {
@@ -81,8 +81,8 @@ export function Home() {
       {/* Daily puzzle + Continue learning */}
       <div className="grid gap-4 md:grid-cols-2">
         <button onClick={() => nav('/app/daily')}
-          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#B8912F] to-[#8a6a1e] p-5 text-left text-white shadow-lift transition hover:-translate-y-0.5">
-          <div className="absolute -right-6 -top-6 text-8xl opacity-20 transition group-hover:scale-110">♟</div>
+          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-ink to-[#403c38] p-5 text-left text-white shadow-lift transition hover:-translate-y-0.5">
+          <div className="absolute -right-6 -top-6 text-8xl opacity-15 transition group-hover:scale-110">♟</div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/80">Puzzle of the day</p>
           <div className="mt-2 font-display text-2xl font-black">{dailyDone ? 'Solved today ✓' : 'Today’s puzzle'}</div>
           <p className="mt-1 text-sm text-white/85">{dailyDone ? 'Come back tomorrow for a new one.' : `${daily.theme} · ${daily.difficulty} — keep your streak alive.`}</p>

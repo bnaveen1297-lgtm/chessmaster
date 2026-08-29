@@ -6,70 +6,56 @@
   color-scheme: light;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #f5f0e6;
-  color: #17313a;
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  background: #f7f6f5;
+  color: #302e2b;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
 
+h1, h2, h3 { letter-spacing: -0.015em; }
+
 @layer components {
   .eyebrow {
-    @apply font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-teal;
+    @apply font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-teal;
   }
   .card {
     @apply rounded-2xl border border-line bg-surface shadow-soft;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold transition
-      active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-[11px] font-bold transition
+      active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-violet px-5 py-3 text-white hover:bg-violet-ink;
+    @apply btn bg-teal px-5 py-3 text-white hover:bg-violet-ink;
+    box-shadow: 0 3px 0 0 #4b7b2e;
   }
+  .btn-primary:active { box-shadow: 0 1px 0 0 #4b7b2e; }
   .btn-gold {
-    @apply btn bg-gold-br px-5 py-3 text-[#2a2107] hover:brightness-105;
+    @apply btn bg-gold px-5 py-3 text-white hover:brightness-105;
+    box-shadow: 0 3px 0 0 #9a731f;
   }
+  .btn-gold:active { box-shadow: 0 1px 0 0 #9a731f; }
   .btn-ghost {
-    @apply btn border border-line bg-transparent px-5 py-3 text-ink hover:border-ink-faint;
+    @apply btn border border-line bg-surface px-5 py-3 text-ink hover:bg-plaster-2;
   }
   .btn-dark {
-    @apply btn bg-ink px-5 py-3 text-white hover:brightness-110;
+    @apply btn bg-ink px-5 py-3 text-white hover:brightness-125;
   }
   .chip {
-    @apply cursor-pointer rounded-full px-3.5 py-2 text-sm font-semibold transition;
+    @apply cursor-pointer rounded-lg px-3.5 py-2 text-sm font-semibold transition;
   }
 }
 
-/* subtle rise-in used on route mount */
 @keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
-.rise {
-  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .rise {
-    animation: none;
-  }
-}
+.rise { animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
 
-/* thin scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #cdbfa6 transparent;
-}
+* { scrollbar-width: thin; scrollbar-color: #cfceca transparent; }
