@@ -31,15 +31,11 @@ h1, h2, h3 { letter-spacing: -0.015em; }
       active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-teal px-5 py-3 text-white hover:bg-violet-ink;
-    box-shadow: 0 3px 0 0 #4b7b2e;
+    @apply btn bg-ink px-5 py-3 text-white hover:brightness-125;
   }
-  .btn-primary:active { box-shadow: 0 1px 0 0 #4b7b2e; }
   .btn-gold {
     @apply btn bg-gold px-5 py-3 text-white hover:brightness-105;
-    box-shadow: 0 3px 0 0 #9a731f;
   }
-  .btn-gold:active { box-shadow: 0 1px 0 0 #9a731f; }
   .btn-ghost {
     @apply btn border border-line bg-surface px-5 py-3 text-ink hover:bg-plaster-2;
   }

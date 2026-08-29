@@ -4,12 +4,12 @@ import { useAuth } from '@/auth/AuthProvider';
 import { Board } from '@/components/Board';
 
 const FEATURES = [
-  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#81B64C' },
-  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#302E2B' },
-  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#81B64C' },
-  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#302E2B' },
-  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#81B64C' },
-  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#302E2B' },
+  { icon: '♞', title: 'Learn', body: 'A 40-lesson course across 8 units with interactive board exercises.', c: '#2FA6CE' },
+  { icon: '✦', title: 'Puzzles', body: 'Millions of tactics by rating band, plus a fresh Daily Puzzle.', c: '#C9A24B' },
+  { icon: '♜', title: 'Play', body: 'Face the engine, a friend, or the world online in real time.', c: '#1C1C1E' },
+  { icon: '♛', title: 'Tournaments', body: 'Round-robin & knockout events with automatic pairings.', c: '#2FA6CE' },
+  { icon: '◆', title: 'Master Base', body: "Play against a grandmaster's real moves, move for move.", c: '#1C1C1E' },
+  { icon: '▲', title: 'Analyze', body: 'Chess.com-style accuracy, blunder detection and an eval graph.', c: '#C9A24B' },
 ];
 
 function GoogleMark() {

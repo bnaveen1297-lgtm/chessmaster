@@ -55,7 +55,7 @@ export function Board({
               onClick={interactive && onSquarePress ? () => onSquarePress(square) : undefined}
               className="relative flex items-center justify-center"
               style={{
-                background: isCheck ? '#e56b5c' : light ? '#EBECD0' : '#769656',
+                background: isCheck ? '#e56b5c' : light ? '#EED9B6' : '#B58863',
                 cursor: interactive && onSquarePress && (code || isHl) ? 'pointer' : 'default',
               }}
               aria-label={square}
@@ -76,12 +76,12 @@ export function Board({
                 <span className="pointer-events-none absolute inset-[6%] rounded-full" style={{ boxShadow: 'inset 0 0 0 3px rgba(0,0,0,0.18)' }} />
               )}
               {coords && ci === (flipped ? 7 : 0) && (
-                <span className="pointer-events-none absolute left-1 top-0.5 text-[9px] font-bold" style={{ color: light ? '#769656' : '#EBECD0' }}>
+                <span className="pointer-events-none absolute left-1 top-0.5 text-[9px] font-bold" style={{ color: light ? '#B58863' : '#EED9B6' }}>
                   {rankIdx + 1}
                 </span>
               )}
               {coords && ri === 7 && (
-                <span className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-bold" style={{ color: light ? '#769656' : '#EBECD0' }}>
+                <span className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-bold" style={{ color: light ? '#B58863' : '#EED9B6' }}>
                   {FILES[fileIdx]}
                 </span>
               )}

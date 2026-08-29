@@ -4,24 +4,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Chess.com-inspired: green + neutral charcoal/white.
-        ink: '#302E2B', // charcoal (primary text / dark surfaces)
-        'ink-soft': '#5C5A55',
-        'ink-faint': '#8B8987',
-        plaster: '#F7F6F5', // app ground (light neutral)
-        'plaster-2': '#ECEBE9',
-        line: '#E4E2DF',
+        // Empower Chess portfolio: black + white/grey, sky-blue accent, gold highlight.
+        ink: '#1C1C1E', // near-black (primary text + black CTAs)
+        'ink-soft': '#5A5A5F',
+        'ink-faint': '#9A9AA0',
+        plaster: '#F2F2F4', // app ground (light grey)
+        'plaster-2': '#E8E8EC',
+        line: '#E1E1E6',
         surface: '#FFFFFF',
-        // brand green — mapped onto the old "teal" name so existing usage flips
-        teal: { DEFAULT: '#81B64C', br: '#95C95C', deep: '#4B7B2E', deep2: '#3C6425' },
-        // secondary premium gold (used sparingly)
-        gold: { DEFAULT: '#C8972F', br: '#E2B34A', soft: '#F2E3B7' },
-        // primary action = green (old "violet" name)
-        violet: { DEFAULT: '#81B64C', ink: '#6C9E3E' },
-        boardl: '#EBECD0',
-        boardd: '#769656',
-        success: '#4E9A4E',
-        danger: '#CA3431',
+        // sky-blue accent (portfolio hero) — mapped onto the old "teal" name
+        teal: { DEFAULT: '#2FA6CE', br: '#57C3E6', deep: '#1B6E8C', deep2: '#134F65' },
+        // gold highlight (portfolio section numbers / XP / premium)
+        gold: { DEFAULT: '#C9A24B', br: '#DDB962', soft: '#EFDCA8' },
+        // primary action = black (portfolio "Join / Sign In" buttons)
+        violet: { DEFAULT: '#1C1C1E', ink: '#000000' },
+        boardl: '#EED9B6',
+        boardd: '#B58863',
+        success: '#2E9E6B',
+        danger: '#D3524B',
         warning: '#D98A24',
       },
       fontFamily: {
