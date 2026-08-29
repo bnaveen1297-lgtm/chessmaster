@@ -6,6 +6,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useProgress } from '@/game/progress';
 import { packById, bandFilter, packDoneId } from '@/data/puzzleCourse';
 import { bumpPackSolved, packSolvedCount } from '@/game/puzzleProgress';
+import { timeForDifficulty } from '@/game/puzzleTimer';
 import { fetchNextPuzzle } from '@shared/services/puzzleDb';
 import { randomLibraryPuzzle } from '@/lib/puzzleLibrary';
 import { puzzles as bundled, type Puzzle } from '@shared/data/puzzles';
@@ -102,6 +103,7 @@ export function PuzzlePack() {
           onNext={load}
           nextLabel={solved >= pack.goal ? 'Keep practising ›' : 'Next puzzle ›'}
           tip={pack.tip}
+          timeLimitSec={timeForDifficulty(puzzle.difficulty)}
         />
       ) : (
         <div className="rounded-xl bg-plaster-2 px-4 py-10 text-center text-ink-soft">Loading first puzzle…</div>

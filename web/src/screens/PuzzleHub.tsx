@@ -27,15 +27,26 @@ export function PuzzleHub() {
       <PageHeader eyebrow="Puzzles" title="Puzzle courses"
         sub="A guided path through the essential tactics — one theme at a time. Solve a pack to master its pattern." />
 
-      {/* Free practice entry — keeps the endless solver one tap away. */}
-      <button onClick={() => nav('/app/puzzles/practice')}
-        className="mb-6 flex w-full items-center justify-between rounded-2xl border border-line bg-plaster-2 p-5 text-left transition hover:-translate-y-0.5">
-        <div>
-          <div className="font-display text-lg font-black">Free practice</div>
-          <div className="text-[14px] text-ink-soft">Endless mixed puzzles from the live database — no goals, just reps.</div>
-        </div>
-        <span className="text-2xl">∞</span>
-      </button>
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        {/* Free practice entry — keeps the endless solver one tap away. */}
+        <button onClick={() => nav('/app/puzzles/practice')}
+          className="flex w-full items-center justify-between rounded-2xl border border-line bg-plaster-2 p-5 text-left transition hover:-translate-y-0.5">
+          <div>
+            <div className="font-display text-lg font-black">Free practice</div>
+            <div className="text-[13px] text-ink-soft">Endless timed puzzles — no goals, just reps.</div>
+          </div>
+          <span className="text-2xl">∞</span>
+        </button>
+        {/* Certification exam */}
+        <button onClick={() => nav('/app/puzzles/exam')}
+          className="flex w-full items-center justify-between rounded-2xl border-2 border-gold/50 bg-[linear-gradient(135deg,#fffdf5,#f6f1e2)] p-5 text-left transition hover:-translate-y-0.5">
+          <div>
+            <div className="font-display text-lg font-black">Take the exam</div>
+            <div className="text-[13px] text-ink-soft">A graded, timed test — earn your certificate.</div>
+          </div>
+          <span className="text-2xl">🎖️</span>
+        </button>
+      </div>
 
       {puzzleCourse.map((stage) => {
         const total = stage.packs.length;

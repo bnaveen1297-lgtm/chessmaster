@@ -67,3 +67,29 @@ export async function randomLibraryPuzzle(theme?: string, band?: PuzzleDifficult
   }
   return null;
 }
+
+/**
+ * A distinct sample of `n` puzzles for an exam, spread across difficulty bands
+ * so the test covers easy → hard. Each returned puzzle carries its source rating.
+ */
+export async function sampleLibraryPuzzles(n: number): Promise<(Puzzle & { rating: number })[]> {
+  const rows = await load();
+  if (!rows.length) return [];
+  const byBand: Record<PuzzleDifficulty, Row[]> = { Beginner: [], Intermediate: [], Advanced: [] };
+  for (const r of rows) byBand[bandOf(r.rating)].push(r);
+  const order: PuzzleDifficulty[] = ['Beginner', 'Beginner', 'Intermediate', 'Intermediate', 'Advanced'];
+  const used = new Set<string>();
+  const out: (Puzzle & { rating: number })[] = [];
+  let guard = 0;
+  while (out.length < n && guard++ < n * 30) {
+    const band = order[out.length % order.length];
+    const pool = byBand[band].length ? byBand[band] : rows;
+    const r = pool[Math.floor(Math.random() * pool.length)];
+    if (used.has(r.id)) continue;
+    const p = rowToPuzzle({ id: r.id, fen: r.fen, moves: r.moves, rating: r.rating, themes: r.themes });
+    if (!p) { used.add(r.id); continue; }
+    used.add(r.id);
+    out.push({ ...p, rating: r.rating });
+  }
+  return out;
+}

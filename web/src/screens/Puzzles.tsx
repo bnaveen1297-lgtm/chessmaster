@@ -5,6 +5,7 @@ import { useProgress } from '@/game/progress';
 import { puzzles, type Puzzle, type PuzzleDifficulty } from '@shared/data/puzzles';
 import { fetchNextPuzzle, type PuzzleFilter } from '@shared/services/puzzleDb';
 import { randomLibraryPuzzle } from '@/lib/puzzleLibrary';
+import { timeForDifficulty } from '@/game/puzzleTimer';
 import { usePrefs } from '@/game/prefs';
 import { LeaderboardCard } from '@/components/LeaderboardCard';
 
@@ -62,7 +63,7 @@ export function Puzzles() {
         </span>
       </div>
       <PuzzleSolver key={puzzle.id} puzzle={puzzle} loading={loading}
-        onSolved={awardPuzzleSolved} onNext={() => load(band)} />
+        onSolved={awardPuzzleSolved} onNext={() => load(band)} timeLimitSec={timeForDifficulty(puzzle.difficulty)} />
       <LeaderboardCard className="mt-6" />
     </div>
   );
