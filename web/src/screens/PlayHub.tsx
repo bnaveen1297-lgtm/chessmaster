@@ -23,7 +23,7 @@ export function PlayHub() {
         ))}
       </div>
       <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-plaster-2 p-4 text-sm text-ink-soft">
-        <IconTrophy className="text-gold" /> Online play & tournaments run on the ChessMaster server — sign-in required, and it's all included free.
+        <IconTrophy className="text-gold" /> Online play & tournaments run on the chesshub360 server — sign-in required, and it's all included free.
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ export function Olympiad() {
         <p className="eyebrow text-gold-soft">Samarkand · Uzbekistan · 15–27 Sep 2026</p>
         <h1 className="mt-2 font-display text-3xl font-black sm:text-4xl">46th FIDE Chess Olympiad</h1>
         <p className="mt-3 max-w-xl text-[#cfe3e4]">
-          The colours of the Silk Road and the blue-tiled domes of the Registan run through ChessMaster.
+          The colours of the Silk Road and the blue-tiled domes of the Registan run through chesshub360.
           During the event, follow the live boards relayed straight from the hall.
         </p>
         <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-mono text-xs text-gold-soft">◆ Live boards appear here during the Olympiad</span>

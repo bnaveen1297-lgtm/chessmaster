@@ -34,7 +34,7 @@ export function Tournaments() {
   return (
     <div>
       <PageHeader eyebrow="Compete" title="Online play & tournaments"
-        sub="Real-time 1v1 games and events — round-robin or knockout — on the ChessMaster server." />
+        sub="Real-time 1v1 games and events — round-robin or knockout — on the chesshub360 server." />
 
       {/* quick online match */}
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-line bg-plaster-2 p-5 sm:flex-row sm:items-center sm:justify-between">

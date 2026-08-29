@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthProvider';
+import { usePrefs } from '@/game/prefs';
 import { AppShell } from '@/components/AppShell';
 import { Landing } from '@/screens/Landing';
+import { Onboarding } from '@/screens/Onboarding';
 import { Home } from '@/screens/Home';
 import { PlayHub } from '@/screens/PlayHub';
 import { PlayComputer } from '@/screens/PlayComputer';
@@ -22,16 +24,18 @@ import { Profile } from '@/screens/Profile';
 function Loading() {
   return (
     <div className="grid min-h-screen place-items-center bg-plaster">
-      <div className="animate-pulse font-display text-2xl font-black text-teal-deep">♚ ChessMaster</div>
+      <div className="animate-pulse font-display text-2xl font-black">chess<span className="text-teal">hub</span>360</div>
     </div>
   );
 }
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
+  const { prefs } = usePrefs();
   const loc = useLocation();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/" replace state={{ from: loc.pathname }} />;
+  if (!prefs.onboarded && loc.pathname !== '/app/onboarding') return <Onboarding />;
   return <AppShell>{children}</AppShell>;
 }
 

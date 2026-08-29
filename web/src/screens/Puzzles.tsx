@@ -4,13 +4,15 @@ import { Board } from '@/components/Board';
 import { PageHeader } from '@/components/ui';
 import { useProgress } from '@/game/progress';
 import { puzzles, type Puzzle, type PuzzleDifficulty } from '@shared/data/puzzles';
+import { usePrefs } from '@/game/prefs';
 import { legalTargets, tryMove, isOwnPiece } from '@shared/game/chessHelpers';
 
 const BANDS: (PuzzleDifficulty | 'All')[] = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
 export function Puzzles() {
   const { awardPuzzleSolved } = useProgress();
-  const [band, setBand] = useState<PuzzleDifficulty | 'All'>('All');
+  const { prefs } = usePrefs();
+  const [band, setBand] = useState<PuzzleDifficulty | 'All'>(prefs.level);
   const pool = useMemo(() => (band === 'All' ? puzzles : puzzles.filter((p) => p.difficulty === band)), [band]);
   const [idx, setIdx] = useState(0);
   const puzzle = pool[idx % Math.max(1, pool.length)] as Puzzle | undefined;

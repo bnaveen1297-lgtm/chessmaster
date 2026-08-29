@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * Browser Supabase client. This module is substituted (via a Vite resolver) for
  * the React-Native `src/services/supabase.ts` that the shared service layer
  * imports, so all the reused services (online, tournaments, puzzleDb, masterDb)
- * talk to the same ChessMaster project using web storage + OAuth redirect.
+ * talk to the same chesshub360 project using web storage + OAuth redirect.
  */
 
 const DEFAULT_URL = 'https://evmjrxxrfumrggzmtpam.supabase.co';

@@ -89,10 +89,7 @@ export function Landing() {
     <div className="min-h-screen bg-plaster text-ink">
       {/* nav */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-gradient-to-br from-teal-deep to-teal text-[19px] text-white">♚</span>
-          <span className="font-display text-xl font-black tracking-wide">ChessMaster</span>
-        </div>
+        <img src="/logo.png" alt="chesshub360" className="h-9 sm:h-10" />
         <a href="#start" className="btn-primary text-sm">Sign in</a>
       </header>
 
@@ -159,7 +156,7 @@ export function Landing() {
       </section>
 
       <footer className="bg-teal-deep py-8 text-center text-sm text-[#9FBEC0]">
-        © 2026 ChessMaster · Samarkand · Uzbekistan · 15–27 Sep 2026
+        © 2026 chesshub360 · Samarkand · Uzbekistan · 15–27 Sep 2026
       </footer>
     </div>
   );

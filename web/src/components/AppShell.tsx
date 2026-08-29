@@ -18,11 +18,13 @@ const MORE = [
   { to: '/app/analyze', label: 'Analyze', Icon: IconChart },
 ];
 
-function Brand() {
+export function Brand() {
   return (
     <NavLink to="/app" className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-gradient-to-br from-teal-deep to-teal text-[19px] text-white shadow-inner">♚</span>
-      <span className="font-display text-[20px] font-black tracking-wide">ChessMaster</span>
+      <img src="/icon.png" alt="" className="h-9 w-9 rounded-[10px]" />
+      <span className="font-display text-[19px] font-extrabold lowercase tracking-tight">
+        chess<span className="text-teal">hub</span>360
+      </span>
     </NavLink>
   );
 }

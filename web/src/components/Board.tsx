@@ -1,8 +1,13 @@
 import { useMemo } from 'react';
 import { Chess } from 'chess.js';
 import { Piece } from './Piece';
+import { usePrefs, BOARD_THEMES, type BoardThemeId, type PieceStyle } from '@/game/prefs';
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const GLYPH: Record<string, string> = {
+  wk: '♔', wq: '♕', wr: '♖', wb: '♗', wn: '♘', wp: '♙',
+  bk: '♚', bq: '♛', br: '♜', bb: '♝', bn: '♞', bp: '♟',
+};
 
 export type BoardProps = {
   fen: string;
@@ -14,11 +19,17 @@ export type BoardProps = {
   flipped?: boolean;
   coords?: boolean;
   interactive?: boolean;
+  boardTheme?: BoardThemeId;
+  pieceStyle?: PieceStyle;
 };
 
 export function Board({
   fen, onSquarePress, selected, highlights = [], lastMove, checkSquare, flipped, coords = true, interactive = true,
+  boardTheme, pieceStyle,
 }: BoardProps) {
+  const { prefs } = usePrefs();
+  const theme = BOARD_THEMES[boardTheme ?? prefs.boardTheme] ?? BOARD_THEMES.wood;
+  const pstyle: PieceStyle = pieceStyle ?? prefs.pieceStyle;
   const grid = useMemo(() => {
     let c: Chess;
     try {
@@ -55,7 +66,7 @@ export function Board({
               onClick={interactive && onSquarePress ? () => onSquarePress(square) : undefined}
               className="relative flex items-center justify-center"
               style={{
-                background: isCheck ? '#e56b5c' : light ? '#EED9B6' : '#B58863',
+                background: isCheck ? '#e56b5c' : light ? theme.light : theme.dark,
                 cursor: interactive && onSquarePress && (code || isHl) ? 'pointer' : 'default',
               }}
               aria-label={square}
@@ -64,10 +75,17 @@ export function Board({
                 <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(255,241,120,0.55)' }} />
               )}
               {isSel && <span className="pointer-events-none absolute inset-0" style={{ background: 'rgba(255,241,120,0.62)' }} />}
-              {code && (
+              {code && pstyle === 'classic' && (
                 <span className="pointer-events-none relative" style={{ width: '86%', height: '86%', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))' }}>
                   <Piece code={code} />
                 </span>
+              )}
+              {code && pstyle === 'symbol' && piece && (
+                <span className="pointer-events-none relative leading-none" style={{
+                  fontSize: 'clamp(20px, 8.5cqw, 46px)',
+                  color: piece.color === 'w' ? '#FBFAF6' : '#26221C',
+                  textShadow: piece.color === 'w' ? '0 1.5px 1px rgba(0,0,0,0.35)' : '0 1px 1px rgba(255,255,255,0.2)',
+                }}>{GLYPH[piece.color + piece.type]}</span>
               )}
               {isHl && !code && (
                 <span className="pointer-events-none absolute" style={{ width: '30%', height: '30%', borderRadius: '9999px', background: 'rgba(0,0,0,0.14)' }} />
@@ -76,12 +94,12 @@ export function Board({
                 <span className="pointer-events-none absolute inset-[6%] rounded-full" style={{ boxShadow: 'inset 0 0 0 3px rgba(0,0,0,0.18)' }} />
               )}
               {coords && ci === (flipped ? 7 : 0) && (
-                <span className="pointer-events-none absolute left-1 top-0.5 text-[9px] font-bold" style={{ color: light ? '#B58863' : '#EED9B6' }}>
+                <span className="pointer-events-none absolute left-1 top-0.5 text-[9px] font-bold" style={{ color: light ? theme.dark : theme.light }}>
                   {rankIdx + 1}
                 </span>
               )}
               {coords && ri === 7 && (
-                <span className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-bold" style={{ color: light ? '#B58863' : '#EED9B6' }}>
+                <span className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-bold" style={{ color: light ? theme.dark : theme.light }}>
                   {FILES[fileIdx]}
                 </span>
               )}

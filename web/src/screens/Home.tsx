@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthProvider';
 import { useProgress, levelFromXp, xpIntoLevel, XP_PER_LEVEL } from '@/game/progress';
+import { usePrefs } from '@/game/prefs';
 import { firstIncompleteLesson, orderedLessonIds } from '@shared/data/content';
 import { Ring } from '@/components/Ring';
 import { dailyPuzzle, dailyDoneToday } from '@/lib/daily';
@@ -25,6 +26,7 @@ function greeting() {
 export function Home() {
   const { user } = useAuth();
   const { progress } = useProgress();
+  const { prefs } = usePrefs();
   const nav = useNavigate();
   const lvl = levelFromXp(progress.xp);
   const next = firstIncompleteLesson(progress.lessonsCompleted);
@@ -52,6 +54,15 @@ export function Home() {
           </h1>
         </div>
       </div>
+
+      {prefs.wantsCoach && (
+        <button onClick={() => nav(next ? `/app/learn/${next.id}` : '/app/learn')}
+          className="flex w-full items-center gap-3 rounded-xl border border-teal/30 bg-teal/10 px-4 py-3 text-left">
+          <span className="text-lg">🎯</span>
+          <span className="flex-1 text-sm font-semibold text-ink">Coach tip · {prefs.level} plan — {next ? `next up: ${next.title}` : 'review a lesson to stay sharp'}</span>
+          <span className="text-teal">›</span>
+        </button>
+      )}
 
       {/* TODAY card — rings + streak + level */}
       <div className="card p-5 sm:p-6">
