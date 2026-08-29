@@ -11,6 +11,10 @@ import { PlayLocal } from '@/screens/PlayLocal';
 import { Learn } from '@/screens/Learn';
 import { Lesson } from '@/screens/Lesson';
 import { Puzzles } from '@/screens/Puzzles';
+import { PuzzleHub } from '@/screens/PuzzleHub';
+import { PuzzlePack } from '@/screens/PuzzlePack';
+import { PuzzleExam } from '@/screens/PuzzleExam';
+import { PuzzleCreate } from '@/screens/PuzzleCreate';
 import { DailyPuzzle } from '@/screens/DailyPuzzle';
 import { Leaderboard } from '@/screens/Leaderboard';
 import { Masters } from '@/screens/Masters';
@@ -19,6 +23,9 @@ import { PlayVsMaster } from '@/screens/PlayVsMaster';
 import { Olympiad } from '@/screens/Olympiad';
 import { Tournaments } from '@/screens/Tournaments';
 import { Analyze } from '@/screens/Analyze';
+import { Coach } from '@/screens/Coach';
+import { Books } from '@/screens/Books';
+import { Book } from '@/screens/Book';
 import { Profile } from '@/screens/Profile';
 
 function Loading() {
@@ -54,7 +61,11 @@ export default function App() {
       <Route path="/app/play/local" element={<RequireAuth><PlayLocal /></RequireAuth>} />
       <Route path="/app/learn" element={<RequireAuth><Learn /></RequireAuth>} />
       <Route path="/app/learn/:id" element={<RequireAuth><Lesson /></RequireAuth>} />
-      <Route path="/app/puzzles" element={<RequireAuth><Puzzles /></RequireAuth>} />
+      <Route path="/app/puzzles" element={<RequireAuth><PuzzleHub /></RequireAuth>} />
+      <Route path="/app/puzzles/practice" element={<RequireAuth><Puzzles /></RequireAuth>} />
+      <Route path="/app/puzzles/pack/:packId" element={<RequireAuth><PuzzlePack /></RequireAuth>} />
+      <Route path="/app/puzzles/exam" element={<RequireAuth><PuzzleExam /></RequireAuth>} />
+      <Route path="/app/puzzles/create" element={<RequireAuth><PuzzleCreate /></RequireAuth>} />
       <Route path="/app/daily" element={<RequireAuth><DailyPuzzle /></RequireAuth>} />
       <Route path="/app/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
       <Route path="/app/masters" element={<RequireAuth><Masters /></RequireAuth>} />
@@ -63,6 +74,9 @@ export default function App() {
       <Route path="/app/olympiad" element={<RequireAuth><Olympiad /></RequireAuth>} />
       <Route path="/app/tournaments" element={<RequireAuth><Tournaments /></RequireAuth>} />
       <Route path="/app/analyze" element={<RequireAuth><Analyze /></RequireAuth>} />
+      <Route path="/app/coach" element={<RequireAuth><Coach /></RequireAuth>} />
+      <Route path="/app/books" element={<RequireAuth><Books /></RequireAuth>} />
+      <Route path="/app/books/:bookId" element={<RequireAuth><Book /></RequireAuth>} />
       <Route path="/app/profile" element={<RequireAuth><Profile /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

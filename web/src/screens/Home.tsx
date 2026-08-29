@@ -13,6 +13,8 @@ const QUICK = [
   { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#111418' },
   { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#1E88E5' },
   { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#111418' },
+  { to: '/app/coach', label: 'Prep Coach', desc: 'Your weekly plan', Icon: IconCrown, c: '#111418' },
+  { to: '/app/books', label: 'Study Books', desc: 'Famous games, annotated', Icon: IconLearn, c: '#1E88E5' },
   { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#1E88E5' },
   { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#111418' },
   { to: '/app/olympiad', label: 'Olympiad', desc: 'Samarkand 2026', Icon: IconGlobe, c: '#1E88E5' },
