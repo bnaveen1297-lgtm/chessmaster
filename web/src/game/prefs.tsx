@@ -1,4 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from '@/auth/AuthProvider';
 
 export const BOARD_THEMES = {
   wood: { name: 'Wood', light: '#EED9B6', dark: '#B58863' },
@@ -32,43 +34,126 @@ const DEFAULT: Prefs = {
   pieceStyle: 'classic',
 };
 
-const KEY = 'chesshub360.prefs';
+// Preferences are cached per-user so multiple accounts on one browser never
+// share state, and so a returning user keeps their setup even offline. The
+// authoritative copy lives in Supabase (profiles.prefs) once available.
+const BASE_KEY = 'chesshub360.prefs';
+const keyFor = (userId?: string | null) => (userId ? `${BASE_KEY}.${userId}` : BASE_KEY);
 
-function read(): Prefs {
+function readLocal(userId?: string | null): Prefs {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(keyFor(userId));
     if (raw) return { ...DEFAULT, ...JSON.parse(raw) };
   } catch {
     /* ignore */
   }
   return DEFAULT;
 }
+function writeLocal(userId: string | null | undefined, p: Prefs) {
+  try {
+    localStorage.setItem(keyFor(userId), JSON.stringify(p));
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchRemote(userId: string): Promise<Prefs | null> {
+  if (!(isSupabaseConfigured && supabase)) return null;
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (error || !data) return null;
+    const remote = (data as any).prefs;
+    // `prefs` column may be absent (migration 0009 not yet applied) → undefined.
+    if (remote && typeof remote === 'object' && Object.keys(remote).length > 0) {
+      return { ...DEFAULT, ...remote };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveRemote(userId: string, p: Prefs): Promise<void> {
+  if (!(isSupabaseConfigured && supabase)) return;
+  try {
+    // Update first (the signup trigger already seeded the profile row); if the
+    // prefs column doesn't exist the call errors and we simply keep localStorage.
+    await supabase.from('profiles').upsert({ id: userId, prefs: p }, { onConflict: 'id' });
+  } catch {
+    /* ignore — localStorage remains the fallback */
+  }
+}
 
 type Ctx = {
   prefs: Prefs;
+  /** True once prefs have been resolved for the current auth state. */
+  loaded: boolean;
   update: (p: Partial<Prefs>) => void;
   reset: () => void;
 };
 const PrefsContext = createContext<Ctx | undefined>(undefined);
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
-  const [prefs, setPrefs] = useState<Prefs>(read);
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState<Prefs>(() => readLocal(null));
+  const [loaded, setLoaded] = useState(false);
+  const userIdRef = useRef<string | null>(null);
 
+  // Resolve prefs whenever the signed-in user changes.
   useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(prefs));
-    } catch {
-      /* ignore */
+    let cancelled = false;
+    const uid = user?.id ?? null;
+    userIdRef.current = uid;
+
+    if (!uid) {
+      setPrefs(readLocal(null));
+      setLoaded(true);
+      return;
     }
-  }, [prefs]);
+
+    // Optimistic: show this user's cached prefs immediately, then reconcile
+    // with the server (source of truth) before declaring loaded.
+    const cached = readLocal(uid);
+    setPrefs(cached);
+    setLoaded(false);
+
+    fetchRemote(uid).then((remote) => {
+      if (cancelled || userIdRef.current !== uid) return;
+      if (remote) {
+        setPrefs(remote);
+        writeLocal(uid, remote);
+      } else if (cached.onboarded) {
+        // Server has nothing yet but this device knows the user — push it up.
+        saveRemote(uid, cached);
+      }
+      setLoaded(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const value = useMemo<Ctx>(
     () => ({
       prefs,
-      update: (p) => setPrefs((prev) => ({ ...prev, ...p })),
-      reset: () => setPrefs(DEFAULT),
+      loaded,
+      update: (p) =>
+        setPrefs((prev) => {
+          const next = { ...prev, ...p };
+          const uid = userIdRef.current;
+          writeLocal(uid, next);
+          if (uid) saveRemote(uid, next);
+          return next;
+        }),
+      reset: () => {
+        const uid = userIdRef.current;
+        writeLocal(uid, DEFAULT);
+        if (uid) saveRemote(uid, DEFAULT);
+        setPrefs(DEFAULT);
+      },
     }),
-    [prefs],
+    [prefs, loaded],
   );
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>;
 }

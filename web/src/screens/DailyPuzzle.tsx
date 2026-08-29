@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { PageHeader } from '@/components/ui';
 import { useProgress } from '@/game/progress';
+import { useAuth } from '@/auth/AuthProvider';
 import { dailyPuzzle, markDailyDone, dailyDoneToday } from '@/lib/daily';
 import { fetchDailyPuzzle } from '@shared/services/puzzleDb';
 import type { Puzzle } from '@shared/data/puzzles';
@@ -32,13 +33,14 @@ export function DailyPuzzle() {
 
 function DailySolver({ puzzle, source }: { puzzle: Puzzle; source: 'bundled' | 'lichess' }) {
   const { awardPuzzleSolved, progress } = useProgress();
+  const { user } = useAuth();
   const gameRef = useRef(new Chess(puzzle.fen));
   const [fen, setFen] = useState(puzzle.fen);
   const [selected, setSelected] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [step, setStep] = useState(0);
-  const [status, setStatus] = useState<'idle' | 'wrong' | 'solved'>(dailyDoneToday() ? 'solved' : 'idle');
+  const [status, setStatus] = useState<'idle' | 'wrong' | 'solved'>(dailyDoneToday(user?.id) ? 'solved' : 'idle');
   const awarded = useRef(false);
   const humanColor = new Chess(puzzle.fen).turn();
 
@@ -57,7 +59,7 @@ function DailySolver({ puzzle, source }: { puzzle: Puzzle; source: 'bundled' | '
           setStep(ns); setFen(g.fen());
           if (ns >= puzzle.solution.length) {
             setStatus('solved');
-            if (!awarded.current) { awarded.current = true; awardPuzzleSolved(); markDailyDone(); }
+            if (!awarded.current) { awarded.current = true; awardPuzzleSolved(); markDailyDone(user?.id); }
           }
           return;
         }

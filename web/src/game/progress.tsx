@@ -58,7 +58,19 @@ const DEFAULT: Progress = {
   dailyGoal: 3, solvedToday: 0, goalDate: '', achievements: [], lessonsCompleted: [],
 };
 
-const STORAGE_KEY = 'chessmaster.progress';
+// Progress is cached per-user so accounts on a shared browser never mix, and the
+// authoritative copy lives in Supabase (the `progress` table) once signed in.
+const BASE_KEY = 'chessmaster.progress';
+const keyFor = (userId?: string | null) => (userId ? `${BASE_KEY}.${userId}` : BASE_KEY);
+
+/**
+ * Reset the "today" counters for display when the stored goal date isn't today.
+ * The daily count must never show yesterday's solves as if earned today — the
+ * real rollover (streak included) happens on the next actual activity.
+ */
+function normalizeDaily(p: Progress): Progress {
+  return p.goalDate === todayStr() ? p : { ...p, solvedToday: 0 };
+}
 
 type Ctx = {
   progress: Progress;
@@ -71,9 +83,9 @@ type Ctx = {
 };
 const ProgressContext = createContext<Ctx | undefined>(undefined);
 
-function readLocal(): Progress {
+function readLocal(userId?: string | null): Progress {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(keyFor(userId));
     if (raw) return { ...DEFAULT, ...JSON.parse(raw) };
   } catch {
     /* ignore */
@@ -81,12 +93,15 @@ function readLocal(): Progress {
   return DEFAULT;
 }
 
-function fromRow(row: any): Omit<Progress, 'lessonsCompleted'> {
+function fromRow(row: any, fallbackLessons: string[]): Progress {
   return {
     xp: row.xp ?? 0, streakDays: row.streak_days ?? 0, lastActiveDate: row.last_active_date ?? '',
     puzzlesSolved: row.puzzles_solved ?? 0, gamesPlayed: row.games_played ?? 0, gamesWon: row.games_won ?? 0,
     dailyGoal: row.daily_goal ?? 3, solvedToday: row.solved_today ?? 0, goalDate: row.goal_date ?? '',
     achievements: row.achievements ?? [],
+    // `lessons_completed` may be absent (migration 0009 not yet applied) → keep
+    // whatever this device already knows so lesson progress is never lost.
+    lessonsCompleted: Array.isArray(row.lessons_completed) ? row.lessons_completed : fallbackLessons,
   };
 }
 function toRow(p: Progress, userId: string) {
@@ -94,30 +109,55 @@ function toRow(p: Progress, userId: string) {
     user_id: userId, xp: p.xp, streak_days: p.streakDays, last_active_date: p.lastActiveDate || null,
     puzzles_solved: p.puzzlesSolved, games_played: p.gamesPlayed, games_won: p.gamesWon,
     daily_goal: p.dailyGoal, solved_today: p.solvedToday, goal_date: p.goalDate || null,
-    achievements: p.achievements, updated_at: new Date().toISOString(),
+    achievements: p.achievements, lessons_completed: p.lessonsCompleted,
+    updated_at: new Date().toISOString(),
   };
 }
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
-  const [progress, setProgress] = useState<Progress>(readLocal);
+  const [progress, setProgress] = useState<Progress>(DEFAULT);
   const [newlyEarned, setNewlyEarned] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Load this user's progress: cached copy first (instant), then reconcile with
+  // the server. Both are normalized so a stale daily count never shows.
   useEffect(() => {
-    if (!(isSupabaseConfigured && supabase && user)) return;
-    supabase.from('progress').select('*').eq('user_id', user.id).maybeSingle().then(({ data }) => {
-      if (data) setProgress((prev) => ({ ...fromRow(data), lessonsCompleted: prev.lessonsCompleted }));
+    const uid = user?.id ?? null;
+    if (!uid) {
+      setProgress(DEFAULT);
+      return;
+    }
+    const local = normalizeDaily(readLocal(uid));
+    setProgress(local);
+    if (!(isSupabaseConfigured && supabase)) return;
+    let cancelled = false;
+    supabase.from('progress').select('*').eq('user_id', uid).maybeSingle().then(({ data }) => {
+      if (cancelled || !data || user?.id !== uid) return;
+      setProgress(normalizeDaily(fromRow(data, local.lessonsCompleted)));
     });
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const save = useCallback(
     (next: Progress) => {
+      const uid = user?.id ?? null;
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(keyFor(uid), JSON.stringify(next));
       } catch {
         /* ignore */
       }
-      if (isSupabaseConfigured && supabase && user) supabase.from('progress').upsert(toRow(next, user.id)).then(() => {});
+      if (!(isSupabaseConfigured && supabase && uid)) return;
+      const row = toRow(next, uid);
+      supabase.from('progress').upsert(row).then(({ error }) => {
+        // If the DB predates migration 0009, `lessons_completed` is unknown —
+        // retry without it so the rest of the progress still syncs.
+        if (error && supabase) {
+          const { lessons_completed, ...safe } = row;
+          supabase.from('progress').upsert(safe).then(() => {});
+        }
+      });
     },
     [user?.id],
   );

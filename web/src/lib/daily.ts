@@ -15,17 +15,18 @@ export function dailyPuzzle(d = new Date()): Puzzle {
 }
 
 const DAILY_KEY = 'chessmaster.dailyDone';
+const dailyKey = (userId?: string | null) => (userId ? `${DAILY_KEY}.${userId}` : DAILY_KEY);
 
-export function dailyDoneToday(): boolean {
+export function dailyDoneToday(userId?: string | null): boolean {
   try {
-    return localStorage.getItem(DAILY_KEY) === todayStr();
+    return localStorage.getItem(dailyKey(userId)) === todayStr();
   } catch {
     return false;
   }
 }
-export function markDailyDone(): void {
+export function markDailyDone(userId?: string | null): void {
   try {
-    localStorage.setItem(DAILY_KEY, todayStr());
+    localStorage.setItem(dailyKey(userId), todayStr());
   } catch {
     /* ignore */
   }

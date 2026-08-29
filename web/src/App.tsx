@@ -31,10 +31,13 @@ function Loading() {
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  const { prefs } = usePrefs();
+  const { prefs, loaded } = usePrefs();
   const loc = useLocation();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/" replace state={{ from: loc.pathname }} />;
+  // Wait for prefs to resolve from the server before deciding on onboarding,
+  // so a returning user on a fresh device isn't wrongly asked to onboard again.
+  if (!loaded) return <Loading />;
   if (!prefs.onboarded && loc.pathname !== '/app/onboarding') return <Onboarding />;
   return <AppShell>{children}</AppShell>;
 }

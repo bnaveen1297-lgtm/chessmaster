@@ -33,7 +33,7 @@ export function Home() {
   const doneCount = progress.lessonsCompleted.length;
   const total = orderedLessonIds.length;
   const daily = dailyPuzzle();
-  const dailyDone = dailyDoneToday();
+  const dailyDone = dailyDoneToday(user?.id);
   const goal = progress.dailyGoal || 3;
 
   return (
