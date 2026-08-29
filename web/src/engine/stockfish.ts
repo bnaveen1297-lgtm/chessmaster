@@ -19,6 +19,10 @@ export type EngineLine = {
   cp: number;
   /** First move of this line, in UCI (e.g. "e2e4", "e7e8q"). */
   firstUci: string | null;
+  /** Full principal variation as UCI moves. */
+  pv: string[];
+  /** Signed mate-in-N if the score is a mate, else null. */
+  mateIn: number | null;
 };
 
 export type EvalResult = {
@@ -108,8 +112,10 @@ export class StockfishEngine {
       if ((lastDepth.get(idx) ?? -1) > d) continue; // keep the deepest
       const cp = parseScore(l);
       if (cp === null) continue;
-      const firstUci = / pv (\S+)/.exec(l)?.[1] ?? null;
-      byPv.set(idx, { cp, firstUci });
+      const pvStr = / pv (.+)$/.exec(l)?.[1] ?? '';
+      const pv = pvStr.split(/\s+/).filter(Boolean);
+      const mateM = /score mate (-?\d+)/.exec(l);
+      byPv.set(idx, { cp, firstUci: pv[0] ?? null, pv, mateIn: mateM ? Number(mateM[1]) : null });
       lastDepth.set(idx, d);
     }
 
@@ -117,7 +123,7 @@ export class StockfishEngine {
     // Fallback: if no info lines carried a score (very short searches), use bestmove.
     if (ordered.length === 0) {
       const bm = /bestmove (\S+)/.exec(lines[lines.length - 1] ?? '')?.[1] ?? null;
-      return { lines: [{ cp: 0, firstUci: bm }], cp: 0, bestUci: bm };
+      return { lines: [{ cp: 0, firstUci: bm, pv: bm ? [bm] : [], mateIn: null }], cp: 0, bestUci: bm };
     }
     return { lines: ordered, cp: ordered[0].cp, bestUci: ordered[0].firstUci };
   }
@@ -145,6 +151,20 @@ function parseScore(line: string): number | null {
   const cp = /score cp (-?\d+)/.exec(line);
   if (cp) return Number(cp[1]);
   return null;
+}
+
+/** Convert a UCI principal variation to a SAN move list (up to `max` plies). */
+export function pvToSan(fen: string, pv: string[], max = 8): string[] {
+  const g = new Chess(fen);
+  const out: string[] = [];
+  for (const uci of pv.slice(0, max)) {
+    try {
+      const mv = g.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci.length > 4 ? uci[4] : undefined });
+      if (!mv) break;
+      out.push(mv.san);
+    } catch { break; }
+  }
+  return out;
 }
 
 /** Convert a UCI move (e.g. "e2e4", "e7e8q") to SAN for the given FEN. */

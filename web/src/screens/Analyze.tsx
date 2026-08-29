@@ -1,13 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
+import { Chess } from 'chess.js';
 import { PageHeader, Group, Row } from '@/components/ui';
+import { Board } from '@/components/Board';
 import { useAuth } from '@/auth/AuthProvider';
-import { analyzeGame, SAMPLE_PGN, type GameReport, type SideReport } from '@shared/engine/analyze';
+import { analyzeGame, SAMPLE_PGN, winPct, type GameReport, type SideReport } from '@shared/engine/analyze';
 import { analyzeGameEngine } from '@/engine/engineAnalyze';
-import { StockfishEngine } from '@/engine/stockfish';
+import { StockfishEngine, uciToSan, pvToSan, MATE_CP } from '@/engine/stockfish';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
 import { saveImportedGame, listMyGames, type StoredGame } from '@/lib/games';
 
 const ENGINE_DEPTH = 12;
+const POS_DEPTH = 16;
+
+type PosResult = { fen: string; whiteCp: number; mateIn: number | null; bestSan: string; line: string[]; verdict: string };
+
+function verdictFor(whiteCp: number, mateIn: number | null): string {
+  if (mateIn != null && mateIn !== 0) return mateIn > 0 ? `Forced mate in ${Math.abs(mateIn)} for the side to move` : `Facing mate in ${Math.abs(mateIn)}`;
+  const a = Math.abs(whiteCp);
+  const who = whiteCp >= 0 ? 'White' : 'Black';
+  if (a < 40) return 'The position is roughly equal';
+  if (a < 120) return `${who} is slightly better`;
+  if (a < 300) return `${who} is clearly better`;
+  if (a < 700) return `${who} is winning`;
+  return `${who} is completely winning`;
+}
 
 export function Analyze() {
   const { user } = useAuth();
@@ -19,6 +35,38 @@ export function Analyze() {
   const [progress, setProgress] = useState<number | null>(null);
   const [engineNote, setEngineNote] = useState<string | null>(null);
   const engineRef = useRef<StockfishEngine | null>(null);
+
+  // position (FEN) analysis
+  const [fenInput, setFenInput] = useState('');
+  const [posBusy, setPosBusy] = useState(false);
+  const [posErr, setPosErr] = useState<string | null>(null);
+  const [posResult, setPosResult] = useState<PosResult | null>(null);
+
+  const analyzePosition = async (fenRaw: string) => {
+    const fen = fenRaw.trim();
+    setPosErr(null); setPosResult(null);
+    let sideToMove: 'w' | 'b';
+    try { sideToMove = new Chess(fen).turn(); } catch { setPosErr('That doesn’t look like a valid FEN.'); return; }
+    setPosBusy(true);
+    try {
+      if (!engineRef.current) engineRef.current = new StockfishEngine();
+      const r = await engineRef.current.evaluate(fen, { depth: POS_DEPTH, multipv: 1 });
+      const stmCp = r.cp;                                   // side-to-move perspective
+      const whiteCp = sideToMove === 'w' ? stmCp : -stmCp;  // White perspective for display
+      const mate = r.lines[0]?.mateIn ?? null;
+      const whiteMate = mate == null ? null : (sideToMove === 'w' ? mate : -mate);
+      setPosResult({
+        fen,
+        whiteCp: Math.max(-MATE_CP, Math.min(MATE_CP, whiteCp)),
+        mateIn: whiteMate,
+        bestSan: uciToSan(fen, r.bestUci),
+        line: pvToSan(fen, r.lines[0]?.pv ?? [], 8),
+        verdict: verdictFor(whiteCp, mate),
+      });
+    } catch {
+      setPosErr('Stockfish couldn’t run here. Try again, or use a different browser.');
+    } finally { setPosBusy(false); }
+  };
 
   // import
   const [source, setSource] = useState<ImportSource>('chesscom');
@@ -110,6 +158,39 @@ export function Analyze() {
         </div>
       )}
       {engineNote && <p className="mb-4 text-[13px] font-semibold text-ink-faint">{engineNote}</p>}
+
+      {/* analyze a position */}
+      <div className="card mb-5 p-5">
+        <p className="eyebrow mb-1">Analyze a position</p>
+        <p className="mb-3 text-[13px] text-ink-soft">Paste a FEN and Stockfish tells you who’s better, the best move, and the line.</p>
+        <textarea value={fenInput} onChange={(e) => setFenInput(e.target.value)} rows={2}
+          placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+          className="w-full rounded-xl border border-line bg-surface p-3 font-mono text-[13px] outline-none focus:border-teal" />
+        <div className="mt-3 flex flex-wrap gap-3">
+          <button onClick={() => analyzePosition(fenInput)} disabled={posBusy || !fenInput.trim()} className="btn-primary">{posBusy ? 'Thinking…' : 'Analyze position'}</button>
+          <button onClick={() => { const f = 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3'; setFenInput(f); analyzePosition(f); }} disabled={posBusy} className="btn-ghost">Try a sample</button>
+        </div>
+        {posErr && <p className="mt-3 text-sm font-semibold text-danger">{posErr}</p>}
+        {posResult && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,240px)_1fr]">
+            <Board fen={posResult.fen} interactive={false} />
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-2xl font-black">
+                  {posResult.mateIn != null ? `#${Math.abs(posResult.mateIn)}` : `${posResult.whiteCp >= 0 ? '+' : ''}${(posResult.whiteCp / 100).toFixed(2)}`}
+                </span>
+                <span className="text-[13px] font-semibold text-ink-soft">{posResult.verdict}</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink/80">
+                <div className="h-full bg-white" style={{ width: `${Math.round(winPct(posResult.whiteCp))}%` }} />
+              </div>
+              <div className="mt-1 text-[11px] text-ink-faint">White win chance ≈ {Math.round(winPct(posResult.whiteCp))}%</div>
+              {posResult.bestSan && <div className="mt-3 text-[14px]"><span className="font-bold">Best move:</span> <span className="font-mono text-teal">{posResult.bestSan}</span></div>}
+              {posResult.line.length > 0 && <div className="mt-1 text-[13px] text-ink-soft"><span className="font-semibold">Line:</span> <span className="font-mono">{posResult.line.join(' ')}</span></div>}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* import */}
       <div className="card p-5">
