@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui';
 import { useProgress } from '@/game/progress';
 import { puzzles, type Puzzle, type PuzzleDifficulty } from '@shared/data/puzzles';
 import { usePrefs } from '@/game/prefs';
+import { LeaderboardCard } from '@/components/LeaderboardCard';
 import { legalTargets, tryMove, isOwnPiece } from '@shared/game/chessHelpers';
 
 const BANDS: (PuzzleDifficulty | 'All')[] = ['All', 'Beginner', 'Intermediate', 'Advanced'];
@@ -31,6 +32,7 @@ export function Puzzles() {
       ) : (
         <p className="text-ink-soft">No puzzles in this band.</p>
       )}
+      <LeaderboardCard className="mt-6" />
     </div>
   );
 }

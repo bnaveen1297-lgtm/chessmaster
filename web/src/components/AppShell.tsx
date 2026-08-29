@@ -10,10 +10,10 @@ const NAV = [
   { to: '/app/learn', label: 'Learn', Icon: IconLearn },
   { to: '/app/puzzles', label: 'Puzzles', Icon: IconPuzzle },
   { to: '/app/play', label: 'Play', Icon: IconPlay },
-  { to: '/app/masters', label: 'Masters', Icon: IconCrown },
+  { to: '/app/leaderboard', label: 'Ranks', Icon: IconTrophy },
 ];
 const MORE = [
-  { to: '/app/leaderboard', label: 'Leaderboard', Icon: IconTrophy },
+  { to: '/app/masters', label: 'Masters', Icon: IconCrown },
   { to: '/app/tournaments', label: 'Tournaments', Icon: IconTrophy },
   { to: '/app/olympiad', label: 'Olympiad', Icon: IconGlobe },
   { to: '/app/analyze', label: 'Analyze', Icon: IconChart },

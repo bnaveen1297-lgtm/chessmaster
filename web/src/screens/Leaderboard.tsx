@@ -35,7 +35,7 @@ export function Leaderboard() {
       {state === 'loading' && <p className="text-ink-soft">Loading…</p>}
       {state === 'empty' && (
         <div className="rounded-2xl border border-line bg-plaster-2 p-5 text-sm text-ink-soft">
-          The leaderboard opens once players sign in and start earning XP. Sign in with an account (guest scores stay on this device) and be the first to top it.
+          The leaderboard fills up as players earn XP. Solve puzzles, finish lessons and win games — be the first to top it.
         </div>
       )}
       {state === 'ready' && (

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/ui';
 import { IconPlay, IconGlobe, IconTrophy } from '@/components/icons';
+import { LeaderboardCard } from '@/components/LeaderboardCard';
 
 const MODES = [
   { to: '/app/play/computer', label: 'Play the computer', desc: 'Three engine levels — warm up or grind.', icon: '♟', c: '#111418' },
@@ -23,8 +24,9 @@ export function PlayHub() {
         ))}
       </div>
       <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-plaster-2 p-4 text-sm text-ink-soft">
-        <IconTrophy className="text-teal" /> Online play & tournaments run on the chesshub360 server — sign-in required, and it's all included free.
+        <IconTrophy className="text-teal" /> Win games to earn XP and climb the leaderboard — it's all included free.
       </div>
+      <LeaderboardCard className="mt-6" />
     </div>
   );
 }

@@ -11,14 +11,9 @@ type AuthState = {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (fields: { email: string; password: string; firstName?: string; phone?: string }) => Promise<{ needsConfirm: boolean }>;
-  continueAsGuest: () => void;
-  isGuest: boolean;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
-
-const GUEST_KEY = 'chessmaster.guest';
-const GUEST_USER: User = { id: 'guest', email: 'guest@chessmaster.app', firstName: 'Guest' };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
@@ -34,19 +29,10 @@ function mapUser(u: any): User | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [guest, setGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isGuestStored = false;
-    try {
-      isGuestStored = localStorage.getItem(GUEST_KEY) === '1';
-    } catch {
-      /* ignore */
-    }
-    if (isGuestStored) setGuest(true);
-
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
       return;
@@ -63,21 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthState>(
     () => ({
-      user: user ?? (guest ? GUEST_USER : null),
+      user,
       loading,
       authError,
       backend: isSupabaseConfigured,
-      isGuest: !user && guest,
-      continueAsGuest: () => {
-        try { localStorage.setItem(GUEST_KEY, '1'); } catch { /* ignore */ }
-        setGuest(true);
-      },
       signInWithGoogle: async () => {
         setAuthError(null);
-        if (!supabase) {
-          setAuthError('Sign-in is not configured.');
-          return;
-        }
+        if (!supabase) { setAuthError('Sign-in is not configured.'); return; }
         const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
         if (error) setAuthError(error.message);
@@ -97,18 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           options: { data: { full_name: firstName, phone } },
         });
         if (error) { setAuthError(error.message); return { needsConfirm: false }; }
-        // If email confirmation is on, there's a user but no session yet.
         return { needsConfirm: !!data.user && !data.session };
       },
       signOut: async () => {
-        try { localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
-        setGuest(false);
         if (supabase) await supabase.auth.signOut();
         setUser(null);
       },
       clearError: () => setAuthError(null),
     }),
-    [user, guest, loading, authError],
+    [user, loading, authError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,8 +5,8 @@ import { useProgress, levelFromXp, xpIntoLevel, XP_PER_LEVEL } from '@/game/prog
 import { usePrefs } from '@/game/prefs';
 import { firstIncompleteLesson, orderedLessonIds } from '@shared/data/content';
 import { Ring } from '@/components/Ring';
+import { LeaderboardCard } from '@/components/LeaderboardCard';
 import { dailyPuzzle, dailyDoneToday } from '@/lib/daily';
-import { fetchLeaderboard, type LeaderRow } from '@/lib/leaderboard';
 import { IconPlay, IconPuzzle, IconLearn, IconCrown, IconGlobe, IconTrophy } from '@/components/icons';
 
 const QUICK = [
@@ -35,11 +35,6 @@ export function Home() {
   const daily = dailyPuzzle();
   const dailyDone = dailyDoneToday();
   const goal = progress.dailyGoal || 3;
-
-  const [board, setBoard] = useState<LeaderRow[]>([]);
-  useEffect(() => {
-    fetchLeaderboard(3).then(setBoard).catch(() => setBoard([]));
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -111,25 +106,7 @@ export function Home() {
       </div>
 
       {/* Today's leaders */}
-      <div className="card p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-black">Today’s leaders</h2>
-          <button onClick={() => nav('/app/leaderboard')} className="text-sm font-semibold text-teal">See all ›</button>
-        </div>
-        {board.length === 0 ? (
-          <p className="text-sm text-ink-soft">Be the first on the board — solve puzzles and win games to climb.</p>
-        ) : (
-          <div className="space-y-1.5">
-            {board.map((r, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl px-2 py-1.5">
-                <span className={`grid h-7 w-7 flex-none place-items-center rounded-full text-xs font-black ${i === 0 ? 'bg-gold text-white' : i === 1 ? 'bg-ink-faint text-white' : 'bg-plaster-2 text-ink-soft'}`}>{i + 1}</span>
-                <span className="flex-1 truncate font-semibold">{r.name}</span>
-                <span className="font-mono text-sm font-bold text-teal">{r.xp} XP</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <LeaderboardCard />
 
       {/* quick actions */}
       <div>

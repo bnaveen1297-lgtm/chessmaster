@@ -40,7 +40,7 @@ export function Analyze() {
       setImported(games);
       if (games.length === 0) setImportErr('No recent games found for that username.');
       // persist for signed-in users (best-effort)
-      if (user?.id && user.id !== 'guest') {
+      if (user?.id) {
         Promise.all(games.slice(0, 10).map((g) => saveImportedGame(user.id, g).catch(() => {}))).then(() => {
           listMyGames(user.id).then(setStored);
         });

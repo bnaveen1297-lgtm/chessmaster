@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 import { PageHeader, Group, Row } from '@/components/ui';
-import { useAuth } from '@/auth/AuthProvider';
 import { listTournaments, createTournament, joinTournament, tournamentsAvailable, type Tournament } from '@shared/services/tournaments';
 import { listOpenMatches, createOpenMatch, joinMatch, type Match } from '@shared/services/online';
 
 export function Tournaments() {
-  const { user, signOut } = useAuth();
-  const isGuest = !user || user.id === 'guest';
   const available = tournamentsAvailable();
   const [tours, setTours] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -24,25 +21,7 @@ export function Tournaments() {
     } catch (e: any) { setErr(e?.message || 'Could not load.'); }
     finally { setLoading(false); }
   };
-  useEffect(() => { if (available && !isGuest) refresh(); else setLoading(false); }, [available, isGuest]);
-
-  if (isGuest) {
-    return (
-      <div>
-        <PageHeader eyebrow="Compete" title="Online play & tournaments"
-          sub="Real-time 1v1 games and events — round-robin or knockout." />
-        <div className="rounded-2xl border border-line bg-surface p-8 text-center shadow-soft">
-          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-teal/10 text-2xl">♟</div>
-          <h2 className="font-display text-xl font-black">Sign in to play the world</h2>
-          <p className="mx-auto mt-2 max-w-md text-ink-soft">
-            Online 1v1 games and tournaments run on the chesshub360 server, so they need an account.
-            Everything else — learning, puzzles, master games and playing the computer — works in guest mode.
-          </p>
-          <button onClick={signOut} className="btn-primary mt-5">Create a free account</button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => { if (available) refresh(); else setLoading(false); }, [available]);
 
   const create = async () => {
     if (!name.trim()) return;
