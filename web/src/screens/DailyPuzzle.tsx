@@ -1,14 +1,37 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { PageHeader } from '@/components/ui';
 import { useProgress } from '@/game/progress';
 import { dailyPuzzle, markDailyDone, dailyDoneToday } from '@/lib/daily';
+import { fetchDailyPuzzle } from '@shared/services/puzzleDb';
+import type { Puzzle } from '@shared/data/puzzles';
 import { legalTargets, tryMove, isOwnPiece } from '@shared/game/chessHelpers';
 
 export function DailyPuzzle() {
+  // Show the bundled daily immediately, then upgrade to the live Lichess daily.
+  const [puzzle, setPuzzle] = useState<Puzzle>(() => dailyPuzzle());
+  const [source, setSource] = useState<'bundled' | 'lichess'>('bundled');
+
+  useEffect(() => {
+    let alive = true;
+    fetchDailyPuzzle()
+      .then((p) => { if (alive) { setPuzzle(p); setSource('lichess'); } })
+      .catch(() => {/* keep bundled fallback */});
+    return () => { alive = false; };
+  }, []);
+
+  return (
+    <div className="mx-auto max-w-xl">
+      <PageHeader eyebrow={`Daily Puzzle · ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+        title="Puzzle of the day" sub="The same puzzle for everyone today. Solve it to keep your streak." />
+      <DailySolver key={puzzle.id} puzzle={puzzle} source={source} />
+    </div>
+  );
+}
+
+function DailySolver({ puzzle, source }: { puzzle: Puzzle; source: 'bundled' | 'lichess' }) {
   const { awardPuzzleSolved, progress } = useProgress();
-  const puzzle = dailyPuzzle();
   const gameRef = useRef(new Chess(puzzle.fen));
   const [fen, setFen] = useState(puzzle.fen);
   const [selected, setSelected] = useState<string | null>(null);
@@ -46,9 +69,7 @@ export function DailyPuzzle() {
   }, [selected, step, status, puzzle, humanColor, awardPuzzleSolved]);
 
   return (
-    <div className="mx-auto max-w-xl">
-      <PageHeader eyebrow={`Daily Puzzle · ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-        title="Puzzle of the day" sub="The same puzzle for everyone today. Solve it to keep your streak." />
+    <>
       <div className="mb-3 flex items-center justify-between">
         <span className="rounded-full bg-plaster-2 px-3 py-1 font-mono text-xs font-semibold text-ink-soft">{humanColor === 'w' ? 'White' : 'Black'} to play · {puzzle.difficulty}</span>
         <span className="font-mono text-xs text-ink-faint">🔥 {progress.streakDays}-day streak</span>
@@ -57,6 +78,9 @@ export function DailyPuzzle() {
       <div className={`mt-3 rounded-xl px-4 py-3 text-center font-semibold ${status === 'solved' ? 'bg-success/10 text-success' : status === 'wrong' ? 'text-danger' : 'text-ink-soft'}`}>
         {status === 'solved' ? '✓ Solved — see you tomorrow!' : status === 'wrong' ? 'Not the best move — try again.' : puzzle.kind === 'mate' ? 'Find the checkmate.' : 'Find the best move.'}
       </div>
-    </div>
+      <p className="mt-2 text-center font-mono text-[11px] text-ink-faint">
+        {source === 'lichess' ? 'Today’s puzzle from the Lichess open database (CC0)' : 'Offline daily puzzle'}
+      </p>
+    </>
   );
 }

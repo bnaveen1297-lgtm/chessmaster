@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { BackLink } from '@/components/ui';
@@ -14,7 +14,9 @@ export function PlayVsMaster() {
   const { id = '' } = useParams();
   const [params] = useSearchParams();
   const side = (params.get('side') === 'b' ? 'b' : 'w') as 'w' | 'b';
-  const master = masterGames.find((g) => g.id === id);
+  const loc = useLocation();
+  const stateGame = (loc.state as { game?: typeof masterGames[number] } | null)?.game;
+  const master = stateGame ?? masterGames.find((g) => g.id === id);
   const { awardGameResult } = useProgress();
 
   const recorded = useMemo<Rec[]>(() => {
