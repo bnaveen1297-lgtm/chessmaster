@@ -5,6 +5,7 @@ import { BackLink } from '@/components/ui';
 import { ClockFace, TimeControlPicker } from '@/components/Clock';
 import { DEFAULT_TIME_CONTROL, isTimed, useChessClock, type TimeControl } from '@/game/clock';
 import { useProgress } from '@/game/progress';
+import { computerLevelUnlock, type EngineLevelId } from '@/game/unlocks';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare, statusText } from '@shared/game/chessHelpers';
 import { bestMove, LEVELS } from '@shared/engine/ai';
 
@@ -19,7 +20,16 @@ export function PlayComputer() {
   const [depth, setDepth] = useState(LEVELS[1].depth);
   const [side] = useState<'w' | 'b'>('w');
   const [tc, setTc] = useState<TimeControl>(DEFAULT_TIME_CONTROL);
-  const { awardGameResult } = useProgress();
+  const { awardGameResult, progress } = useProgress();
+
+  // Lock harder engine levels behind XP; if the selected one is locked (e.g. a
+  // fresh account), fall back to the easiest.
+  const levelLocked = (id: string) => !computerLevelUnlock(id as EngineLevelId, progress).unlocked;
+  useEffect(() => {
+    const sel = LEVELS.find((l) => l.depth === depth);
+    if (sel && levelLocked(sel.id)) setDepth(LEVELS[0].depth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress.xp]);
 
   const game = gameRef.current;
   const sync = useCallback(() => setFen(gameRef.current.fen()), []);
@@ -91,12 +101,21 @@ export function PlayComputer() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-display text-2xl font-black">Play the computer</h1>
         <div className="flex gap-1 rounded-full bg-plaster-2 p-1">
-          {LEVELS.map((l) => (
-            <button key={l.id} onClick={() => setDepth(l.depth)}
-              className={`rounded-full px-3 py-1 text-sm font-semibold ${depth === l.depth ? 'bg-ink text-white' : 'text-ink-soft'}`}>{l.label}</button>
-          ))}
+          {LEVELS.map((l) => {
+            const u = computerLevelUnlock(l.id as EngineLevelId, progress);
+            return (
+              <button key={l.id} onClick={() => u.unlocked && setDepth(l.depth)} disabled={!u.unlocked}
+                title={u.unlocked ? '' : u.requirement}
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition disabled:cursor-not-allowed ${depth === l.depth ? 'bg-ink text-white' : u.unlocked ? 'text-ink-soft' : 'text-ink-faint opacity-60'}`}>
+                {u.unlocked ? l.label : `🔒 ${l.label}`}
+              </button>
+            );
+          })}
         </div>
       </div>
+      {(levelLocked('medium') || levelLocked('hard')) && (
+        <p className="-mt-2 mb-3 text-[13px] text-ink-faint">Win games to earn XP and unlock {levelLocked('medium') ? 'Medium' : 'Hard'}{levelLocked('medium') && levelLocked('hard') ? ' & Hard' : ''}.</p>
+      )}
 
       <TimeControlPicker value={tc} onChange={setTc} disabled={inProgress} className="mb-4" />
 

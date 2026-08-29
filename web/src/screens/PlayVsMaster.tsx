@@ -4,6 +4,7 @@ import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { BackLink } from '@/components/ui';
 import { useProgress } from '@/game/progress';
+import { masterPlayUnlock } from '@/game/unlocks';
 import { masterGames } from '@shared/data/masters';
 import { legalTargets, tryMove, isOwnPiece, checkedKingSquare, statusText } from '@shared/game/chessHelpers';
 import { bestMove } from '@shared/engine/ai';
@@ -17,7 +18,7 @@ export function PlayVsMaster() {
   const loc = useLocation();
   const stateGame = (loc.state as { game?: typeof masterGames[number] } | null)?.game;
   const master = stateGame ?? masterGames.find((g) => g.id === id);
-  const { awardGameResult } = useProgress();
+  const { awardGameResult, progress } = useProgress();
 
   const recorded = useMemo<Rec[]>(() => {
     if (!master) return [];
@@ -105,6 +106,20 @@ export function PlayVsMaster() {
   };
 
   if (!master) return <div className="mx-auto max-w-xl"><BackLink to="/app/masters" label="Master Base" /><p>Game not found.</p></div>;
+
+  const playUnlock = masterPlayUnlock(id, progress);
+  if (!playUnlock.unlocked) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <BackLink to={`/app/masters/${id}`} label={master.nickname || 'Master game'} />
+        <div className="mt-4 rounded-2xl border border-line bg-plaster-2 p-6 text-center">
+          <div className="text-3xl">🔒</div>
+          <h1 className="mt-2 font-display text-xl font-black">Locked — unlocks at level {playUnlock.needLevel}</h1>
+          <p className="mt-1 text-sm text-ink-soft">Playing against this grandmaster opens at {playUnlock.requirement.toLowerCase()}. Solve puzzles and win games to climb — meanwhile you can watch the replay or run an engine review.</p>
+        </div>
+      </div>
+    );
+  }
   const oppName = side === 'w' ? master.black : master.white;
 
   return (

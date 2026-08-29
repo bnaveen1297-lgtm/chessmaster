@@ -5,13 +5,17 @@ import { Board } from '@/components/Board';
 import { BackLink } from '@/components/ui';
 import { masterGames, type MasterGame as MG } from '@shared/data/masters';
 import { legalTargets, tryMove, isOwnPiece } from '@shared/game/chessHelpers';
+import { useProgress } from '@/game/progress';
+import { masterPlayUnlock } from '@/game/unlocks';
 
 export function MasterGame() {
   const { id = '' } = useParams();
   const nav = useNavigate();
   const loc = useLocation();
+  const { progress } = useProgress();
   const stateGame = (loc.state as { game?: MG } | null)?.game;
   const game = stateGame ?? masterGames.find((g) => g.id === id);
+  const playUnlock = masterPlayUnlock(id, progress);
 
   const [mode, setMode] = useState<'replay' | 'guess'>('replay');
 
@@ -40,11 +44,24 @@ export function MasterGame() {
 
       <div className="mt-5">
         <p className="eyebrow mb-2">Play this game</p>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={() => nav(`/app/masters/${id}/play?side=w`, { state: { game } })} className="btn-primary flex-1">Play as White</button>
-          <button onClick={() => nav(`/app/masters/${id}/play?side=b`, { state: { game } })} className="btn-ghost flex-1">Play as Black</button>
-          <button onClick={() => nav('/app/analyze')} className="btn-dark flex-1">Engine review</button>
-        </div>
+        {playUnlock.unlocked ? (
+          <div className="flex flex-wrap gap-3">
+            <button onClick={() => nav(`/app/masters/${id}/play?side=w`, { state: { game } })} className="btn-primary flex-1">Play as White</button>
+            <button onClick={() => nav(`/app/masters/${id}/play?side=b`, { state: { game } })} className="btn-ghost flex-1">Play as Black</button>
+            <button onClick={() => nav('/app/analyze')} className="btn-dark flex-1">Engine review</button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-3 flex flex-wrap gap-3">
+              <button disabled className="btn-primary flex-1 cursor-not-allowed opacity-60">🔒 Play as White</button>
+              <button disabled className="btn-ghost flex-1 cursor-not-allowed opacity-60">🔒 Play as Black</button>
+              <button onClick={() => nav('/app/analyze')} className="btn-dark flex-1">Engine review</button>
+            </div>
+            <div className="rounded-xl border border-line bg-plaster-2 px-4 py-3 text-[13px] text-ink-soft">
+              <span className="font-bold text-ink">Playing this grandmaster unlocks at level {playUnlock.needLevel}.</span> Keep solving puzzles and winning games to get there — you can watch the replay and run an engine review right now.
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ import { PlayVsMaster } from '@/screens/PlayVsMaster';
 import { Olympiad } from '@/screens/Olympiad';
 import { Tournaments } from '@/screens/Tournaments';
 import { Analyze } from '@/screens/Analyze';
+import { Coach } from '@/screens/Coach';
 import { Profile } from '@/screens/Profile';
 
 function Loading() {
@@ -67,6 +68,7 @@ export default function App() {
       <Route path="/app/olympiad" element={<RequireAuth><Olympiad /></RequireAuth>} />
       <Route path="/app/tournaments" element={<RequireAuth><Tournaments /></RequireAuth>} />
       <Route path="/app/analyze" element={<RequireAuth><Analyze /></RequireAuth>} />
+      <Route path="/app/coach" element={<RequireAuth><Coach /></RequireAuth>} />
       <Route path="/app/profile" element={<RequireAuth><Profile /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
