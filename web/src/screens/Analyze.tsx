@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageHeader, Group, Row } from '@/components/ui';
 import { useAuth } from '@/auth/AuthProvider';
 import { analyzeGame, SAMPLE_PGN, type GameReport, type SideReport } from '@shared/engine/analyze';
+import { analyzeGameEngine } from '@/engine/engineAnalyze';
+import { StockfishEngine } from '@/engine/stockfish';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
 import { saveImportedGame, listMyGames, type StoredGame } from '@/lib/games';
+
+const ENGINE_DEPTH = 12;
 
 export function Analyze() {
   const { user } = useAuth();
@@ -11,6 +15,10 @@ export function Analyze() {
   const [report, setReport] = useState<GameReport | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [useEngine, setUseEngine] = useState(true);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [engineNote, setEngineNote] = useState<string | null>(null);
+  const engineRef = useRef<StockfishEngine | null>(null);
 
   // import
   const [source, setSource] = useState<ImportSource>('chesscom');
@@ -21,15 +29,35 @@ export function Analyze() {
   const [stored, setStored] = useState<StoredGame[]>([]);
 
   useEffect(() => { if (user?.id) listMyGames(user.id).then(setStored); }, [user?.id]);
+  useEffect(() => () => engineRef.current?.quit(), []);
 
-  const run = (text: string) => {
-    setErr(null); setBusy(true);
+  const run = async (text: string) => {
+    setErr(null); setEngineNote(null); setBusy(true); setProgress(null);
     try {
+      if (useEngine) {
+        try {
+          if (!engineRef.current) engineRef.current = new StockfishEngine();
+          setProgress(0);
+          const r = await analyzeGameEngine(text, engineRef.current, {
+            depth: ENGINE_DEPTH,
+            onProgress: (f) => setProgress(f),
+          });
+          if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
+          else { setReport(r); setEngineNote(`Analyzed with Stockfish (depth ${ENGINE_DEPTH}).`); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
+          return;
+        } catch (engineErr: any) {
+          // Engine unavailable (e.g. worker blocked) — fall back to the quick model.
+          const r = analyzeGame(text, 2);
+          if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
+          else { setReport(r); setEngineNote('Stockfish unavailable here — used the quick analyzer instead.'); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
+          return;
+        }
+      }
       const r = analyzeGame(text, 2);
       if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
       else { setReport(r); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
     } catch (e: any) { setErr(e?.message || 'Could not analyze.'); setReport(null); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setProgress(null); }
   };
 
   const doImport = async () => {
@@ -56,6 +84,32 @@ export function Analyze() {
     <div className="mx-auto max-w-2xl">
       <PageHeader eyebrow="Analyze" title="Game analyzer"
         sub="Import your Chess.com or Lichess games, or paste a PGN — get a Chess.com-style report with accuracy, mistakes and an eval graph." />
+
+      {/* engine mode */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-plaster-2 px-4 py-3">
+        <div>
+          <div className="text-sm font-bold">Analysis engine</div>
+          <div className="text-[13px] text-ink-soft">{useEngine ? 'Stockfish — full-strength, runs in your browser.' : 'Quick — instant, approximate.'}</div>
+        </div>
+        <div className="flex gap-1 rounded-full bg-surface p-1">
+          {[{ v: true, l: 'Stockfish' }, { v: false, l: 'Quick' }].map((o) => (
+            <button key={o.l} onClick={() => setUseEngine(o.v)} disabled={busy}
+              className={`rounded-full px-3 py-1 text-sm font-semibold transition disabled:opacity-50 ${useEngine === o.v ? 'bg-ink text-white' : 'text-ink-soft'}`}>{o.l}</button>
+          ))}
+        </div>
+      </div>
+
+      {progress !== null && (
+        <div className="mb-4">
+          <div className="mb-1 flex justify-between text-[13px] font-semibold text-ink-soft">
+            <span>Analyzing with Stockfish…</span><span>{Math.round(progress * 100)}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-plaster-2">
+            <div className="h-full rounded-full bg-teal transition-[width] duration-200" style={{ width: `${Math.round(progress * 100)}%` }} />
+          </div>
+        </div>
+      )}
+      {engineNote && <p className="mb-4 text-[13px] font-semibold text-ink-faint">{engineNote}</p>}
 
       {/* import */}
       <div className="card p-5">
@@ -105,8 +159,8 @@ export function Analyze() {
         <textarea value={pgn} onChange={(e) => setPgn(e.target.value)} rows={4} placeholder="Paste PGN here…"
           className="w-full rounded-2xl border border-line bg-surface p-4 font-mono text-sm outline-none focus:border-teal" />
         <div className="mt-3 flex flex-wrap gap-3">
-          <button onClick={() => run(pgn)} disabled={busy || !pgn.trim()} className="btn-dark">Analyze PGN</button>
-          <button onClick={() => { setPgn(SAMPLE_PGN); run(SAMPLE_PGN); }} className="btn-ghost">Try a sample</button>
+          <button onClick={() => run(pgn)} disabled={busy || !pgn.trim()} className="btn-dark">{busy ? 'Analyzing…' : 'Analyze PGN'}</button>
+          <button onClick={() => { setPgn(SAMPLE_PGN); run(SAMPLE_PGN); }} disabled={busy} className="btn-ghost">Try a sample</button>
         </div>
       </div>
       {err && <p className="mt-3 text-sm font-semibold text-danger">{err}</p>}

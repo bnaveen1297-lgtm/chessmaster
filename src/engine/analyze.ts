@@ -73,9 +73,9 @@ export type GameReport = {
   evalSeries: number[];
 };
 
-const PIECE_CP: Record<string, number> = { p: 100, n: 320, b: 330, r: 500, q: 900 };
+export const PIECE_CP: Record<string, number> = { p: 100, n: 320, b: 330, r: 500, q: 900 };
 /** A "minor piece" worth of material — the sacrifice threshold for Brilliant. */
-const MINOR = 300;
+export const MINOR = 300;
 
 /**
  * Lichess/Chess.com win-probability model. `cp` is from the mover's
@@ -90,7 +90,7 @@ export function winPct(cp: number): number {
  * Chess.com-like per-move accuracy from the win% the mover gave up.
  * A best move (no drop) → ~100; large drops fall off toward 0.
  */
-function moveAccuracy(winBefore: number, winAfter: number): number {
+export function moveAccuracy(winBefore: number, winAfter: number): number {
   const drop = Math.max(0, winBefore - winAfter);
   const acc = 103.1668 * Math.exp(-0.04354 * drop) - 3.1669;
   return Math.max(0, Math.min(100, acc));
@@ -106,7 +106,7 @@ function baseClass(cp: number): 'Best' | 'Good' | 'Inaccuracy' | 'Mistake' | 'Bl
 }
 
 /** Material balance (centipawns) from `color`'s point of view, kings excluded. */
-function materialBalance(game: Chess, color: 'w' | 'b'): number {
+export function materialBalance(game: Chess, color: 'w' | 'b'): number {
   const board = game.board();
   let bal = 0;
   for (let r = 0; r < 8; r++) {
@@ -142,7 +142,7 @@ export function parsePgn(pgn: string): { san: string; color: 'w' | 'b' }[] {
  * longest known opening line that is a prefix of the game. Also returns the
  * name of that best (longest) match.
  */
-function detectOpening(sans: string[]): { name: string; bookPlies: number } {
+export function detectOpening(sans: string[]): { name: string; bookPlies: number } {
   let bookPlies = 0;
   let name = 'Unknown opening';
   for (const op of openings) {
@@ -297,7 +297,7 @@ export function analyzeGame(pgn: string, depth = 2): GameReport {
  *               is >= ~150cp worse).
  *  - Best/Good/Inaccuracy/Mistake/Blunder: by centipawn-loss thresholds.
  */
-function classifyMove(ctx: {
+export function classifyMove(ctx: {
   isBook: boolean;
   cpLoss: number;
   winBefore: number;
