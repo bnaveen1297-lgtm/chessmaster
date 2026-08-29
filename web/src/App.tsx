@@ -11,6 +11,7 @@ import { Lesson } from '@/screens/Lesson';
 import { Puzzles } from '@/screens/Puzzles';
 import { Masters } from '@/screens/Masters';
 import { MasterGame } from '@/screens/MasterGame';
+import { PlayVsMaster } from '@/screens/PlayVsMaster';
 import { Olympiad } from '@/screens/Olympiad';
 import { Tournaments } from '@/screens/Tournaments';
 import { Analyze } from '@/screens/Analyze';
@@ -47,6 +48,7 @@ export default function App() {
       <Route path="/app/puzzles" element={<RequireAuth><Puzzles /></RequireAuth>} />
       <Route path="/app/masters" element={<RequireAuth><Masters /></RequireAuth>} />
       <Route path="/app/masters/:id" element={<RequireAuth><MasterGame /></RequireAuth>} />
+      <Route path="/app/masters/:id/play" element={<RequireAuth><PlayVsMaster /></RequireAuth>} />
       <Route path="/app/olympiad" element={<RequireAuth><Olympiad /></RequireAuth>} />
       <Route path="/app/tournaments" element={<RequireAuth><Tournaments /></RequireAuth>} />
       <Route path="/app/analyze" element={<RequireAuth><Analyze /></RequireAuth>} />

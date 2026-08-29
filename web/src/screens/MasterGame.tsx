@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Chess } from 'chess.js';
 import { Board } from '@/components/Board';
 import { BackLink } from '@/components/ui';
@@ -7,6 +7,7 @@ import { masterGames } from '@shared/data/masters';
 
 export function MasterGame() {
   const { id = '' } = useParams();
+  const nav = useNavigate();
   const game = masterGames.find((g) => g.id === id);
 
   const moves = useMemo(() => {
@@ -60,9 +61,18 @@ export function MasterGame() {
         Move {Math.ceil(ply / 2)} / {Math.ceil(moves.length / 2)} {last ? `· ${last.san}` : ''}
       </div>
 
+      <div className="mt-5">
+        <p className="eyebrow mb-2">Play this game</p>
+        <p className="mb-3 text-sm text-ink-soft">Take a side. The master plays their real moves against you; leave their path and the engine takes over — try to beat the line.</p>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={() => nav(`/app/masters/${id}/play?side=w`)} className="btn-primary flex-1">Play as White</button>
+          <button onClick={() => nav(`/app/masters/${id}/play?side=b`)} className="btn-ghost flex-1">Play as Black</button>
+          <button onClick={() => nav('/app/analyze')} className="btn-dark flex-1">Engine review</button>
+        </div>
+      </div>
       <div className="mt-4 rounded-2xl border border-line bg-plaster-2 p-4 text-sm text-ink-soft">
         <span className="font-semibold text-ink">Result: {game.result === '1/2-1/2' ? 'Draw' : game.result === '1-0' ? 'White won' : 'Black won'}.</span>{' '}
-        Step through every move, or play this game yourself against the master's real moves — coming to the play menu.
+        Every move is verified — step through the replay above, or play it yourself.
       </div>
     </div>
   );
