@@ -10,7 +10,7 @@ type AuthState = {
   backend: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, firstName?: string) => Promise<{ needsConfirm: boolean }>;
+  signUpWithEmail: (fields: { email: string; password: string; firstName?: string; phone?: string }) => Promise<{ needsConfirm: boolean }>;
   continueAsGuest: () => void;
   isGuest: boolean;
   signOut: () => Promise<void>;
@@ -88,13 +88,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) setAuthError(error.message);
       },
-      signUpWithEmail: async (email, password, firstName) => {
+      signUpWithEmail: async ({ email, password, firstName, phone }) => {
         setAuthError(null);
         if (!supabase) { setAuthError('Sign-up is not configured.'); return { needsConfirm: false }; }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { full_name: firstName } },
+          options: { data: { full_name: firstName, phone } },
         });
         if (error) { setAuthError(error.message); return { needsConfirm: false }; }
         // If email confirmation is on, there's a user but no session yet.

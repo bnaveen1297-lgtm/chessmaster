@@ -18,20 +18,41 @@ function GoogleMark() {
   );
 }
 
+const COUNTRY_CODES = [
+  { c: '+91', f: '🇮🇳', n: 'India' },
+  { c: '+1', f: '🇺🇸', n: 'USA' },
+  { c: '+44', f: '🇬🇧', n: 'UK' },
+  { c: '+61', f: '🇦🇺', n: 'Australia' },
+  { c: '+971', f: '🇦🇪', n: 'UAE' },
+  { c: '+65', f: '🇸🇬', n: 'Singapore' },
+  { c: '+49', f: '🇩🇪', n: 'Germany' },
+  { c: '+33', f: '🇫🇷', n: 'France' },
+  { c: '+81', f: '🇯🇵', n: 'Japan' },
+  { c: '+55', f: '🇧🇷', n: 'Brazil' },
+];
+
 function AuthCard({ dark = false }: { dark?: boolean }) {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, continueAsGuest, authError, clearError } = useAuth();
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
+  const [dialCode, setDialCode] = useState('+91');
+  const [phone, setPhone] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [localErr, setLocalErr] = useState<string | null>(null);
 
   const submit = async () => {
+    setLocalErr(null);
+    if (mode === 'up') {
+      if (!firstName.trim()) { setLocalErr('Please enter your name.'); return; }
+      if (!/^\d{6,14}$/.test(phone.trim())) { setLocalErr('Please enter a valid phone number.'); return; }
+    }
     setBusy(true); setNotice(null); clearError();
     try {
       if (mode === 'up') {
-        const { needsConfirm } = await signUpWithEmail(email, password, firstName);
+        const { needsConfirm } = await signUpWithEmail({ email, password, firstName, phone: `${dialCode} ${phone.trim()}` });
         if (needsConfirm) setNotice('Check your email to confirm your account, then sign in.');
       } else {
         await signInWithEmail(email, password);
@@ -39,8 +60,9 @@ function AuthCard({ dark = false }: { dark?: boolean }) {
     } finally { setBusy(false); }
   };
 
-  const inputCls = 'w-full rounded-xl border px-4 py-2.5 outline-none focus:border-teal ' +
+  const inputBase = 'rounded-xl border px-4 py-2.5 outline-none focus:border-teal ' +
     (dark ? 'border-white/15 bg-white/10 text-white placeholder-white/50' : 'border-line bg-plaster text-ink');
+  const inputCls = 'w-full ' + inputBase;
 
   return (
     <div className={`w-full max-w-sm rounded-2xl p-5 ${dark ? 'bg-white/5 ring-1 ring-white/10' : 'card'}`}>
@@ -52,6 +74,14 @@ function AuthCard({ dark = false }: { dark?: boolean }) {
       </div>
       <div className="flex flex-col gap-2.5">
         {mode === 'up' && <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className={inputCls} />}
+        {mode === 'up' && (
+          <div className="flex gap-2">
+            <select value={dialCode} onChange={(e) => setDialCode(e.target.value)} className={inputBase + ' w-[118px] flex-none px-2.5'}>
+              {COUNTRY_CODES.map((c) => <option key={c.c + c.n} value={c.c}>{c.f} {c.c}</option>)}
+            </select>
+            <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder="Phone number" className={inputBase + ' min-w-0 flex-1'} />
+          </div>
+        )}
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" placeholder="Email" className={inputCls} />
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder="Password" className={inputCls}
           onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} />
@@ -60,7 +90,7 @@ function AuthCard({ dark = false }: { dark?: boolean }) {
         </button>
       </div>
       {notice && <p className="mt-3 text-sm font-semibold text-success">{notice}</p>}
-      {authError && <p className="mt-3 text-sm font-semibold text-danger">{authError}</p>}
+      {(localErr || authError) && <p className="mt-3 text-sm font-semibold text-danger">{localErr || authError}</p>}
       <p className={`mt-3 text-center text-sm ${dark ? 'text-white/70' : 'text-ink-soft'}`}>
         {mode === 'in' ? 'New here?' : 'Already have an account?'}{' '}
         <button onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setNotice(null); clearError(); }} className="font-bold text-teal-br underline-offset-2 hover:underline">
