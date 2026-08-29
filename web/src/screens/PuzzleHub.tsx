@@ -1,15 +1,26 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/ui';
 import { useAuth } from '@/auth/AuthProvider';
 import { useProgress } from '@/game/progress';
-import { puzzleCourse, packDoneId, type PuzzlePack } from '@/data/puzzleCourse';
+import { puzzleCourse, packDoneId, allPacks, type PuzzlePack } from '@/data/puzzleCourse';
 import { packSolvedCount } from '@/game/puzzleProgress';
+import { libraryCount, preloadLibrary } from '@/lib/puzzleLibrary';
 
 export function PuzzleHub() {
   const nav = useNavigate();
   const { user } = useAuth();
   const { progress } = useProgress();
   const done = new Set(progress.lessonsCompleted ?? []);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    preloadLibrary();
+    let alive = true;
+    Promise.all(allPacks.map((p) => libraryCount(p.theme).then((n) => [p.id, n] as const)))
+      .then((pairs) => { if (alive) setCounts(Object.fromEntries(pairs)); });
+    return () => { alive = false; };
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -39,7 +50,7 @@ export function PuzzleHub() {
             <div className="grid gap-4 sm:grid-cols-2">
               {stage.packs.map((pack) => (
                 <PackCard key={pack.id} pack={pack} uid={user?.id} done={done.has(packDoneId(pack.id))}
-                  onClick={() => nav(`/app/puzzles/pack/${pack.id}`)} />
+                  poolCount={counts[pack.id]} onClick={() => nav(`/app/puzzles/pack/${pack.id}`)} />
               ))}
             </div>
           </section>
@@ -49,7 +60,7 @@ export function PuzzleHub() {
   );
 }
 
-function PackCard({ pack, uid, done, onClick }: { pack: PuzzlePack; uid?: string; done: boolean; onClick: () => void }) {
+function PackCard({ pack, uid, done, poolCount, onClick }: { pack: PuzzlePack; uid?: string; done: boolean; poolCount?: number; onClick: () => void }) {
   const solved = Math.min(packSolvedCount(uid, pack.id), pack.goal);
   const pct = Math.round((solved / pack.goal) * 100);
   return (
@@ -60,7 +71,10 @@ function PackCard({ pack, uid, done, onClick }: { pack: PuzzlePack; uid?: string
           {done ? '✓ Done' : pack.band}
         </span>
       </div>
-      <div className="mt-3 font-display text-lg font-black">{pack.title}</div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="font-display text-lg font-black">{pack.title}</span>
+        {poolCount != null && poolCount > 0 && <span className="text-[11px] font-semibold text-ink-faint">{poolCount.toLocaleString()} puzzles</span>}
+      </div>
       <div className="text-[13px] text-ink-soft">{pack.blurb}</div>
       <div className="mt-3">
         <div className="mb-1 flex justify-between text-[12px] font-semibold text-ink-faint">

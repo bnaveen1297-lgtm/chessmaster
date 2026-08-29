@@ -7,6 +7,7 @@ import { useProgress } from '@/game/progress';
 import { packById, bandFilter, packDoneId } from '@/data/puzzleCourse';
 import { bumpPackSolved, packSolvedCount } from '@/game/puzzleProgress';
 import { fetchNextPuzzle } from '@shared/services/puzzleDb';
+import { randomLibraryPuzzle } from '@/lib/puzzleLibrary';
 import { puzzles as bundled, type Puzzle } from '@shared/data/puzzles';
 
 /** Offline fallback: a bundled puzzle roughly matching the pack's theme. */
@@ -34,8 +35,11 @@ export function PuzzlePack() {
     if (!pack) return;
     const id = ++reqId.current;
     setLoading(true);
-    fetchNextPuzzle(bandFilter(pack.band, pack.theme))
-      .then((p) => { if (reqId.current === id) setPuzzle(p); })
+    // Primary source: the bundled themed library (deep, offline, instant).
+    // Fall back to the live DB, then the small bundled set.
+    randomLibraryPuzzle(pack.theme, pack.band)
+      .then((p) => (p ? p : fetchNextPuzzle(bandFilter(pack.band, pack.theme))))
+      .then((p) => { if (reqId.current === id) setPuzzle(p ?? bundledFor(pack.theme)); })
       .catch(() => { if (reqId.current === id) setPuzzle(bundledFor(pack.theme)); })
       .finally(() => { if (reqId.current === id) setLoading(false); });
   }, [pack]);
