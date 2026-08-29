@@ -14,6 +14,7 @@ import { Puzzles } from '@/screens/Puzzles';
 import { PuzzleHub } from '@/screens/PuzzleHub';
 import { PuzzlePack } from '@/screens/PuzzlePack';
 import { PuzzleExam } from '@/screens/PuzzleExam';
+import { PuzzleCreate } from '@/screens/PuzzleCreate';
 import { DailyPuzzle } from '@/screens/DailyPuzzle';
 import { Leaderboard } from '@/screens/Leaderboard';
 import { Masters } from '@/screens/Masters';
@@ -62,6 +63,7 @@ export default function App() {
       <Route path="/app/puzzles/practice" element={<RequireAuth><Puzzles /></RequireAuth>} />
       <Route path="/app/puzzles/pack/:packId" element={<RequireAuth><PuzzlePack /></RequireAuth>} />
       <Route path="/app/puzzles/exam" element={<RequireAuth><PuzzleExam /></RequireAuth>} />
+      <Route path="/app/puzzles/create" element={<RequireAuth><PuzzleCreate /></RequireAuth>} />
       <Route path="/app/daily" element={<RequireAuth><DailyPuzzle /></RequireAuth>} />
       <Route path="/app/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
       <Route path="/app/masters" element={<RequireAuth><Masters /></RequireAuth>} />

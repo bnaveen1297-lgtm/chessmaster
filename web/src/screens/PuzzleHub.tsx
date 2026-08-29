@@ -46,6 +46,15 @@ export function PuzzleHub() {
           </div>
           <span className="text-2xl">🎖️</span>
         </button>
+        {/* Create from FEN */}
+        <button onClick={() => nav('/app/puzzles/create')}
+          className="flex w-full items-center justify-between rounded-2xl border border-line bg-plaster-2 p-5 text-left transition hover:-translate-y-0.5 sm:col-span-2">
+          <div>
+            <div className="font-display text-lg font-black">Create a puzzle from a position</div>
+            <div className="text-[13px] text-ink-soft">Paste any FEN — Stockfish finds the tactic and makes it solvable.</div>
+          </div>
+          <span className="text-2xl">✚</span>
+        </button>
       </div>
 
       {puzzleCourse.map((stage) => {
