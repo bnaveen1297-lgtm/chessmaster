@@ -315,7 +315,7 @@ function EvalGraph({ series }: { series: number[] }) {
 }
 
 /* ---------------- report card across all imported games ---------------- */
-function ReportCardView({ card, onReview }: { card: ReportCard; onReview: (pgn: string) => void }) {
+export function ReportCardView({ card, onReview }: { card: ReportCard; onReview: (pgn: string) => void }) {
   const tiles: [string, string][] = [
     ['Games', String(card.games)],
     ['Record', `${card.wins}-${card.draws}-${card.losses}`],
