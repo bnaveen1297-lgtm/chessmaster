@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Board } from '@/components/Board';
 import { Wordmark } from '@/components/Wordmark';
 import { usePrefs, BOARD_THEMES, type BoardThemeId, type Level, type PieceStyle, type Role } from '@/game/prefs';
+import { useAuth } from '@/auth/AuthProvider';
 
 const ROLES: { id: Role; label: string; desc: string; icon: string }[] = [
   { id: 'student', label: "I'm a student", desc: 'Learning chess in class or with a coach', icon: '🎓' },
@@ -17,9 +18,11 @@ const LEVELS: { id: Level; desc: string }[] = [
 ];
 
 export function Onboarding() {
-  const { prefs, update } = usePrefs();
+  const { prefs, update, name: savedName, setName } = usePrefs();
+  const { user } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
+  const [name, setNameInput] = useState(savedName || user?.firstName || '');
   const [role, setRole] = useState<Role | ''>(prefs.role);
   const [wantsCoach, setWantsCoach] = useState(prefs.wantsCoach);
   const [level, setLevel] = useState<Level>(prefs.level);
@@ -30,6 +33,7 @@ export function Onboarding() {
   const next = () => setStep((s) => Math.min(s + 1, steps - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
   const finish = () => {
+    if (name.trim()) setName(name);
     update({ role, wantsCoach, level, boardTheme, pieceStyle, onboarded: true });
     nav('/app', { replace: true });
   };
@@ -48,7 +52,9 @@ export function Onboarding() {
         </div>
 
         {step === 0 && (
-          <Step title="What brings you to chesshub360?" sub="We'll tailor your home, lessons and puzzles to you.">
+          <Step title="Welcome! What should we call you?" sub="Your name appears on your profile and the leaderboard. Then tell us what brings you here.">
+            <input value={name} onChange={(e) => setNameInput(e.target.value)} maxLength={40} placeholder="Your name"
+              className="mb-5 w-full rounded-xl border border-line bg-surface px-4 py-3 outline-none focus:border-teal" />
             <div className="grid gap-3">
               {ROLES.map((r) => (
                 <Choice key={r.id} active={role === r.id} onClick={() => setRole(r.id)} title={`${r.icon}  ${r.label}`} desc={r.desc} />
@@ -113,7 +119,7 @@ export function Onboarding() {
         <div className="mt-8 flex gap-3">
           {step > 0 && <button onClick={back} className="btn-ghost">Back</button>}
           {step < steps - 1 ? (
-            <button onClick={next} disabled={step === 0 && !role} className="btn-primary flex-1">Continue</button>
+            <button onClick={next} disabled={step === 0 && (!role || !name.trim())} className="btn-primary flex-1">Continue</button>
           ) : (
             <button onClick={finish} className="btn-primary flex-1">Start playing →</button>
           )}

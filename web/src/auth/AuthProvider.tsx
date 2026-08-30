@@ -10,7 +10,7 @@ type AuthState = {
   backend: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (fields: { email: string; password: string; firstName?: string; phone?: string }) => Promise<{ needsConfirm: boolean }>;
+  signUpWithEmail: (fields: { email: string; password: string; firstName?: string; phone?: string }) => Promise<{ needsConfirm: boolean; alreadyRegistered: boolean }>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -68,14 +68,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       signUpWithEmail: async ({ email, password, firstName, phone }) => {
         setAuthError(null);
-        if (!supabase) { setAuthError('Sign-up is not configured.'); return { needsConfirm: false }; }
+        if (!supabase) { setAuthError('Sign-up is not configured.'); return { needsConfirm: false, alreadyRegistered: false }; }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: { data: { full_name: firstName, phone } },
         });
-        if (error) { setAuthError(error.message); return { needsConfirm: false }; }
-        return { needsConfirm: !!data.user && !data.session };
+        if (error) {
+          // Some Supabase configs surface the duplicate directly.
+          const already = /already|registered|exists/i.test(error.message);
+          if (!already) setAuthError(error.message);
+          return { needsConfirm: false, alreadyRegistered: already };
+        }
+        // With email-confirm on, an existing address returns a user with no
+        // identities and no session — that means "already registered".
+        const alreadyRegistered = !!data.user && (data.user.identities?.length ?? 0) === 0 && !data.session;
+        return { needsConfirm: !alreadyRegistered && !!data.user && !data.session, alreadyRegistered };
       },
       signOut: async () => {
         if (supabase) await supabase.auth.signOut();

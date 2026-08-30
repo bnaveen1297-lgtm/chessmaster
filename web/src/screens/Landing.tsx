@@ -6,11 +6,11 @@ import { Wordmark } from '@/components/Wordmark';
 
 // Everything the app offers, grouped — the "list down everything" showcase.
 const GROUPS = [
-  { icon: '♞', title: 'Learn', c: '#1E88E5', items: ['40-lesson course across 8 units', 'Interactive board exercises', 'Beginner → Advanced tracks', 'Progress synced to your account'] },
+  { icon: '♞', title: 'Learn', c: '#1E88E5', items: ['Structured course — 8 stages, 40 lessons', 'Interactive board exercises', 'Beginner → Advanced tracks', 'Progress synced to your account'] },
   { icon: '✦', title: 'Puzzles & training', c: '#111418', items: ['4,000+ themed puzzles', '7 tactic courses (forks, pins, mates…)', 'Timed practice by difficulty', 'A fresh Daily Puzzle', 'Create a puzzle from any position'] },
   { icon: '🎖️', title: 'Certification', c: '#1E88E5', items: ['A graded, timed tactics exam', 'Earn a shareable certificate'] },
   { icon: '♜', title: 'Play & compete', c: '#111418', items: ['Play the computer — 3 levels', 'Pass-and-play on one board', 'Online 1v1 in real time', 'Bullet · Blitz · Rapid clock', 'Tournaments — round-robin & knockout'] },
-  { icon: '◆', title: 'Grandmaster games', c: '#1E88E5', items: ["Play a grandmaster's real moves", 'Watch replays & guess-the-move', 'Unlock tougher legends as you grow'] },
+  { icon: '◆', title: 'Grandmaster games', c: '#1E88E5', items: ["9 famous games — play the GM's real moves", 'Watch replays & guess-the-move', 'Unlock tougher legends as you grow'] },
   { icon: '▲', title: 'Analyze & improve', c: '#111418', items: ['Full Stockfish game review', 'Accuracy, blunders & eval graph', 'Import from Chess.com / Lichess', 'Analyze any position (FEN)'] },
   { icon: '♛', title: 'Prep coach', c: '#1E88E5', items: ['A personalised weekly plan', 'Focus areas from your stats', 'A starter opening repertoire'] },
   { icon: '📖', title: 'Study books', c: '#111418', items: ['Annotated classic games', 'Read the ideas, play every move'] },
@@ -77,8 +77,9 @@ function AuthCard({ dark = false }: { dark?: boolean }) {
     setBusy(true); setNotice(null); clearError();
     try {
       if (mode === 'up') {
-        const { needsConfirm } = await signUpWithEmail({ email, password, firstName, phone: `${dialCode} ${phone.trim()}` });
-        if (needsConfirm) setNotice('Check your email to confirm your account, then sign in.');
+        const { needsConfirm, alreadyRegistered } = await signUpWithEmail({ email, password, firstName, phone: `${dialCode} ${phone.trim()}` });
+        if (alreadyRegistered) { setMode('in'); setNotice('This email is already registered — please sign in below.'); }
+        else if (needsConfirm) setNotice('Check your email to confirm your account, then sign in.');
       } else {
         await signInWithEmail(email, password);
       }
@@ -172,7 +173,7 @@ export function Landing() {
       {/* stats */}
       <section className="bg-ink text-white">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-5 py-8 text-center sm:grid-cols-4">
-          {[['40', 'Lessons · 8 units'], ['4,000+', 'Tactics puzzles'], ['9', 'Feature areas'], ['100%', 'Free · no paywall']].map(([n, l]) => (
+          {[['8', 'Learning stages'], ['40', 'Lessons'], ['4,000+', 'Tactics puzzles'], ['9', 'Grandmaster games']].map(([n, l]) => (
             <div key={l}><div className="font-display text-3xl font-black text-teal-br sm:text-4xl">{n}</div><div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-[#8fb0b3]">{l}</div></div>
           ))}
         </div>

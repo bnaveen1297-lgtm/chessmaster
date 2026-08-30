@@ -28,7 +28,7 @@ function greeting() {
 export function Home() {
   const { user } = useAuth();
   const { progress } = useProgress();
-  const { prefs } = usePrefs();
+  const { prefs, name } = usePrefs();
   const nav = useNavigate();
   const lvl = levelFromXp(progress.xp);
   const next = firstIncompleteLesson(progress.lessonsCompleted);
@@ -47,7 +47,7 @@ export function Home() {
             {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight sm:text-[34px]">
-            {greeting()}{user?.firstName ? `, ${user.firstName}` : ''}.
+            {greeting()}{(name || user?.firstName) ? `, ${name || user?.firstName}` : ''}.
           </h1>
         </div>
       </div>
