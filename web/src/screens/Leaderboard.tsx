@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui';
 import { useAuth } from '@/auth/AuthProvider';
 import { useProgress } from '@/game/progress';
+import { usePrefs } from '@/game/prefs';
 import { fetchLeaderboard, type LeaderRow } from '@/lib/leaderboard';
 
 export function Leaderboard() {
   const { user } = useAuth();
   const { progress } = useProgress();
+  const { name } = usePrefs();
+  const me = name || user?.firstName || 'You';
   const [rows, setRows] = useState<LeaderRow[]>([]);
   const [state, setState] = useState<'loading' | 'ready' | 'empty'>('loading');
 
@@ -24,9 +27,9 @@ export function Leaderboard() {
 
       {/* your standing */}
       <div className="mb-5 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-teal-deep to-teal p-5 text-white">
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-white/15 font-display text-xl font-black">{(user?.firstName || 'Y')[0]?.toUpperCase()}</span>
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-white/15 font-display text-xl font-black">{me[0]?.toUpperCase()}</span>
         <div className="flex-1">
-          <div className="font-bold">{user?.firstName || 'You'}</div>
+          <div className="font-bold">{me}</div>
           <div className="font-mono text-[11px] uppercase tracking-wider text-white/70">Your XP</div>
         </div>
         <div className="text-right"><div className="font-display text-3xl font-black">{progress.xp}</div><div className="font-mono text-[11px] text-white/70">🔥 {progress.streakDays}d</div></div>

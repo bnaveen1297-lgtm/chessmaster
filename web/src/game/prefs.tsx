@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthProvider';
+import { upsertProfile, fetchProfile } from '@/lib/profile';
 
 export const BOARD_THEMES = {
   wood: { name: 'Wood', light: '#EED9B6', dark: '#B58863' },
@@ -74,14 +75,9 @@ async function fetchRemote(userId: string): Promise<Prefs | null> {
 }
 
 async function saveRemote(userId: string, p: Prefs): Promise<void> {
-  if (!(isSupabaseConfigured && supabase)) return;
-  try {
-    // Update first (the signup trigger already seeded the profile row); if the
-    // prefs column doesn't exist the call errors and we simply keep localStorage.
-    await supabase.from('profiles').upsert({ id: userId, prefs: p }, { onConflict: 'id' });
-  } catch {
-    /* ignore — localStorage remains the fallback */
-  }
+  // Errors are handled/retried inside upsertProfile (supabase-js returns errors
+  // in the result, so the previous try/catch here silently dropped them).
+  await upsertProfile(userId, { prefs: p as unknown as Record<string, unknown> });
 }
 
 type Ctx = {
@@ -90,6 +86,10 @@ type Ctx = {
   loaded: boolean;
   update: (p: Partial<Prefs>) => void;
   reset: () => void;
+  /** The user's display name (from the profile, backfilled from sign-in). */
+  name: string;
+  /** Persist a display name to the profile (shown on the leaderboard). */
+  setName: (n: string) => void;
 };
 const PrefsContext = createContext<Ctx | undefined>(undefined);
 
@@ -97,7 +97,9 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [prefs, setPrefs] = useState<Prefs>(() => readLocal(null));
   const [loaded, setLoaded] = useState(false);
+  const [name, setNameState] = useState('');
   const userIdRef = useRef<string | null>(null);
+  const metaName = user?.firstName?.trim() || '';
 
   // Resolve prefs whenever the signed-in user changes.
   useEffect(() => {
@@ -107,12 +109,11 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 
     if (!uid) {
       setPrefs(readLocal(null));
+      setNameState('');
       setLoaded(true);
       return;
     }
 
-    // Optimistic: show this user's cached prefs immediately, then reconcile
-    // with the server (source of truth) before declaring loaded.
     const cached = readLocal(uid);
     setPrefs(cached);
     setLoaded(false);
@@ -129,15 +130,24 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setLoaded(true);
     });
 
-    return () => {
-      cancelled = true;
-    };
+    // Resolve the display name and backfill the profile's first_name column
+    // (what the leaderboard reads) from the sign-in metadata when it's empty.
+    fetchProfile(uid).then((p) => {
+      if (cancelled || userIdRef.current !== uid) return;
+      const stored = (p?.first_name || '').trim();
+      if (stored) { setNameState(stored); return; }
+      if (metaName) { setNameState(metaName); upsertProfile(uid, { first_name: metaName }); }
+    });
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const value = useMemo<Ctx>(
     () => ({
       prefs,
       loaded,
+      name,
       update: (p) =>
         setPrefs((prev) => {
           const next = { ...prev, ...p };
@@ -152,8 +162,14 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
         if (uid) saveRemote(uid, DEFAULT);
         setPrefs(DEFAULT);
       },
+      setName: (n) => {
+        const clean = n.trim();
+        setNameState(clean);
+        const uid = userIdRef.current;
+        if (uid && clean) upsertProfile(uid, { first_name: clean });
+      },
     }),
-    [prefs, loaded],
+    [prefs, loaded, name],
   );
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>;
 }

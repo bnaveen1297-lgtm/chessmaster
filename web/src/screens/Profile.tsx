@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/auth/AuthProvider';
 import { useProgress, levelFromXp, ACHIEVEMENTS } from '@/game/progress';
 import { usePrefs, BOARD_THEMES, type BoardThemeId, type Level, type PieceStyle } from '@/game/prefs';
@@ -8,7 +9,11 @@ import { orderedLessonIds } from '@shared/data/content';
 export function Profile() {
   const { user, signOut } = useAuth();
   const { progress } = useProgress();
-  const { prefs, update } = usePrefs();
+  const { prefs, update, name, setName } = usePrefs();
+  const [nameInput, setNameInput] = useState(name);
+  const [nameSaved, setNameSaved] = useState(false);
+  useEffect(() => { setNameInput((v) => v || name); }, [name]);
+  const saveName = () => { if (nameInput.trim()) { setName(nameInput); setNameSaved(true); setTimeout(() => setNameSaved(false), 1500); } };
   const earned = new Set(progress.achievements);
   const stats: [string, string | number][] = [
     ['Level', levelFromXp(progress.xp)],
@@ -22,7 +27,7 @@ export function Profile() {
 
   return (
     <div>
-      <PageHeader eyebrow="Profile" title={user?.firstName || 'Player'} sub={user?.email} />
+      <PageHeader eyebrow="Profile" title={name || user?.firstName || 'Player'} sub={user?.email} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([l, v]) => (
@@ -50,6 +55,12 @@ export function Profile() {
       <h2 className="mb-3 mt-8 font-display text-xl font-black">Preferences</h2>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card p-5">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink-faint">Display name</p>
+          <div className="mb-5 flex gap-2">
+            <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} maxLength={40} placeholder="Your name"
+              className="min-w-0 flex-1 rounded-lg border border-line bg-plaster px-3 py-2 outline-none focus:border-teal" />
+            <button onClick={saveName} className="flex-none rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white">{nameSaved ? 'Saved ✓' : 'Save'}</button>
+          </div>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink-faint">Your level</p>
           <div className="flex flex-wrap gap-2">
             {(['Beginner', 'Intermediate', 'Advanced'] as Level[]).map((l) => (

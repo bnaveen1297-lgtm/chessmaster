@@ -14,6 +14,7 @@ const QUICK = [
   { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#1E88E5' },
   { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#111418' },
   { to: '/app/coach', label: 'Prep Coach', desc: 'Your weekly plan', Icon: IconCrown, c: '#111418' },
+  { to: '/app/prep', label: 'Tournament Prep', desc: 'Peak for your event', Icon: IconTrophy, c: '#1E88E5' },
   { to: '/app/books', label: 'Study Books', desc: 'Famous games, annotated', Icon: IconLearn, c: '#1E88E5' },
   { to: '/app/masters', label: 'Master Base', desc: 'Play a legend', Icon: IconCrown, c: '#1E88E5' },
   { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin · knockout', Icon: IconTrophy, c: '#111418' },
@@ -28,7 +29,7 @@ function greeting() {
 export function Home() {
   const { user } = useAuth();
   const { progress } = useProgress();
-  const { prefs } = usePrefs();
+  const { prefs, name } = usePrefs();
   const nav = useNavigate();
   const lvl = levelFromXp(progress.xp);
   const next = firstIncompleteLesson(progress.lessonsCompleted);
@@ -47,7 +48,7 @@ export function Home() {
             {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           <h1 className="mt-1 font-display text-3xl font-black tracking-tight sm:text-[34px]">
-            {greeting()}{user?.firstName ? `, ${user.firstName}` : ''}.
+            {greeting()}{(name || user?.firstName) ? `, ${name || user?.firstName}` : ''}.
           </h1>
         </div>
       </div>
