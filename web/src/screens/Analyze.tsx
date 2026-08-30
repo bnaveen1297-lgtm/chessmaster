@@ -6,6 +6,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { analyzeGame, SAMPLE_PGN, winPct, type GameReport, type SideReport } from '@shared/engine/analyze';
 import { analyzeGameEngine } from '@/engine/engineAnalyze';
 import { StockfishEngine, uciToSan, pvToSan, MATE_CP } from '@/engine/stockfish';
+import { buildReportCard, type ReportCard, type GameLine } from '@/engine/reportCard';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
 import { saveImportedGame, listMyGames, type StoredGame } from '@/lib/games';
 
@@ -75,6 +76,9 @@ export function Analyze() {
   const [importing, setImporting] = useState(false);
   const [importErr, setImportErr] = useState<string | null>(null);
   const [stored, setStored] = useState<StoredGame[]>([]);
+  const [card, setCard] = useState<ReportCard | null>(null);
+  const [cardBusy, setCardBusy] = useState(false);
+  const [cardProgress, setCardProgress] = useState(0);
 
   useEffect(() => { if (user?.id) listMyGames(user.id).then(setStored); }, [user?.id]);
   useEffect(() => () => engineRef.current?.quit(), []);
@@ -110,20 +114,24 @@ export function Analyze() {
 
   const doImport = async () => {
     if (!username.trim()) return;
-    setImporting(true); setImportErr(null); setImported([]);
+    setImporting(true); setImportErr(null); setImported([]); setCard(null);
     try {
-      const games = await fetchGames(source, username.trim(), 15);
+      const games = await fetchGames(source, username.trim(), 20);
       setImported(games);
-      if (games.length === 0) setImportErr('No recent games found for that username.');
+      if (games.length === 0) { setImportErr('No recent games found for that username.'); return; }
       // persist for signed-in users (best-effort)
       if (user?.id) {
         Promise.all(games.slice(0, 10).map((g) => saveImportedGame(user.id, g).catch(() => {}))).then(() => {
           listMyGames(user.id).then(setStored);
         });
       }
+      // Aggregate report card across all fetched games (quick model).
+      setCardBusy(true); setCardProgress(0);
+      const rc = await buildReportCard(games, username.trim(), setCardProgress);
+      setCard(rc);
     } catch (e: any) {
       setImportErr(e?.message || 'Could not reach that site. Check the username.');
-    } finally { setImporting(false); }
+    } finally { setImporting(false); setCardBusy(false); }
   };
 
   const analyzeImported = (g: ImportedGame | StoredGame) => { setPgn(g.pgn || ''); run(g.pgn || ''); };
@@ -131,7 +139,7 @@ export function Analyze() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader eyebrow="Analyze" title="Game analyzer"
-        sub="Import your Chess.com or Lichess games, or paste a PGN — get a Chess.com-style report with accuracy, mistakes and an eval graph." />
+        sub="Import your Chess.com or Lichess games for a report card across all of them — accuracy, win rate, recurring mistakes and openings — then deep-review any game with Stockfish." />
 
       {/* engine mode */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-plaster-2 px-4 py-3">
@@ -209,7 +217,13 @@ export function Analyze() {
           <button onClick={doImport} disabled={importing || !username.trim()} className="btn-primary">{importing ? 'Fetching…' : 'Fetch games'}</button>
         </div>
         {importErr && <p className="mt-3 text-sm font-semibold text-danger">{importErr}</p>}
-        {imported.length > 0 && (
+        {cardBusy && (
+          <div className="mt-4">
+            <div className="mb-1 flex justify-between text-[13px] font-semibold text-ink-soft"><span>Building your report card…</span><span>{Math.round(cardProgress * 100)}%</span></div>
+            <div className="h-2 overflow-hidden rounded-full bg-plaster-2"><div className="h-full rounded-full bg-teal transition-[width]" style={{ width: `${Math.round(cardProgress * 100)}%` }} /></div>
+          </div>
+        )}
+        {imported.length > 0 && !card && !cardBusy && (
           <div className="mt-4">
             <Group>
               {imported.map((g) => (
@@ -220,6 +234,8 @@ export function Analyze() {
           </div>
         )}
       </div>
+
+      {card && !cardBusy && <ReportCardView card={card} onReview={(p) => { setPgn(p); run(p); }} />}
 
       {/* stored games (signed-in) */}
       {stored.length > 0 && (
@@ -294,6 +310,77 @@ function EvalGraph({ series }: { series: number[] }) {
         <polygon points={area} fill="#1E88E533" />
         <polyline points={pts} fill="none" stroke="#42A5F5" strokeWidth="2" />
       </svg>
+    </div>
+  );
+}
+
+/* ---------------- report card across all imported games ---------------- */
+function ReportCardView({ card, onReview }: { card: ReportCard; onReview: (pgn: string) => void }) {
+  const tiles: [string, string][] = [
+    ['Games', String(card.games)],
+    ['Record', `${card.wins}-${card.draws}-${card.losses}`],
+    ['Win rate', `${card.winPct}%`],
+    ['Avg accuracy', `${card.avgAccuracy}%`],
+    ['Blunders / game', String(card.blundersPerGame)],
+  ];
+  return (
+    <div className="mt-6">
+      <div className="rounded-2xl bg-ink p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gold-soft">Report card</p>
+            <h2 className="mt-1 font-display text-2xl font-black">{card.username}</h2>
+          </div>
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-black">{card.grade}</span>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {tiles.map(([l, v]) => (
+            <div key={l} className="rounded-xl bg-white/5 p-3">
+              <div className="font-display text-xl font-black">{v}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wide text-white/60">{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* insights */}
+      <div className="mt-4 rounded-2xl border border-line bg-surface p-5">
+        <p className="eyebrow mb-2">What the games say</p>
+        <ul className="space-y-2">
+          {card.insights.map((t, i) => (
+            <li key={i} className="flex gap-2 text-[14px]"><span className="mt-0.5 flex-none font-bold text-teal">→</span><span>{t}</span></li>
+          ))}
+        </ul>
+      </div>
+
+      {/* openings */}
+      {card.openings.length > 0 && (
+        <div className="mt-4">
+          <h3 className="mb-2 font-display text-lg font-black">Your openings</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {card.openings.map((o) => (
+              <div key={o.name} className="card flex items-center justify-between p-4">
+                <div><div className="font-bold">{o.name}</div><div className="text-[12px] text-ink-faint">{o.games} game{o.games === 1 ? '' : 's'} · {o.asWhite} as White</div></div>
+                <span className="font-mono text-sm font-bold text-teal">{o.wins}/{o.games}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* per-game list */}
+      <h3 className="mb-2 mt-5 font-display text-lg font-black">Every game ({card.lines.length})</h3>
+      <Group>
+        {card.lines.map((l: GameLine) => (
+          <Row key={l.id}
+            title={`vs ${l.opponent}`}
+            subtitle={`${l.color === 'w' ? 'White' : 'Black'} · ${l.opening}${l.date ? ` · ${l.date}` : ''}`}
+            left={<span className={`grid h-9 w-9 flex-none place-items-center rounded-lg text-xs font-black ${l.result === 'win' ? 'bg-success/15 text-success' : l.result === 'loss' ? 'bg-danger/10 text-danger' : 'bg-plaster-2 text-ink-soft'}`}>{l.result === 'win' ? 'W' : l.result === 'loss' ? 'L' : l.result === 'draw' ? '½' : '·'}</span>}
+            right={<span className="flex items-center gap-3 text-sm"><span className="font-bold tabular-nums">{l.accuracy}%</span><span className="font-semibold text-teal">Review</span></span>}
+            onClick={() => onReview(l.pgn)} chevron={false} />
+        ))}
+      </Group>
+      <p className="mt-2 text-[12px] text-ink-faint">Accuracy uses the quick model for speed across all games. Tap “Review” for a full Stockfish breakdown of any game.</p>
     </div>
   );
 }
