@@ -8,6 +8,7 @@ import { Home } from '@/screens/Home';
 import { PlayHub } from '@/screens/PlayHub';
 import { PlayComputer } from '@/screens/PlayComputer';
 import { PlayLocal } from '@/screens/PlayLocal';
+import { PlayOnline } from '@/screens/PlayOnline';
 import { Learn } from '@/screens/Learn';
 import { Lesson } from '@/screens/Lesson';
 import { Puzzles } from '@/screens/Puzzles';
@@ -39,14 +40,17 @@ function Loading() {
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  const { prefs, loaded } = usePrefs();
+  const { prefs, loaded, name } = usePrefs();
   const loc = useLocation();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/" replace state={{ from: loc.pathname }} />;
-  // Wait for prefs to resolve from the server before deciding on onboarding,
+  // Wait for prefs AND the display name to resolve before deciding on onboarding,
   // so a returning user on a fresh device isn't wrongly asked to onboard again.
   if (!loaded) return <Loading />;
-  if (!prefs.onboarded && loc.pathname !== '/app/onboarding') return <Onboarding />;
+  // Ask for onboarding whenever the profile is incomplete — either the user has
+  // never onboarded, or their profile has no name yet (nothing filled in).
+  const profileComplete = prefs.onboarded && !!name.trim();
+  if (!profileComplete && loc.pathname !== '/app/onboarding') return <Onboarding />;
   return <AppShell>{children}</AppShell>;
 }
 
@@ -60,6 +64,7 @@ export default function App() {
       <Route path="/app/play" element={<RequireAuth><PlayHub /></RequireAuth>} />
       <Route path="/app/play/computer" element={<RequireAuth><PlayComputer /></RequireAuth>} />
       <Route path="/app/play/local" element={<RequireAuth><PlayLocal /></RequireAuth>} />
+      <Route path="/app/play/online" element={<RequireAuth><PlayOnline /></RequireAuth>} />
       <Route path="/app/learn" element={<RequireAuth><Learn /></RequireAuth>} />
       <Route path="/app/learn/:id" element={<RequireAuth><Lesson /></RequireAuth>} />
       <Route path="/app/puzzles" element={<RequireAuth><PuzzleHub /></RequireAuth>} />

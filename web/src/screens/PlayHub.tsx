@@ -4,9 +4,10 @@ import { IconPlay, IconGlobe, IconTrophy } from '@/components/icons';
 import { LeaderboardCard } from '@/components/LeaderboardCard';
 
 const MODES = [
+  { to: '/app/play/online', label: 'Play online', desc: 'See who’s online and challenge them live.', icon: '🌐', c: '#1E88E5' },
   { to: '/app/play/computer', label: 'Play the computer', desc: 'Three engine levels — warm up or grind.', icon: '♟', c: '#111418' },
   { to: '/app/play/local', label: 'Pass and play', desc: 'Two players, one board, same device.', icon: '♞', c: '#1E88E5' },
-  { to: '/app/tournaments', label: 'Online & tournaments', desc: 'Real-time 1v1 and live events.', icon: '♛', c: '#111418' },
+  { to: '/app/tournaments', label: 'Tournaments', desc: 'Round-robin and knockout events.', icon: '♛', c: '#111418' },
 ];
 
 export function PlayHub() {

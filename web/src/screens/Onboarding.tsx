@@ -33,7 +33,10 @@ export function Onboarding() {
   const next = () => setStep((s) => Math.min(s + 1, steps - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
   const finish = () => {
-    if (name.trim()) setName(name);
+    // A name is required — the profile must be filled before we mark onboarding
+    // done, otherwise the app will (correctly) ask again on the next sign-in.
+    if (!name.trim()) { setStep(0); return; }
+    setName(name);
     update({ role, wantsCoach, level, boardTheme, pieceStyle, onboarded: true });
     nav('/app', { replace: true });
   };
@@ -121,10 +124,11 @@ export function Onboarding() {
           {step < steps - 1 ? (
             <button onClick={next} disabled={step === 0 && (!role || !name.trim())} className="btn-primary flex-1">Continue</button>
           ) : (
-            <button onClick={finish} className="btn-primary flex-1">Start playing →</button>
+            <button onClick={finish} disabled={!name.trim()} className="btn-primary flex-1 disabled:opacity-50">Start playing →</button>
           )}
         </div>
-        <button onClick={finish} className="mt-3 text-center text-sm font-semibold text-ink-faint hover:text-ink">Skip for now</button>
+        {/* Skip only appears once a name is entered, so the profile is never left blank. */}
+        {name.trim() && <button onClick={finish} className="mt-3 text-center text-sm font-semibold text-ink-faint hover:text-ink">Skip the rest</button>}
       </div>
     </div>
   );
