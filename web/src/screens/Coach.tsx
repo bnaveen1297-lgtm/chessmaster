@@ -21,7 +21,10 @@ export function Coach() {
         <div className="text-[11px] font-bold uppercase tracking-wider text-gold-soft">Level {level} · {prefs.level} track</div>
         <div className="mt-1 font-display text-2xl font-black">{plan.headline}</div>
         <div className="mt-1 text-[14px] text-white/70">{plan.subline}</div>
-        <button onClick={() => nav('/app/analyze')} className="mt-4 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink">Analyze your game or position →</button>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={() => nav('/app/analyze')} className="rounded-full bg-white px-4 py-2 text-sm font-bold text-ink">Analyze your game or position →</button>
+          <button onClick={() => nav('/app/prep')} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white ring-1 ring-white/20">Preparing for a tournament? →</button>
+        </div>
       </div>
 
       {/* focus areas */}
