@@ -353,6 +353,51 @@ export function ReportCardView({ card, onReview }: { card: ReportCard; onReview:
         </ul>
       </div>
 
+      {/* move quality distribution */}
+      {card.userMoves > 0 && (
+        <div className="mt-4">
+          <h3 className="mb-2 font-display text-lg font-black">Move quality <span className="text-[13px] font-semibold text-ink-faint">· {card.userMoves} of your moves</span></h3>
+          <MoveQualityBar mq={card.moveQuality} total={card.userMoves} />
+        </div>
+      )}
+
+      {/* by colour + by phase */}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="card p-5">
+          <p className="eyebrow mb-3">By colour</p>
+          {(['white', 'black'] as const).map((c) => {
+            const a = card.byColor[c];
+            return (
+              <div key={c} className="mb-3 last:mb-0">
+                <div className="flex items-center gap-2 font-bold"><span className={`h-3.5 w-3.5 rounded-full border border-line ${c === 'white' ? 'bg-[#F4F1E8]' : 'bg-[#2B2B30]'}`} />{c === 'white' ? 'White' : 'Black'} <span className="text-[12px] font-normal text-ink-faint">· {a.games} games</span></div>
+                <div className="mt-0.5 text-[13px] text-ink-soft"><b className="text-ink">{a.accuracy}%</b> accuracy · <b className="text-ink">{a.winPct}%</b> win rate</div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="card p-5">
+          <p className="eyebrow mb-3">By phase</p>
+          {(['opening', 'middlegame', 'endgame'] as const).map((p) => {
+            const a = card.byPhase[p];
+            return (
+              <div key={p} className="mb-2 flex items-center justify-between">
+                <span className="font-bold capitalize">{p}</span>
+                <span className="text-[13px] text-ink-soft"><b className="text-ink">{a.acpl}</b> avg cp loss · <b className="text-ink">{a.blunders}</b> blunders</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* biggest mistake */}
+      {card.biggest && (
+        <div className="mt-4 rounded-2xl border border-danger/30 bg-danger/5 p-5">
+          <p className="eyebrow mb-1 text-danger">Biggest mistake</p>
+          <p className="text-[14px]"><b className="font-mono">{card.biggest.san}</b> vs {card.biggest.opponent} — move {card.biggest.moveNo} ({card.biggest.phase}), giving up ~{Math.round(card.biggest.cpLoss / 100 * 10) / 10} pawns.
+            {' '}<button onClick={() => { const g = card.lines.find((l) => l.id === card.biggest!.gameId); if (g) onReview(g.pgn); }} className="font-semibold text-teal">Review this game →</button></p>
+        </div>
+      )}
+
       {/* openings */}
       {card.openings.length > 0 && (
         <div className="mt-4">
@@ -381,6 +426,39 @@ export function ReportCardView({ card, onReview }: { card: ReportCard; onReview:
         ))}
       </Group>
       <p className="mt-2 text-[12px] text-ink-faint">Accuracy uses the quick model for speed across all games. Tap “Review” for a full Stockfish breakdown of any game.</p>
+    </div>
+  );
+}
+
+/* ---------------- move-quality distribution ---------------- */
+function MoveQualityBar({ mq, total }: { mq: import('@/engine/reportCard').MoveQuality; total: number }) {
+  const items: { key: keyof typeof mq; label: string; color: string }[] = [
+    { key: 'brilliant', label: 'Brilliant', color: '#26C6DA' },
+    { key: 'great', label: 'Great', color: '#42A5F5' },
+    { key: 'best', label: 'Best', color: '#2E9E6B' },
+    { key: 'good', label: 'Good', color: '#8BC34A' },
+    { key: 'book', label: 'Book', color: '#9096A0' },
+    { key: 'inaccuracy', label: 'Inaccuracy', color: '#E0B341' },
+    { key: 'miss', label: 'Miss', color: '#EE8A3B' },
+    { key: 'mistake', label: 'Mistake', color: '#E5643C' },
+    { key: 'blunder', label: 'Blunder', color: '#E23B3B' },
+  ];
+  const shown = items.filter((it) => mq[it.key] > 0);
+  return (
+    <div className="card p-5">
+      <div className="mb-3 flex h-3 w-full overflow-hidden rounded-full bg-plaster-2">
+        {shown.map((it) => (
+          <span key={it.key} title={`${it.label}: ${mq[it.key]}`} style={{ width: `${(mq[it.key] / total) * 100}%`, background: it.color }} />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3">
+        {shown.map((it) => (
+          <div key={it.key} className="flex items-center justify-between text-[13px]">
+            <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: it.color }} />{it.label}</span>
+            <span className="font-bold tabular-nums">{mq[it.key]}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
