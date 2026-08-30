@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Chess } from 'chess.js';
 import { PageHeader, Group, Row } from '@/components/ui';
 import { Board } from '@/components/Board';
@@ -7,6 +7,8 @@ import { analyzeGame, SAMPLE_PGN, winPct, type GameReport, type SideReport } fro
 import { analyzeGameEngine } from '@/engine/engineAnalyze';
 import { StockfishEngine, uciToSan, pvToSan, MATE_CP } from '@/engine/stockfish';
 import { buildReportCard, type ReportCard, type GameLine } from '@/engine/reportCard';
+import { buildDeepReport, type DeepReport, type CriticalMoment, type ReportMove } from '@/engine/deepReport';
+import type { MoveClass } from '@shared/engine/analyze';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
 import { saveImportedGame, listMyGames, type StoredGame } from '@/lib/games';
 
@@ -30,6 +32,7 @@ export function Analyze() {
   const { user } = useAuth();
   const [pgn, setPgn] = useState('');
   const [report, setReport] = useState<GameReport | null>(null);
+  const [reportPgn, setReportPgn] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [useEngine, setUseEngine] = useState(true);
@@ -95,19 +98,19 @@ export function Analyze() {
             onProgress: (f) => setProgress(f),
           });
           if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
-          else { setReport(r); setEngineNote(`Analyzed with Stockfish (depth ${ENGINE_DEPTH}).`); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
+          else { setReport(r); setReportPgn(text); setEngineNote(`Analyzed with Stockfish (depth ${ENGINE_DEPTH}).`); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
           return;
         } catch (engineErr: any) {
           // Engine unavailable (e.g. worker blocked) — fall back to the quick model.
           const r = analyzeGame(text, 2);
           if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
-          else { setReport(r); setEngineNote('Stockfish unavailable here — used the quick analyzer instead.'); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
+          else { setReport(r); setReportPgn(text); setEngineNote('Stockfish unavailable here — used the quick analyzer instead.'); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
           return;
         }
       }
       const r = analyzeGame(text, 2);
       if (!r.moves.length) { setErr('No moves found — paste a valid PGN.'); setReport(null); }
-      else { setReport(r); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
+      else { setReport(r); setReportPgn(text); window.scrollTo({ top: 9999, behavior: 'smooth' }); }
     } catch (e: any) { setErr(e?.message || 'Could not analyze.'); setReport(null); }
     finally { setBusy(false); setProgress(null); }
   };
@@ -262,16 +265,7 @@ export function Analyze() {
       </div>
       {err && <p className="mt-3 text-sm font-semibold text-danger">{err}</p>}
 
-      {report && (
-        <div className="mt-6">
-          <p className="mb-1 text-sm font-semibold text-ink-soft">{report.openingName} · {report.result}</p>
-          <EvalGraph series={report.evalSeries} />
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <SideCard title="White" s={report.white} />
-            <SideCard title="Black" s={report.black} />
-          </div>
-        </div>
-      )}
+      {report && <DeepReportView deep={buildDeepReport(report, reportPgn)} />}
     </div>
   );
 }
@@ -297,10 +291,12 @@ function SideCard({ title, s }: { title: string; s: SideReport }) {
   );
 }
 
-function EvalGraph({ series }: { series: number[] }) {
+function EvalGraph({ series, markers = [] }: { series: number[]; markers?: import('@/engine/deepReport').GraphMarker[] }) {
   if (series.length < 2) return null;
   const w = 600, h = 120;
-  const pts = series.map((v, i) => `${(i / (series.length - 1)) * w},${h - (v / 100) * h}`).join(' ');
+  const xAt = (i: number) => (i / (series.length - 1)) * w;
+  const yAt = (v: number) => h - (v / 100) * h;
+  const pts = series.map((v, i) => `${xAt(i)},${yAt(v)}`).join(' ');
   const area = `0,${h / 2} ${pts} ${w},${h / 2}`;
   return (
     <div className="overflow-hidden rounded-2xl border border-line bg-ink">
@@ -309,7 +305,241 @@ function EvalGraph({ series }: { series: number[] }) {
         <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#ffffff30" strokeWidth="1" />
         <polygon points={area} fill="#1E88E533" />
         <polyline points={pts} fill="none" stroke="#42A5F5" strokeWidth="2" />
+        {markers.map((m) => (
+          <circle key={m.index} cx={xAt(m.index)} cy={yAt(series[m.index] ?? 50)} r={4}
+            fill={m.kind === 'brilliant' ? '#26C6DA' : m.classification === 'Blunder' ? '#E23B3B' : '#EE8A3B'}
+            stroke="#0d0d10" strokeWidth="1.5" />
+        ))}
       </svg>
+    </div>
+  );
+}
+
+/* ---------------- deep single-game "grandmaster review" ---------------- */
+
+const CLASS_COLOR: Record<MoveClass, string> = {
+  Book: '#9096A0', Brilliant: '#26C6DA', Great: '#42A5F5', Best: '#2E9E6B', Good: '#8BC34A',
+  Inaccuracy: '#E0B341', Miss: '#EE8A3B', Mistake: '#E5643C', Blunder: '#E23B3B',
+};
+
+function ClassChip({ cls }: { cls: MoveClass }) {
+  const c = CLASS_COLOR[cls];
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
+      style={{ background: `${c}22`, color: c }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{cls}
+    </span>
+  );
+}
+
+export function DeepReportView({ deep }: { deep: DeepReport }) {
+  return (
+    <div className="mt-8 space-y-6">
+      {/* cover */}
+      <div className="rounded-2xl bg-ink p-6 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gold-soft">Deep game review</p>
+            <h2 className="mt-1 font-display text-2xl font-black">{deep.whiteName} vs {deep.blackName}</h2>
+            <p className="mt-1 text-[13px] text-white/70">
+              {deep.opening}{deep.event ? ` · ${deep.event}` : ''}{deep.date ? ` · ${deep.date}` : ''} · {deep.resultText}
+            </p>
+          </div>
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-black">≈ {deep.pageEstimate}-page report</span>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-4">
+          {[['White', deep.whiteName, deep.white], ['Black', deep.blackName, deep.black]].map(([tag, name, s]: any) => (
+            <div key={tag} className="rounded-xl bg-white/5 p-4">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-white/60">{tag} · {name}</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="font-display text-3xl font-black">{s.accuracy}%</span>
+                <span className="text-[12px] text-white/60">accuracy · {s.acpl} acpl</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* verdict */}
+      <Section n={1} title="Verdict">
+        <p className="text-[15px] leading-relaxed">{deep.verdict}</p>
+      </Section>
+
+      {/* summary */}
+      <Section n={2} title="Summary">
+        <div className="space-y-3">
+          {deep.summary.map((p, i) => <p key={i} className="text-[14px] leading-relaxed text-ink-soft">{p}</p>)}
+        </div>
+      </Section>
+
+      {/* opening */}
+      <Section n={3} title="The opening">
+        <p className="text-[14px] leading-relaxed text-ink-soft">{deep.openingSummary}</p>
+      </Section>
+
+      {/* eval graph */}
+      <Section n={4} title="Evaluation graph">
+        <EvalGraph series={deep.evalSeries} markers={deep.markers} />
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-faint">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#E23B3B' }} /> Blunder</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#EE8A3B' }} /> Mistake / miss</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: '#26C6DA' }} /> Brilliant / great</span>
+          <span>Line above the middle = White is better.</span>
+        </div>
+      </Section>
+
+      {/* phases */}
+      <Section n={5} title="Phase by phase">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {deep.phases.filter((p) => p.present).map((p) => (
+            <div key={p.phase} className="card p-4">
+              <div className="flex items-baseline justify-between">
+                <h4 className="font-display text-base font-black">{p.phase}</h4>
+                <span className="text-[11px] font-semibold text-ink-faint">moves {p.fromMoveNo}–{p.toMoveNo}</span>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
+                <div><div className="font-bold tabular-nums">{p.whiteAcpl}</div><div className="text-ink-faint">White acpl</div></div>
+                <div><div className="font-bold tabular-nums">{p.blackAcpl}</div><div className="text-ink-faint">Black acpl</div></div>
+              </div>
+              <p className="mt-2 text-[13px] leading-snug text-ink-soft">{p.narrative}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* critical moments */}
+      {deep.critical.length > 0 && (
+        <Section n={6} title={`Critical moments (${deep.critical.length})`}>
+          <div className="space-y-4">
+            {deep.critical.map((c) => <CriticalCard key={c.ply} c={c} />)}
+          </div>
+        </Section>
+      )}
+
+      {/* mistakes deep-dive */}
+      {deep.mistakes.length > 0 && (
+        <Section n={7} title="Every mistake, in order">
+          <Group>
+            {deep.mistakes.map((c) => (
+              <Row key={c.ply}
+                title={<span className="font-mono">{c.moveNo}{c.color === 'w' ? '.' : '...'} {c.san}{c.classification === 'Blunder' ? '??' : c.classification === 'Miss' ? '×' : '?'} <span className="ml-1 text-ink-faint">→ best {c.bestSan}</span></span>}
+                subtitle={`${c.side} · lost ~${(c.cpLoss / 100).toFixed(1)} pawns · eval ${c.evalBefore >= 0 ? '+' : ''}${c.evalBefore.toFixed(1)} → ${c.evalAfter >= 0 ? '+' : ''}${c.evalAfter.toFixed(1)}`}
+                left={<span className="grid h-8 w-8 flex-none place-items-center rounded-lg text-[11px] font-black" style={{ background: `${CLASS_COLOR[c.classification]}22`, color: CLASS_COLOR[c.classification] }}>{c.classification[0]}</span>}
+                chevron={false} />
+            ))}
+          </Group>
+        </Section>
+      )}
+
+      {/* move-by-move */}
+      <Section n={8} title="Move by move">
+        <MoveList moves={deep.moves} />
+      </Section>
+
+      {/* accuracy + takeaways */}
+      <Section n={9} title="Accuracy breakdown">
+        <div className="grid grid-cols-2 gap-4">
+          <SideCard title={deep.whiteName} s={deep.white} />
+          <SideCard title={deep.blackName} s={deep.black} />
+        </div>
+      </Section>
+
+      <Section n={10} title="Takeaways">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {([['White', deep.whiteName, deep.takeaways.white], ['Black', deep.blackName, deep.takeaways.black]] as const).map(([tag, name, items]) => (
+            <div key={tag} className="card p-5">
+              <p className="eyebrow mb-2">{tag} · {name}</p>
+              <ul className="space-y-2">
+                {items.map((t, i) => <li key={i} className="flex gap-2 text-[13px]"><span className="mt-0.5 flex-none font-bold text-teal">→</span><span>{t}</span></li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  return (
+    <section>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="grid h-6 w-6 flex-none place-items-center rounded-full bg-ink text-[11px] font-black text-white">{n}</span>
+        <h3 className="font-display text-lg font-black">{title}</h3>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function CriticalCard({ c }: { c: CriticalMoment }) {
+  const good = c.kind === 'brilliant';
+  return (
+    <div className={`overflow-hidden rounded-2xl border ${good ? 'border-teal/30 bg-teal/5' : 'border-danger/25 bg-danger/5'}`}>
+      <div className="grid gap-4 p-4 sm:grid-cols-[minmax(0,200px)_1fr]">
+        <Board fen={c.fenBefore} interactive={false} />
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="font-display text-base font-black">{c.headline}</h4>
+            <ClassChip cls={c.classification} />
+          </div>
+          <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">{c.explanation}</p>
+          <div className="mt-3 flex flex-wrap gap-4 text-[13px]">
+            <div><span className="text-ink-faint">Played </span><span className="font-mono font-bold">{c.san}</span></div>
+            {c.bestSan && c.bestSan !== c.san && <div><span className="text-ink-faint">Best </span><span className="font-mono font-bold text-teal">{c.bestSan}</span></div>}
+            <div><span className="text-ink-faint">Eval </span><span className="font-mono font-bold">{c.evalBefore >= 0 ? '+' : ''}{c.evalBefore.toFixed(1)} → {c.evalAfter >= 0 ? '+' : ''}{c.evalAfter.toFixed(1)}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MoveList({ moves }: { moves: ReportMove[] }) {
+  // group into full moves: [white, black?]
+  const rows: { no: number; w?: ReportMove; b?: ReportMove }[] = [];
+  for (const m of moves) {
+    let row = rows[rows.length - 1];
+    if (m.color === 'w' || !row || row.b) { row = { no: m.moveNo }; rows.push(row); }
+    if (m.color === 'w') row.w = m; else row.b = m;
+  }
+  const cell = (m?: ReportMove) => {
+    if (!m) return <span className="text-ink-faint">—</span>;
+    const notable = m.classification !== 'Best' && m.classification !== 'Good' && m.classification !== 'Book';
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <span className="font-mono" style={notable ? { color: CLASS_COLOR[m.classification] } : undefined}>{m.san}{m.glyph}</span>
+        {notable && <span className="h-1.5 w-1.5 rounded-full" style={{ background: CLASS_COLOR[m.classification] }} />}
+      </span>
+    );
+  };
+  const notes = moves.filter((m) => m.note);
+  return (
+    <div className="card overflow-hidden p-0">
+      <div className="max-h-[420px] overflow-y-auto">
+        <table className="w-full text-[13px]">
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.no} className="border-b border-line last:border-b-0">
+                <td className="w-10 bg-plaster-2 px-3 py-1.5 text-right font-bold text-ink-faint tabular-nums">{r.no}</td>
+                <td className="px-3 py-1.5">{cell(r.w)}</td>
+                <td className="px-3 py-1.5">{cell(r.b)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {notes.length > 0 && (
+        <div className="space-y-1.5 border-t border-line bg-plaster-2 p-4">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-ink-faint">Annotations</p>
+          {notes.map((m) => (
+            <p key={m.ply} className="text-[13px] leading-snug">
+              <span className="font-mono font-bold">{m.moveNo}{m.color === 'w' ? '.' : '...'} {m.san}{m.glyph}</span>
+              <span className="text-ink-soft"> — {m.note}</span>
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
