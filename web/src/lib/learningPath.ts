@@ -84,6 +84,48 @@ export function readWeaknessProfile(uid: string | null | undefined): WeaknessPro
   catch { return null; }
 }
 
+/* ---------------------- personalised puzzle suggestions ---------------------- */
+
+const PACK_TITLE: Record<string, string> = {
+  hanging: 'Hanging Pieces', forks: 'Forks', pins: 'Pins', skewers: 'Skewers',
+  backrank: 'Back-rank Mates', 'basic-mates': 'Queen & Rook Mates', smother: 'Smothered Mate',
+};
+const PACK_ICON: Record<string, string> = {
+  hanging: '✦', forks: '⑂', pins: '⊥', skewers: '⚔', backrank: '♜', 'basic-mates': '♛', smother: '♞',
+};
+
+export type PuzzleSuggestion = { packId: string; title: string; icon: string; reason: string; to: string };
+
+/**
+ * Turn a weakness profile into concrete "solve these next" puzzle packs — the
+ * bridge from "here's what's wrong" to "here's the fix". Mapped to real packs.
+ */
+export function recommendPuzzles(profile: WeaknessProfile | null, level: Level): PuzzleSuggestion[] {
+  const out: PuzzleSuggestion[] = [];
+  const add = (id: string, reason: string) => {
+    if (out.length >= 3 || out.some((s) => s.packId === id)) return;
+    out.push({ packId: id, title: PACK_TITLE[id], icon: PACK_ICON[id] || '♟', reason, to: `/app/puzzles/pack/${id}` });
+  };
+  if (profile) {
+    if (profile.dominantError === 'blunder' || profile.blundersPerGame >= 1.5)
+      add('hanging', 'You give pieces away — train spotting undefended material before you move.');
+    if (profile.dominantError === 'miss') {
+      add('basic-mates', 'You miss wins — drill forced mates so you finish games.');
+      add('forks', 'Convert your advantages by spotting the fork.');
+    }
+    if (profile.worstPhase === 'endgame') add('basic-mates', 'Endgame points are slipping — sharpen basic mating technique.');
+    if (profile.worstPhase === 'opening') add('forks', 'Opening tactics cost you early — drill the common shots.');
+    if (profile.dominantError === 'inaccuracy' || profile.dominantError === 'mistake')
+      add('pins', 'Tighten up — pins win material and shut down counterplay.');
+  }
+  // Fill to three with level-appropriate staples.
+  const staples = level === 'Advanced' ? ['skewers', 'pins', 'forks']
+    : level === 'Intermediate' ? ['forks', 'pins', 'backrank']
+    : ['hanging', 'backrank', 'forks'];
+  for (const id of staples) add(id, 'A core pattern for your level — keep it sharp.');
+  return out.slice(0, 3);
+}
+
 /* ------------------------------- the engine ------------------------------- */
 
 const clamp = (n: number) => Math.max(4, Math.min(98, Math.round(n)));

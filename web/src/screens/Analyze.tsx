@@ -7,7 +7,9 @@ import { analyzeGame, SAMPLE_PGN, winPct, type GameReport, type SideReport } fro
 import { analyzeGameEngine } from '@/engine/engineAnalyze';
 import { StockfishEngine, uciToSan, pvToSan, MATE_CP } from '@/engine/stockfish';
 import { buildReportCard, type ReportCard, type GameLine } from '@/engine/reportCard';
-import { profileFromReportCard, saveWeaknessProfile } from '@/lib/learningPath';
+import { profileFromReportCard, saveWeaknessProfile, recommendPuzzles } from '@/lib/learningPath';
+import { usePrefs } from '@/game/prefs';
+import { useNavigate } from 'react-router-dom';
 import { buildDeepReport, type DeepReport, type CriticalMoment, type ReportMove } from '@/engine/deepReport';
 import type { MoveClass } from '@shared/engine/analyze';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
@@ -551,6 +553,9 @@ function MoveList({ moves }: { moves: ReportMove[] }) {
 
 /* ---------------- report card across all imported games ---------------- */
 export function ReportCardView({ card, onReview }: { card: ReportCard; onReview: (pgn: string) => void }) {
+  const { prefs } = usePrefs();
+  const nav = useNavigate();
+  const suggestions = recommendPuzzles(profileFromReportCard(card, ''), prefs.level);
   const tiles: [string, string][] = [
     ['Games', String(card.games)],
     ['Record', `${card.wins}-${card.draws}-${card.losses}`],
@@ -587,6 +592,25 @@ export function ReportCardView({ card, onReview }: { card: ReportCard; onReview:
           ))}
         </ul>
       </div>
+
+      {/* personalized puzzle prescription */}
+      {suggestions.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-teal/30 bg-teal/5 p-5">
+          <p className="eyebrow mb-1 text-teal">Solve these to fix it</p>
+          <p className="mb-3 text-[13px] text-ink-soft">Personalized packs picked from the mistakes in your games.</p>
+          <div className="space-y-2">
+            {suggestions.map((s) => (
+              <button key={s.packId} onClick={() => nav(s.to)}
+                className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:-translate-y-0.5">
+                <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-plaster-2 text-lg">{s.icon}</span>
+                <span className="min-w-0 flex-1"><span className="block font-bold">{s.title}</span><span className="block text-[12px] text-ink-soft">{s.reason}</span></span>
+                <span className="flex-none text-sm font-semibold text-teal">Solve →</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => nav('/app/path')} className="mt-3 text-[13px] font-semibold text-teal">See your full learning path →</button>
+        </div>
+      )}
 
       {/* move quality distribution */}
       {card.userMoves > 0 && (
