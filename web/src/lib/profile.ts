@@ -8,7 +8,7 @@ import { supabase, isSupabaseConfigured } from './supabase';
  */
 export async function upsertProfile(
   id: string | null | undefined,
-  patch: { first_name?: string; prefs?: Record<string, unknown> },
+  patch: { first_name?: string; prefs?: Record<string, unknown>; rating?: number; rated_games?: number },
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(isSupabaseConfigured && supabase) || !id) return { ok: false, error: 'no-backend' };
   const row = { id, ...patch };
@@ -28,4 +28,14 @@ export async function fetchProfile(id: string): Promise<{ first_name: string | n
   const { data, error } = await supabase.from('profiles').select('first_name, prefs').eq('id', id).maybeSingle();
   if (error || !data) return null;
   return { first_name: (data as any).first_name ?? null, prefs: (data as any).prefs ?? null };
+}
+
+export const DEFAULT_RATING = 1200;
+
+/** Read the player's online rating and rated-game count (defaults if unset). */
+export async function fetchRating(id: string | null | undefined): Promise<{ rating: number; ratedGames: number }> {
+  if (!(isSupabaseConfigured && supabase) || !id) return { rating: DEFAULT_RATING, ratedGames: 0 };
+  const { data, error } = await supabase.from('profiles').select('rating, rated_games').eq('id', id).maybeSingle();
+  if (error || !data) return { rating: DEFAULT_RATING, ratedGames: 0 };
+  return { rating: (data as any).rating ?? DEFAULT_RATING, ratedGames: (data as any).rated_games ?? 0 };
 }
