@@ -39,6 +39,7 @@ export type Tournament = {
   max_players: number;
   current_round: number;
   total_rounds: number | null;
+  time_control: string;
   created_at: string;
 };
 
@@ -82,6 +83,7 @@ export async function createTournament(input: {
   name: string;
   format: TournamentFormat;
   maxPlayers: number;
+  timeControl?: string;
 }): Promise<Tournament> {
   const uid = await currentUserId();
   const { data, error } = await client()
@@ -90,6 +92,7 @@ export async function createTournament(input: {
       name: input.name,
       format: input.format,
       max_players: input.maxPlayers,
+      time_control: input.timeControl ?? 'unlimited',
       created_by: uid,
     })
     .select()

@@ -25,7 +25,7 @@ export type Round = {
   pairings: Pairing[];
 };
 
-export type TournamentFormat = 'roundrobin' | 'knockout';
+export type TournamentFormat = 'roundrobin' | 'knockout' | 'swiss';
 
 // ---------------------------------------------------------------------------
 // Round-robin (circle / "polygon" method)
@@ -163,4 +163,78 @@ export function pairWinners(winners: PlayerId[], round: number): Round | null {
 /** Number of rounds a knockout of `n` players will take. */
 export function knockoutRounds(n: number): number {
   return Math.log2(nextPowerOfTwo(Math.max(2, n)));
+}
+
+// ---------------------------------------------------------------------------
+// Swiss (score-group pairing with rematch avoidance)
+// ---------------------------------------------------------------------------
+
+/** Recommended number of Swiss rounds for n players. */
+export function swissRounds(n: number): number {
+  return Math.max(3, Math.ceil(Math.log2(Math.max(2, n))));
+}
+
+export type SwissEntrant = {
+  id: PlayerId;
+  score: number;
+  /** ids this player has already faced. */
+  opponents: PlayerId[];
+  /** whether the player has already received a bye. */
+  hadBye: boolean;
+};
+
+/** Round 1: pair players in the given (seed / join) order; last odd → bye. */
+export function swissFirstRound(players: PlayerId[]): Round {
+  const pairings: Pairing[] = [];
+  let board = 1;
+  for (let i = 0; i + 1 < players.length; i += 2) {
+    // Alternate colours a little across boards.
+    const [w, b] = i % 4 === 0 ? [players[i], players[i + 1]] : [players[i + 1], players[i]];
+    pairings.push({ board: board++, white: w, black: b });
+  }
+  if (players.length % 2 === 1) pairings.push({ board: board++, white: players[players.length - 1], black: null });
+  return { round: 1, pairings };
+}
+
+/**
+ * Pair a Swiss round from current standings. Players are sorted by score (then
+ * id for determinism); each is matched with the nearest-scored opponent they
+ * haven't met, falling back to a rematch only if unavoidable. An odd field gives
+ * a bye to the lowest-scored player who hasn't had one.
+ */
+export function swissPairings(entrants: SwissEntrant[], round: number): Round {
+  const pool = [...entrants].sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1));
+
+  const byePairing: Pairing[] = [];
+  if (pool.length % 2 === 1) {
+    let idx = pool.length - 1;
+    for (let i = pool.length - 1; i >= 0; i--) { if (!pool[i].hadBye) { idx = i; break; } }
+    const [bye] = pool.splice(idx, 1);
+    byePairing.push({ board: 0, white: bye.id, black: null });
+  }
+
+  // Prefer a rematch-free pairing; DFS keeps score-proximity (pool is
+  // score-sorted). Fall back to allowing rematches only if none exists.
+  const match = (list: SwissEntrant[], allowRematch: boolean): [SwissEntrant, SwissEntrant][] | null => {
+    if (list.length === 0) return [];
+    const a = list[0];
+    for (let j = 1; j < list.length; j++) {
+      const b = list[j];
+      if (!allowRematch && a.opponents.includes(b.id)) continue;
+      const rest = list.filter((_, k) => k !== 0 && k !== j);
+      const sub = match(rest, allowRematch);
+      if (sub) return [[a, b], ...sub];
+    }
+    return null;
+  };
+  const realPairs = match(pool, false) ?? match(pool, true) ?? [];
+
+  const pairings: Pairing[] = [];
+  let board = 1;
+  realPairs.forEach(([a, b], idx) => {
+    const swap = (round + idx) % 2 === 1; // rough colour balancing
+    pairings.push({ board: board++, white: swap ? b.id : a.id, black: swap ? a.id : b.id });
+  });
+  for (const bp of byePairing) { bp.board = board++; pairings.push(bp); }
+  return { round, pairings };
 }
