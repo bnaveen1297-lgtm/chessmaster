@@ -69,6 +69,25 @@ export async function randomLibraryPuzzle(theme?: string, band?: PuzzleDifficult
 }
 
 /**
+ * An ordered queue of `n` distinct puzzles for a timed rush: easiest first so
+ * difficulty ramps as the player survives. Each carries its source rating.
+ */
+export async function rushPuzzles(n: number): Promise<(Puzzle & { rating: number })[]> {
+  const rows = await load();
+  if (!rows.length) return [];
+  const pool = [...rows];
+  // Fisher–Yates partial shuffle for a fresh mix each run.
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const picked: (Puzzle & { rating: number })[] = [];
+  for (const r of pool) {
+    if (picked.length >= n) break;
+    const p = rowToPuzzle({ id: r.id, fen: r.fen, moves: r.moves, rating: r.rating, themes: r.themes });
+    if (p) picked.push({ ...p, rating: r.rating });
+  }
+  return picked.sort((a, b) => a.rating - b.rating);
+}
+
+/**
  * A distinct sample of `n` puzzles for an exam, spread across difficulty bands
  * so the test covers easy → hard. Each returned puzzle carries its source rating.
  */

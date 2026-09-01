@@ -13,6 +13,7 @@ import { Learn } from '@/screens/Learn';
 import { Lesson } from '@/screens/Lesson';
 import { Puzzles } from '@/screens/Puzzles';
 import { PuzzleHub } from '@/screens/PuzzleHub';
+import { Rush } from '@/screens/Rush';
 import { PuzzlePack } from '@/screens/PuzzlePack';
 import { PuzzleExam } from '@/screens/PuzzleExam';
 import { PuzzleCreate } from '@/screens/PuzzleCreate';
@@ -70,6 +71,7 @@ export default function App() {
       <Route path="/app/learn/:id" element={<RequireAuth><Lesson /></RequireAuth>} />
       <Route path="/app/puzzles" element={<RequireAuth><PuzzleHub /></RequireAuth>} />
       <Route path="/app/puzzles/practice" element={<RequireAuth><Puzzles /></RequireAuth>} />
+      <Route path="/app/puzzles/rush" element={<RequireAuth><Rush /></RequireAuth>} />
       <Route path="/app/puzzles/pack/:packId" element={<RequireAuth><PuzzlePack /></RequireAuth>} />
       <Route path="/app/puzzles/exam" element={<RequireAuth><PuzzleExam /></RequireAuth>} />
       <Route path="/app/puzzles/create" element={<RequireAuth><PuzzleCreate /></RequireAuth>} />

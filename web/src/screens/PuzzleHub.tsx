@@ -27,6 +27,17 @@ export function PuzzleHub() {
       <PageHeader eyebrow="Puzzles" title="Puzzle courses"
         sub="A guided path through the essential tactics — one theme at a time. Solve a pack to master its pattern." />
 
+      {/* Tactics Rush — the timed survival sprint (headline). */}
+      <button onClick={() => nav('/app/puzzles/rush')}
+        className="mb-3 flex w-full items-center justify-between rounded-2xl bg-ink p-5 text-left text-white transition hover:-translate-y-0.5">
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-wider text-gold-soft">New · timed</div>
+          <div className="font-display text-lg font-black">Tactics Rush</div>
+          <div className="text-[13px] text-white/70">Solve as many as you can before the clock — 3 strikes and you're out.</div>
+        </div>
+        <span className="text-3xl">⚡</span>
+      </button>
+
       <div className="mb-6 grid gap-3 sm:grid-cols-2">
         {/* Free practice entry — keeps the endless solver one tap away. */}
         <button onClick={() => nav('/app/puzzles/practice')}

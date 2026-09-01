@@ -12,6 +12,7 @@ import { IconPlay, IconPuzzle, IconLearn, IconCrown, IconGlobe, IconTrophy } fro
 const QUICK = [
   { to: '/app/play', label: 'Play', desc: 'Computer · friend · online', Icon: IconPlay, c: '#111418' },
   { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#1E88E5' },
+  { to: '/app/puzzles/rush', label: 'Tactics Rush', desc: 'Beat the clock', Icon: IconPuzzle, c: '#111418' },
   { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#111418' },
   { to: '/app/path', label: 'Your Path', desc: 'Learns from your games', Icon: IconCrown, c: '#1E88E5' },
   { to: '/app/coach', label: 'Prep Coach', desc: 'Your weekly plan', Icon: IconCrown, c: '#111418' },
