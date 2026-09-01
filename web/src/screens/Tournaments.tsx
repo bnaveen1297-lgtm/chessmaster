@@ -10,8 +10,18 @@ export function Tournaments() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [format, setFormat] = useState<'roundrobin' | 'knockout'>('roundrobin');
+  const [format, setFormat] = useState<'roundrobin' | 'knockout' | 'swiss'>('swiss');
+  const [tc, setTc] = useState('10+0');
   const [busy, setBusy] = useState(false);
+
+  const FORMATS: { id: 'roundrobin' | 'knockout' | 'swiss'; label: string }[] = [
+    { id: 'swiss', label: 'Swiss' }, { id: 'roundrobin', label: 'Round-robin' }, { id: 'knockout', label: 'Knockout' },
+  ];
+  const TCS: { id: string; label: string }[] = [
+    { id: '3+2', label: 'Blitz 3+2' }, { id: '5+0', label: 'Blitz 5' }, { id: '10+0', label: 'Rapid 10' }, { id: '15+10', label: 'Rapid 15+10' }, { id: 'unlimited', label: 'Untimed' },
+  ];
+  const fmtLabel = (f: string) => FORMATS.find((x) => x.id === f)?.label ?? f;
+  const tcLabel = (id: string) => TCS.find((x) => x.id === id)?.label ?? id;
 
   const refresh = async () => {
     setLoading(true); setErr(null);
@@ -26,7 +36,7 @@ export function Tournaments() {
   const create = async () => {
     if (!name.trim()) return;
     setBusy(true); setErr(null);
-    try { await createTournament({ name: name.trim(), format, maxPlayers: 8 }); setName(''); await refresh(); }
+    try { await createTournament({ name: name.trim(), format, maxPlayers: 8, timeControl: tc }); setName(''); await refresh(); }
     catch (e: any) { setErr(e?.message || 'Could not create.'); }
     finally { setBusy(false); }
   };
@@ -34,7 +44,7 @@ export function Tournaments() {
   return (
     <div>
       <PageHeader eyebrow="Compete" title="Online play & tournaments"
-        sub="Real-time 1v1 games and events — round-robin or knockout — on the chesshub360 server." />
+        sub="Real-time events — Swiss, round-robin or knockout, at the time control you choose — on the chesshub360 server." />
 
       {/* quick online match */}
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-line bg-plaster-2 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -64,18 +74,21 @@ export function Tournaments() {
 
           <h2 className="mb-2 mt-6 font-display text-lg font-black">Tournaments</h2>
           <div className="mb-4 rounded-2xl border border-line bg-surface p-4 shadow-soft">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tournament name"
-                className="flex-1 rounded-xl border border-line bg-plaster px-4 py-2.5 outline-none focus:border-teal" />
-              <div className="flex gap-1 rounded-lg bg-plaster-2 p-1">
-                {(['roundrobin', 'knockout'] as const).map((f) => (
-                  <button key={f} onClick={() => setFormat(f)} className={`rounded-md px-3 py-1.5 text-sm font-semibold ${format === f ? 'bg-ink text-white' : 'text-ink-soft'}`}>
-                    {f === 'roundrobin' ? 'Round-robin' : 'Knockout'}
-                  </button>
-                ))}
-              </div>
-              <button onClick={create} disabled={busy || !name.trim()} className="btn-primary">Create</button>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tournament name"
+              className="mb-3 w-full rounded-xl border border-line bg-plaster px-4 py-2.5 outline-none focus:border-teal" />
+            <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-ink-faint">Format</div>
+            <div className="mb-3 flex flex-wrap gap-1 rounded-lg bg-plaster-2 p-1">
+              {FORMATS.map((f) => (
+                <button key={f.id} onClick={() => setFormat(f.id)} className={`rounded-md px-3 py-1.5 text-sm font-semibold ${format === f.id ? 'bg-ink text-white' : 'text-ink-soft'}`}>{f.label}</button>
+              ))}
             </div>
+            <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-ink-faint">Time control</div>
+            <div className="mb-3 flex flex-wrap gap-1 rounded-lg bg-plaster-2 p-1">
+              {TCS.map((t) => (
+                <button key={t.id} onClick={() => setTc(t.id)} className={`rounded-md px-3 py-1.5 text-sm font-semibold ${tc === t.id ? 'bg-ink text-white' : 'text-ink-soft'}`}>{t.label}</button>
+              ))}
+            </div>
+            <button onClick={create} disabled={busy || !name.trim()} className="btn-primary w-full sm:w-auto">Create tournament</button>
           </div>
 
           {tours.length === 0 ? (
@@ -83,7 +96,7 @@ export function Tournaments() {
           ) : (
             <Group>
               {tours.map((t) => (
-                <Row key={t.id} title={t.name} subtitle={`${t.format === 'roundrobin' ? 'Round-robin' : 'Knockout'} · ${t.status}`}
+                <Row key={t.id} title={t.name} subtitle={`${fmtLabel(t.format)} · ${tcLabel(t.time_control || 'unlimited')} · ${t.status}`}
                   onClick={async () => { try { await joinTournament(t.id); await refresh(); } catch (e: any) { setErr(e?.message); } }}
                   right={<span className="text-sm font-semibold text-teal">Join</span>} chevron={false} />
               ))}

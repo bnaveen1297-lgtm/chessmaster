@@ -85,6 +85,7 @@ export function Analyze() {
   const [card, setCard] = useState<ReportCard | null>(null);
   const [cardBusy, setCardBusy] = useState(false);
   const [cardProgress, setCardProgress] = useState(0);
+  const [histCount, setHistCount] = useState(20);
 
   useEffect(() => { if (user?.id) listMyGames(user.id).then(setStored); }, [user?.id]);
   useEffect(() => () => engineRef.current?.quit(), []);
@@ -122,7 +123,7 @@ export function Analyze() {
     if (!username.trim()) return;
     setImporting(true); setImportErr(null); setImported([]); setCard(null);
     try {
-      const games = await fetchGames(source, username.trim(), 20);
+      const games = await fetchGames(source, username.trim(), histCount);
       setImported(games);
       if (games.length === 0) { setImportErr('No recent games found for that username.'); return; }
       // persist for signed-in users (best-effort)
@@ -225,6 +226,14 @@ export function Analyze() {
             onKeyDown={(e) => { if (e.key === 'Enter') doImport(); }}
             className="flex-1 rounded-lg border border-line bg-plaster px-4 py-2.5 outline-none focus:border-teal" />
           <button onClick={doImport} disabled={importing || !username.trim()} className="btn-primary">{importing ? 'Fetching…' : 'Fetch games'}</button>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-[12px] font-semibold text-ink-faint">History depth</span>
+          {[20, 50, 100].map((n) => (
+            <button key={n} onClick={() => setHistCount(n)} disabled={importing}
+              className={`rounded-full px-3 py-1 text-[13px] font-semibold transition ${histCount === n ? 'bg-ink text-white' : 'bg-plaster-2 text-ink-soft'}`}>{n}</button>
+          ))}
+          <span className="text-[12px] text-ink-faint">games — more = deeper trends</span>
         </div>
         {importErr && <p className="mt-3 text-sm font-semibold text-danger">{importErr}</p>}
         {cardBusy && (
@@ -648,6 +657,32 @@ export function ReportCardView({ card, onReview }: { card: ReportCard; onReview:
         </div>
       </div>
 
+      {/* full history: by time control */}
+      {card.byTimeControl.length > 0 && (
+        <div className="mt-4">
+          <h3 className="mb-2 font-display text-lg font-black">By time control</h3>
+          <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+            {card.byTimeControl.map((t) => (
+              <div key={t.category} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0">
+                <span className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-plaster-2 text-[11px] font-black text-ink-soft">{t.category[0]}</span>
+                <div className="min-w-0 flex-1"><div className="font-bold">{t.category}</div><div className="text-[12px] text-ink-faint">{t.games} game{t.games === 1 ? '' : 's'} · {t.wins}W–{t.draws}D–{t.losses}L</div></div>
+                <div className="text-right text-[13px]"><b className="text-ink">{t.winPct}%</b> <span className="text-ink-faint">win</span></div>
+                <div className="w-16 text-right text-[13px]"><b className="text-teal">{t.accuracy}%</b> <span className="text-ink-faint">acc</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* full history: accuracy trend */}
+      {card.trend.length >= 2 && (
+        <div className="mt-4 card p-5">
+          <p className="eyebrow mb-1">Accuracy over time</p>
+          <p className="mb-3 text-[13px] text-ink-soft">Average accuracy per month — is your play trending up?</p>
+          <TrendGraph points={card.trend} />
+        </div>
+      )}
+
       {/* biggest mistake */}
       {card.biggest && (
         <div className="mt-4 rounded-2xl border border-danger/30 bg-danger/5 p-5">
@@ -685,6 +720,32 @@ export function ReportCardView({ card, onReview }: { card: ReportCard; onReview:
         ))}
       </Group>
       <p className="mt-2 text-[12px] text-ink-faint">Accuracy uses the quick model for speed across all games. Tap “Review” for a full Stockfish breakdown of any game.</p>
+    </div>
+  );
+}
+
+/* ---------------- accuracy-over-time trend ---------------- */
+function TrendGraph({ points }: { points: { label: string; accuracy: number; games: number }[] }) {
+  const w = 600, h = 120, pad = 8;
+  const xs = points.map((_, i) => pad + (i / Math.max(1, points.length - 1)) * (w - 2 * pad));
+  const ys = points.map((p) => h - pad - (p.accuracy / 100) * (h - 2 * pad));
+  const line = points.map((_, i) => `${xs[i]},${ys[i]}`).join(' ');
+  const first = points[0].accuracy, last = points[points.length - 1].accuracy;
+  const up = last >= first;
+  return (
+    <div>
+      <div className="overflow-hidden rounded-xl border border-line bg-ink">
+        <svg viewBox={`0 0 ${w} ${h}`} className="h-28 w-full" preserveAspectRatio="none">
+          {[25, 50, 75].map((g) => <line key={g} x1="0" x2={w} y1={h - pad - (g / 100) * (h - 2 * pad)} y2={h - pad - (g / 100) * (h - 2 * pad)} stroke="#ffffff18" strokeWidth="1" />)}
+          <polyline points={line} fill="none" stroke={up ? '#2E9E6B' : '#E0B341'} strokeWidth="2.5" />
+          {points.map((_, i) => <circle key={i} cx={xs[i]} cy={ys[i]} r="3" fill={up ? '#2E9E6B' : '#E0B341'} />)}
+        </svg>
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] text-ink-faint">
+        <span>{points[0].label} · {first}%</span>
+        <span className={`font-bold ${up ? 'text-success' : 'text-gold'}`}>{up ? '▲' : '▼'} {Math.abs(last - first)}% {up ? 'improvement' : 'dip'}</span>
+        <span>{points[points.length - 1].label} · {last}%</span>
+      </div>
     </div>
   );
 }

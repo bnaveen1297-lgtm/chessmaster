@@ -1,4 +1,5 @@
 import { analyzeGame } from '@shared/engine/analyze';
+import { parseTags } from '@shared/services/importGames';
 
 /**
  * Aggregate "insights" across many imported games — a report card for the
@@ -32,6 +33,8 @@ export type Phase = 'opening' | 'middlegame' | 'endgame';
 export type PhaseAgg = { moves: number; acpl: number; blunders: number };
 export type ColorAgg = { games: number; accuracy: number; winPct: number };
 export type BiggestMistake = { gameId: string; opponent: string; san: string; moveNo: number; cpLoss: number; phase: Phase; color: 'w' | 'b' };
+export type TimeControlAgg = { category: string; games: number; wins: number; draws: number; losses: number; winPct: number; accuracy: number };
+export type TrendPoint = { label: string; accuracy: number; games: number };
 
 export type ReportCard = {
   username: string;
@@ -57,7 +60,27 @@ export type ReportCard = {
   byColor: { white: ColorAgg; black: ColorAgg };
   byPhase: Record<Phase, PhaseAgg>;
   biggest?: BiggestMistake;
+  // full-history breakdowns
+  byTimeControl: TimeControlAgg[];
+  trend: TrendPoint[];
 };
+
+/** Map a PGN TimeControl tag to a speed category. */
+export function tcCategory(tc: string | undefined): string {
+  if (!tc || tc === '-') return 'Correspondence';
+  if (tc.includes('/')) return 'Correspondence'; // daily "1/259200"
+  const base = parseInt(tc.split('+')[0], 10);
+  if (!Number.isFinite(base) || base <= 0) return 'Other';
+  if (base < 180) return 'Bullet';
+  if (base < 600) return 'Blitz';
+  if (base < 1800) return 'Rapid';
+  return 'Classical';
+}
+function monthOf(date: string): string {
+  // date is 'YYYY.MM.DD' or 'YYYY-MM-DD'
+  const m = date.replace(/-/g, '.').match(/^(\d{4})\.(\d{2})/);
+  return m ? `${m[1]}-${m[2]}` : '';
+}
 
 type RawGame = { id: string; white: string; black: string; result: string; pgn: string; date?: string };
 
@@ -110,6 +133,8 @@ export async function buildReportCard(
   const phaseLoss: Record<Phase, number> = { opening: 0, middlegame: 0, endgame: 0 };
   let userMoves = 0;
   let biggest: BiggestMistake | undefined;
+  const tcMap = new Map<string, { games: number; wins: number; draws: number; losses: number; accSum: number }>();
+  const monthMap = new Map<string, { accSum: number; games: number }>();
 
   for (let i = 0; i < games.length; i++) {
     const g = games[i];
@@ -127,6 +152,16 @@ export async function buildReportCard(
             blunders: side.blunder + side.miss, mistakes: side.mistake,
             opening: rep.openingName, date: g.date || '', pgn: g.pgn,
           });
+          // full-history slices: by time control, and accuracy trend by month
+          const tags = parseTags(g.pgn);
+          const res = resultFor(color, g.result);
+          const cat = tcCategory(tags.TimeControl);
+          const tcA = tcMap.get(cat) ?? { games: 0, wins: 0, draws: 0, losses: 0, accSum: 0 };
+          tcA.games++; tcA.accSum += side.accuracy;
+          if (res === 'win') tcA.wins++; else if (res === 'draw') tcA.draws++; else if (res === 'loss') tcA.losses++;
+          tcMap.set(cat, tcA);
+          const month = monthOf(g.date || tags.UTCDate || tags.Date || '');
+          if (month) { const mA = monthMap.get(month) ?? { accSum: 0, games: 0 }; mA.accSum += side.accuracy; mA.games++; monthMap.set(month, mA); }
           // per-move micro tally for the user's own moves
           for (const m of rep.moves) {
             if (m.color !== color) continue;
@@ -179,6 +214,20 @@ export async function buildReportCard(
   };
   const byColor = { white: colorAgg('w'), black: colorAgg('b') };
 
+  // time-control + trend
+  const order = ['Bullet', 'Blitz', 'Rapid', 'Classical', 'Correspondence', 'Other'];
+  const byTimeControl: TimeControlAgg[] = [...tcMap.entries()]
+    .map(([category, v]) => {
+      const decided = v.wins + v.losses;
+      return { category, games: v.games, wins: v.wins, draws: v.draws, losses: v.losses,
+        winPct: decided ? Math.round((v.wins / decided) * 100) : 0,
+        accuracy: v.games ? Math.round(v.accSum / v.games) : 0 };
+    })
+    .sort((a, b) => order.indexOf(a.category) - order.indexOf(b.category));
+  const trend: TrendPoint[] = [...monthMap.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([label, v]) => ({ label, accuracy: Math.round(v.accSum / v.games), games: v.games }));
+
   // openings
   const openMap = new Map<string, { games: number; wins: number; asWhite: number }>();
   for (const l of lines) {
@@ -211,5 +260,6 @@ export async function buildReportCard(
     grade: gradeFor(avgAccuracy),
     best, worst, openings, insights, lines: byAcc,
     moveQuality: mq, userMoves, byColor, byPhase, biggest,
+    byTimeControl, trend,
   };
 }
