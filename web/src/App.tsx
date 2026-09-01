@@ -26,6 +26,7 @@ import { Tournaments } from '@/screens/Tournaments';
 import { Analyze } from '@/screens/Analyze';
 import { Coach } from '@/screens/Coach';
 import { TournamentPrep } from '@/screens/TournamentPrep';
+import { Path } from '@/screens/Path';
 import { Books } from '@/screens/Books';
 import { Book } from '@/screens/Book';
 import { Profile } from '@/screens/Profile';
@@ -80,6 +81,7 @@ export default function App() {
       <Route path="/app/olympiad" element={<RequireAuth><Olympiad /></RequireAuth>} />
       <Route path="/app/tournaments" element={<RequireAuth><Tournaments /></RequireAuth>} />
       <Route path="/app/analyze" element={<RequireAuth><Analyze /></RequireAuth>} />
+      <Route path="/app/path" element={<RequireAuth><Path /></RequireAuth>} />
       <Route path="/app/coach" element={<RequireAuth><Coach /></RequireAuth>} />
       <Route path="/app/prep" element={<RequireAuth><TournamentPrep /></RequireAuth>} />
       <Route path="/app/books" element={<RequireAuth><Books /></RequireAuth>} />

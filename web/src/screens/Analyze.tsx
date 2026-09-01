@@ -7,6 +7,7 @@ import { analyzeGame, SAMPLE_PGN, winPct, type GameReport, type SideReport } fro
 import { analyzeGameEngine } from '@/engine/engineAnalyze';
 import { StockfishEngine, uciToSan, pvToSan, MATE_CP } from '@/engine/stockfish';
 import { buildReportCard, type ReportCard, type GameLine } from '@/engine/reportCard';
+import { profileFromReportCard, saveWeaknessProfile } from '@/lib/learningPath';
 import { buildDeepReport, type DeepReport, type CriticalMoment, type ReportMove } from '@/engine/deepReport';
 import type { MoveClass } from '@shared/engine/analyze';
 import { fetchGames, type ImportSource, type ImportedGame } from '@shared/services/importGames';
@@ -132,6 +133,10 @@ export function Analyze() {
       setCardBusy(true); setCardProgress(0);
       const rc = await buildReportCard(games, username.trim(), setCardProgress);
       setCard(rc);
+      // Close the learning loop: save a weakness profile so Your Path adapts.
+      if (rc.games > 0) {
+        saveWeaknessProfile(user?.id, profileFromReportCard(rc, `${source === 'chesscom' ? 'Chess.com' : 'Lichess'} · ${username.trim()}`));
+      }
     } catch (e: any) {
       setImportErr(e?.message || 'Could not reach that site. Check the username.');
     } finally { setImporting(false); setCardBusy(false); }
