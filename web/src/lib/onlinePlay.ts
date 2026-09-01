@@ -18,9 +18,15 @@ import { supabase } from '@/lib/supabase';
  */
 
 export type Status = 'idle' | 'seeking' | 'playing';
-export type LobbyPlayer = { userId: string; name: string; status: Status };
-export type GameStart = { gameId: string; whiteId: string; whiteName: string; blackId: string; blackName: string };
-export type Challenge = { fromId: string; fromName: string };
+export type LobbyPlayer = { userId: string; name: string; status: Status; rating: number };
+export type GameStart = {
+  gameId: string;
+  whiteId: string; whiteName: string; whiteRating: number;
+  blackId: string; blackName: string; blackRating: number;
+  tc: string;      // time-control id ('unlimited' = casual)
+  rated: boolean;
+};
+export type Challenge = { fromId: string; fromName: string; rating: number; tc: string; rated: boolean };
 export type GameOver = { result: string; reason: string };
 
 export function onlineAvailable(): boolean {
@@ -43,8 +49,13 @@ export type LobbyHandlers = {
 export class LobbyClient {
   private ch: RealtimeChannel | null = null;
   private status: Status = 'idle';
+  private tc = 'unlimited';
+  private rated = false;
 
-  constructor(private me: { userId: string; name: string }, private h: LobbyHandlers) {}
+  constructor(private me: { userId: string; name: string; rating: number }, private h: LobbyHandlers) {}
+
+  /** Set the time control (and whether it's rated) used for the next match. */
+  setPref(tc: string, rated: boolean): void { this.tc = tc; this.rated = rated; }
 
   connect(): void {
     if (!supabase) return;
@@ -63,7 +74,7 @@ export class LobbyClient {
       if (g && (g.whiteId === this.me.userId || g.blackId === this.me.userId)) { this.enterGame(); this.h.onStart(g); }
     });
     ch.subscribe(async (s) => {
-      if (s === 'SUBSCRIBED') { await ch.track({ userId: this.me.userId, name: this.me.name, status: this.status }); this.emitPlayers(); }
+      if (s === 'SUBSCRIBED') { await ch.track({ userId: this.me.userId, name: this.me.name, status: this.status, rating: this.me.rating }); this.emitPlayers(); }
     });
     this.ch = ch;
   }
@@ -73,7 +84,7 @@ export class LobbyClient {
     const state = this.ch.presenceState() as Record<string, any[]>;
     const map = new Map<string, LobbyPlayer>();
     for (const arr of Object.values(state)) {
-      for (const m of arr) map.set(m.userId, { userId: m.userId, name: m.name || 'Player', status: m.status || 'idle' });
+      for (const m of arr) map.set(m.userId, { userId: m.userId, name: m.name || 'Player', status: m.status || 'idle', rating: typeof m.rating === 'number' ? m.rating : 1200 });
     }
     const players = [...map.values()];
     this.h.onPlayers(players);
@@ -82,34 +93,37 @@ export class LobbyClient {
 
   async setStatus(s: Status): Promise<void> {
     this.status = s;
-    if (this.ch) await this.ch.track({ userId: this.me.userId, name: this.me.name, status: s });
+    if (this.ch) await this.ch.track({ userId: this.me.userId, name: this.me.name, status: s, rating: this.me.rating });
   }
 
   private enterGame(): void {
     this.status = 'playing';
-    this.ch?.track({ userId: this.me.userId, name: this.me.name, status: 'playing' });
+    this.ch?.track({ userId: this.me.userId, name: this.me.name, status: 'playing', rating: this.me.rating });
   }
 
   challenge(toId: string): void {
-    this.ch?.send({ type: 'broadcast', event: 'challenge', payload: { fromId: this.me.userId, fromName: this.me.name, toId } });
+    this.ch?.send({ type: 'broadcast', event: 'challenge', payload: { fromId: this.me.userId, fromName: this.me.name, toId, rating: this.me.rating, tc: this.tc, rated: this.rated } });
   }
   decline(toId: string): void {
     this.ch?.send({ type: 'broadcast', event: 'decline', payload: { toId } });
   }
 
   /** Accept a challenge / start a game with a specific player (we host it). */
-  startWith(oppId: string, oppName: string): GameStart {
-    const g = this.makeStart(oppId, oppName);
+  startWith(oppId: string, oppName: string, oppRating: number, tc?: string, rated?: boolean): GameStart {
+    if (tc !== undefined) this.tc = tc;
+    if (rated !== undefined) this.rated = rated;
+    const g = this.makeStart(oppId, oppName, oppRating);
     this.announce(g);
     return g;
   }
 
-  private makeStart(oppId: string, oppName: string): GameStart {
+  private makeStart(oppId: string, oppName: string, oppRating: number): GameStart {
     const gameId = rid();
     const meWhite = Math.random() < 0.5;
+    const base = { gameId, tc: this.tc, rated: this.rated };
     return meWhite
-      ? { gameId, whiteId: this.me.userId, whiteName: this.me.name, blackId: oppId, blackName: oppName }
-      : { gameId, whiteId: oppId, whiteName: oppName, blackId: this.me.userId, blackName: this.me.name };
+      ? { ...base, whiteId: this.me.userId, whiteName: this.me.name, whiteRating: this.me.rating, blackId: oppId, blackName: oppName, blackRating: oppRating }
+      : { ...base, whiteId: oppId, whiteName: oppName, whiteRating: oppRating, blackId: this.me.userId, blackName: this.me.name, blackRating: this.me.rating };
   }
 
   private announce(g: GameStart): void {
@@ -124,7 +138,7 @@ export class LobbyClient {
     const seekers = players.filter((p) => p.status === 'seeking').sort((a, b) => (a.userId < b.userId ? -1 : 1));
     if (seekers.length < 2 || seekers[0].userId !== this.me.userId) return;
     const partner = seekers[1];
-    this.announce(this.makeStart(partner.userId, partner.name));
+    this.announce(this.makeStart(partner.userId, partner.name, partner.rating));
   }
 
   disconnect(): void {
@@ -167,6 +181,10 @@ export class GameClient {
     });
     ch.on('broadcast', { event: 'draw-offer' }, () => this.h.onDrawOffer());
     ch.on('broadcast', { event: 'draw-accept' }, () => this.h.onOver({ result: '1/2-1/2', reason: 'draw agreed' }));
+    ch.on('broadcast', { event: 'flag' }, ({ payload }) => {
+      const result = payload?.by === 'w' ? '0-1' : '1-0';
+      this.h.onOver({ result, reason: 'opponent ran out of time' });
+    });
     ch.on('presence', { event: 'sync' }, () => {
       const state = ch.presenceState() as Record<string, any[]>;
       const ids = Object.values(state).flat().map((m: any) => m.userId);
@@ -241,6 +259,12 @@ export class GameClient {
     const result = this.myColor === 'w' ? '0-1' : '1-0';
     this.ch?.send({ type: 'broadcast', event: 'resign', payload: { by: this.myColor } });
     this.h.onOver({ result, reason: 'you resigned' });
+  }
+  /** Our own clock hit zero — tell the opponent and settle the result. */
+  flag(): void {
+    const result = this.myColor === 'w' ? '0-1' : '1-0';
+    this.ch?.send({ type: 'broadcast', event: 'flag', payload: { by: this.myColor } });
+    this.h.onOver({ result, reason: 'you ran out of time' });
   }
   offerDraw(): void {
     this.ch?.send({ type: 'broadcast', event: 'draw-offer', payload: { by: this.myColor } });
