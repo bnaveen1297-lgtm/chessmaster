@@ -38,3 +38,25 @@ export const puzzles: Puzzle[] = [
 
 /** Distinct themes, for topic-wise browsing. */
 export const puzzleThemes = Array.from(new Set(puzzles.map((p) => p.theme)));
+
+/**
+ * A one-line teaching note per theme, shown after a puzzle is solved so the
+ * pattern sticks. Falls back to a generic tip for unknown (e.g. imported)
+ * themes. Theme names follow the Lichess taxonomy.
+ */
+const THEME_TIPS: Record<string, string> = {
+  'Back-rank mate': 'A king trapped behind its own pawns is mated on the back rank — always check yours has luft (an escape square).',
+  'Smothered mate': 'When the king is boxed in by its own pieces, a knight can deliver mate that nothing can block or capture.',
+  'Queen mate': 'The queen mates by controlling the king’s escape squares while a friendly piece or edge covers the rest.',
+  'Rook mate': 'A rook mates on a back rank or edge once the enemy king has no flight squares off that line.',
+  'Bishop + queen': 'Bishop and queen combine on a diagonal to trap the king — the bishop guards flight squares the queen can’t.',
+  'Win a piece': 'Look for undefended (“hanging”) pieces and pieces you can attack more times than they’re defended.',
+  'Win the queen': 'The most valuable piece is the biggest target — forks, pins and skewers win it outright.',
+  Fork: 'One piece attacking two targets at once — the opponent can only save one.',
+  Pin: 'A piece can’t move without exposing a more valuable one behind it. Pile up on the pinned piece.',
+  Skewer: 'A pin in reverse: the valuable piece is in front and must move, losing what’s behind it.',
+};
+
+export function themeTip(theme: string): string {
+  return THEME_TIPS[theme] ?? 'Spot the forcing move — checks, captures and threats first.';
+}

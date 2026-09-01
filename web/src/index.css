@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #f7f6f5;
+  color: #302e2b;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 { letter-spacing: -0.015em; }
+
+@layer components {
+  .eyebrow {
+    @apply font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-teal;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-soft;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-[11px] font-bold transition
+      active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-ink px-5 py-3 text-white hover:brightness-125;
+  }
+  .btn-gold {
+    @apply btn bg-gold px-5 py-3 text-white hover:brightness-105;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-surface px-5 py-3 text-ink hover:bg-plaster-2;
+  }
+  .btn-dark {
+    @apply btn bg-ink px-5 py-3 text-white hover:brightness-125;
+  }
+  .chip {
+    @apply cursor-pointer rounded-lg px-3.5 py-2 text-sm font-semibold transition;
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.rise { animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
+
+* { scrollbar-width: thin; scrollbar-color: #cfceca transparent; }

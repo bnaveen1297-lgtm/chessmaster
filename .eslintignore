@@ -1,0 +1,6 @@
+node_modules
+.tsc-test
+dist
+# Supabase Edge Functions run on Deno (URL imports, Deno globals) — linted/typed
+# by the Supabase/Deno toolchain, not the app's ESLint/TS config.
+supabase/functions

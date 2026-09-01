@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 /**
- * Client-side auth state, persisted locally.
+ * Auth state — Supabase-backed when configured, device-local otherwise.
  *
- * This is intentionally backend-agnostic: `signIn` / `signUp` currently create
- * a local session so the app is fully usable during launch. When the API is
- * ready, swap the bodies of these functions for real network calls (see
- * docs/BACKEND.md) — the rest of the app consumes `useAuth()` and won't change.
+ * Local mode: signIn/signUp create a local session (no validation) so the app
+ * is usable offline / during early testing. Supabase mode: real accounts with
+ * validated credentials. The rest of the app only reads `useAuth()`.
  */
 
 export type User = {
@@ -19,40 +19,54 @@ export type User = {
 type AuthState = {
   user: User | null;
   loading: boolean;
+  authError: string | null;
+  backend: boolean;
+  signInWithGoogle: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (fields: { email: string; firstName?: string; lastName?: string }) => Promise<void>;
+  signUp: (fields: { email: string; password?: string; firstName?: string; lastName?: string }) => Promise<void>;
   signOut: () => Promise<void>;
+  clearAuthError: () => void;
 };
 
 const STORAGE_KEY = 'chessmaster.user';
-
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Restore any saved session on launch.
   useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        setUser(mapUser(data.session?.user));
+        setLoading(false);
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(mapUser(session?.user));
+      });
+      return () => sub.subscription.unsubscribe();
+    }
+    // local mode
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) setUser(JSON.parse(raw));
       } catch {
-        // ignore — treat as signed out
+        // ignore
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const persist = async (next: User | null) => {
+  const persistLocal = async (next: User | null) => {
     setUser(next);
     try {
       if (next) await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       else await AsyncStorage.removeItem(STORAGE_KEY);
     } catch {
-      // best-effort; session still works in-memory
+      // best-effort
     }
   };
 
@@ -60,22 +74,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       loading,
-      // TODO(backend): POST /auth/login → { user, token }
-      signIn: async (email) => {
-        await persist({ id: 'local', email });
+      authError,
+      backend: isSupabaseConfigured,
+      clearAuthError: () => setAuthError(null),
+
+      signInWithGoogle: async () => {
+        setAuthError(null);
+        if (isSupabaseConfigured && supabase) {
+          const redirectTo =
+            typeof window !== 'undefined' && window.location ? window.location.origin : undefined;
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo },
+          });
+          // On web this redirects the browser to Google; the session is picked
+          // up on return via detectSessionInUrl. Only errors land here.
+          if (error) setAuthError(error.message);
+          return;
+        }
+        // Local mode (no backend configured): sign in a device-only account so
+        // the app is still usable for offline testing.
+        await persistLocal({ id: 'local', email: 'you@chessmaster.app' });
       },
-      // TODO(backend): POST /auth/register → { user, token }
-      signUp: async ({ email, firstName }) => {
-        await persist({ id: 'local', email: email || 'you@chessmaster.app', firstName });
+
+      signIn: async (email, password) => {
+        setAuthError(null);
+        if (isSupabaseConfigured && supabase) {
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) setAuthError(error.message);
+          return;
+        }
+        await persistLocal({ id: 'local', email });
       },
+
+      signUp: async ({ email, password, firstName }) => {
+        setAuthError(null);
+        if (isSupabaseConfigured && supabase) {
+          const { error } = await supabase.auth.signUp({
+            email,
+            password: password ?? '',
+            options: { data: { first_name: firstName } },
+          });
+          if (error) setAuthError(error.message);
+          return;
+        }
+        await persistLocal({ id: 'local', email: email || 'you@chessmaster.app', firstName });
+      },
+
       signOut: async () => {
-        await persist(null);
+        if (isSupabaseConfigured && supabase) {
+          await supabase.auth.signOut();
+          return;
+        }
+        await persistLocal(null);
       },
     }),
-    [user, loading],
+    [user, loading, authError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function mapUser(u: any): User | null {
+  if (!u) return null;
+  return { id: u.id, email: u.email ?? '', firstName: u.user_metadata?.first_name };
 }
 
 export function useAuth(): AuthState {

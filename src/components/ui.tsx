@@ -10,7 +10,7 @@ import {
   StyleProp,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, radius, spacing, typography } from '../theme';
+import { colors, radius, shadow, spacing, typography } from '../theme';
 
 export function Screen({
   children,
@@ -94,17 +94,17 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         small && styles.buttonSmall,
-        isPrimary && { backgroundColor: colors.ink },
+        isPrimary && { backgroundColor: colors.tint },
         isLight && { backgroundColor: colors.bg },
         variant === 'outline' && styles.buttonOutline,
-        pressed && { opacity: 0.85 },
+        pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] },
       ]}
     >
       <Text
         style={[
           styles.buttonLabel,
-          small && { fontSize: 13 },
-          { color: isPrimary ? colors.onDark : colors.ink },
+          small && { fontSize: 14 },
+          { color: isPrimary ? colors.onDark : variant === 'outline' ? colors.tint : colors.ink },
         ]}
       >
         {label}
@@ -151,14 +151,64 @@ export function Segmented({
       {options.map((opt) => {
         const active = opt === value;
         return (
-          <Pressable key={opt} onPress={() => onChange(opt)} style={styles.segItem}>
+          <Pressable
+            key={opt}
+            onPress={() => onChange(opt)}
+            style={[styles.segItem, active && styles.segItemActive]}
+          >
             <Text style={[styles.segText, active && styles.segTextActive]}>{opt}</Text>
-            {active && <View style={styles.segUnderline} />}
           </Pressable>
         );
       })}
     </View>
   );
+}
+
+/** iOS grouped-list row: leading icon tile · title/subtitle · chevron. */
+export function Row({
+  title,
+  subtitle,
+  left,
+  right,
+  onPress,
+  first,
+  last,
+}: {
+  title: string;
+  subtitle?: string;
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+  onPress?: () => void;
+  first?: boolean;
+  last?: boolean;
+}) {
+  const base = [styles.row, first && styles.rowFirst, last && styles.rowLast];
+  const inner = (
+    <>
+      {left ? <View style={styles.rowLeft}>{left}</View> : null}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowTitle}>{title}</Text>
+        {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
+      </View>
+      {right ?? null}
+    </>
+  );
+  if (!onPress) {
+    return <View style={base}>{inner}</View>;
+  }
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [...base, pressed && { backgroundColor: colors.fill }]}
+    >
+      {inner}
+    </Pressable>
+  );
+}
+
+/** Container that groups Row children into one inset iOS card. */
+export function Group({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.group, style]}>{children}</View>;
 }
 
 export function Pill({ label, tone = 'default' }: { label: string; tone?: 'default' | 'live' | 'gold' | 'success' }) {
@@ -192,9 +242,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.md,
+    ...shadow.card,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -203,17 +252,17 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
-  sectionAction: { fontSize: 13, color: colors.gold, fontWeight: '700' },
+  sectionAction: { fontSize: 15, color: colors.tint, fontWeight: '600' },
   button: {
-    paddingVertical: 14,
+    paddingVertical: 15,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonSmall: { paddingVertical: 8, paddingHorizontal: spacing.md },
-  buttonOutline: { borderWidth: 1.5, borderColor: colors.ink, backgroundColor: 'transparent' },
-  buttonLabel: { fontSize: 15, fontWeight: '700' },
+  buttonSmall: { paddingVertical: 9, paddingHorizontal: spacing.md, borderRadius: radius.sm },
+  buttonOutline: { borderWidth: 1.5, borderColor: colors.tint, backgroundColor: 'transparent' },
+  buttonLabel: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -225,11 +274,38 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     backgroundColor: colors.bg,
   },
-  segmented: { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.md },
-  segItem: { alignItems: 'center' },
-  segText: { fontSize: 13, color: colors.textFaint, fontWeight: '600', paddingBottom: 6 },
-  segTextActive: { color: colors.ink },
-  segUnderline: { height: 2, width: '100%', backgroundColor: colors.gold, borderRadius: 2 },
+  segmented: {
+    flexDirection: 'row',
+    backgroundColor: colors.fill,
+    borderRadius: radius.sm,
+    padding: 2,
+    marginBottom: spacing.md,
+  },
+  segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 7, borderRadius: radius.sm - 2 },
+  segItemActive: { backgroundColor: colors.surface, ...shadow.card },
+  segText: { fontSize: 13.5, color: colors.textMuted, fontWeight: '600' },
+  segTextActive: { color: colors.ink, fontWeight: '600' },
+  group: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    ...shadow.card,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 13,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  rowFirst: { borderTopWidth: 0 },
+  rowLast: {},
+  rowLeft: { alignItems: 'center', justifyContent: 'center' },
+  rowTitle: { fontSize: 16, fontWeight: '500', color: colors.ink, letterSpacing: -0.2 },
+  rowSub: { fontSize: 13, color: colors.textMuted, marginTop: 1 },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

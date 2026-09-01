@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { useAuth } from '../auth/AuthContext';
 
 /**
  * Gamification state — XP, levels, daily streak, a daily goal, lifetime stats,
@@ -18,23 +20,28 @@ export type Progress = {
   solvedToday: number;
   goalDate: string; // YYYY-MM-DD the solvedToday counter belongs to
   achievements: string[];
+  lessonsCompleted: string[]; // curriculum lesson ids (device-local)
 };
 
 export const XP_PER_LEVEL = 100;
 export const XP_PUZZLE = 20;
 export const XP_WIN = 40;
 export const XP_PLAY = 10;
+export const XP_LESSON = 15;
 
-export type Achievement = { id: string; title: string; emoji: string; test: (p: Progress) => boolean };
+export type Achievement = { id: string; title: string; icon: string; test: (p: Progress) => boolean };
 
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_puzzle', title: 'First Solve', emoji: '🧩', test: (p) => p.puzzlesSolved >= 1 },
-  { id: 'ten_puzzles', title: 'Tactician', emoji: '🎯', test: (p) => p.puzzlesSolved >= 10 },
-  { id: 'fifty_puzzles', title: 'Puzzle Hunter', emoji: '🏹', test: (p) => p.puzzlesSolved >= 50 },
-  { id: 'first_win', title: 'First Win', emoji: '🏆', test: (p) => p.gamesWon >= 1 },
-  { id: 'streak_3', title: '3-Day Streak', emoji: '🔥', test: (p) => p.streakDays >= 3 },
-  { id: 'streak_7', title: 'Week Warrior', emoji: '⚡', test: (p) => p.streakDays >= 7 },
-  { id: 'level_5', title: 'Rising Star', emoji: '⭐', test: (p) => levelFromXp(p.xp) >= 5 },
+  { id: 'first_puzzle', title: 'First Solve', icon: 'extension-puzzle', test: (p) => p.puzzlesSolved >= 1 },
+  { id: 'ten_puzzles', title: 'Tactician', icon: 'ribbon', test: (p) => p.puzzlesSolved >= 10 },
+  { id: 'fifty_puzzles', title: 'Puzzle Hunter', icon: 'medal', test: (p) => p.puzzlesSolved >= 50 },
+  { id: 'first_win', title: 'First Win', icon: 'trophy', test: (p) => p.gamesWon >= 1 },
+  { id: 'streak_3', title: '3-Day Streak', icon: 'flame', test: (p) => p.streakDays >= 3 },
+  { id: 'streak_7', title: 'Week Warrior', icon: 'flash', test: (p) => p.streakDays >= 7 },
+  { id: 'level_5', title: 'Rising Star', icon: 'star', test: (p) => levelFromXp(p.xp) >= 5 },
+  { id: 'first_lesson', title: 'Student', icon: 'book', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 1 },
+  { id: 'scholar', title: 'Scholar', icon: 'library', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 20 },
+  { id: 'graduate', title: 'Graduate', icon: 'school', test: (p) => (p.lessonsCompleted?.length ?? 0) >= 40 },
 ];
 
 export function levelFromXp(xp: number): number {
@@ -66,6 +73,7 @@ const DEFAULT: Progress = {
   solvedToday: 0,
   goalDate: '',
   achievements: [],
+  lessonsCompleted: [],
 };
 
 type Ctx = {
@@ -73,6 +81,7 @@ type Ctx = {
   level: number;
   awardPuzzleSolved: () => void;
   awardGameResult: (won: boolean) => void;
+  markLessonComplete: (id: string) => void;
   newlyEarned: string | null;
   clearNewlyEarned: () => void;
 };
@@ -80,9 +89,42 @@ type Ctx = {
 const STORAGE_KEY = 'chessmaster.progress';
 const ProgressContext = createContext<Ctx | undefined>(undefined);
 
+function fromRow(row: any): Progress {
+  return {
+    xp: row.xp ?? 0,
+    streakDays: row.streak_days ?? 0,
+    lastActiveDate: row.last_active_date ?? '',
+    puzzlesSolved: row.puzzles_solved ?? 0,
+    gamesPlayed: row.games_played ?? 0,
+    gamesWon: row.games_won ?? 0,
+    dailyGoal: row.daily_goal ?? 3,
+    solvedToday: row.solved_today ?? 0,
+    goalDate: row.goal_date ?? '',
+    achievements: row.achievements ?? [],
+    lessonsCompleted: [], // cloud row doesn't track this; merged from device on load
+  };
+}
+function toRow(p: Progress, userId: string) {
+  return {
+    user_id: userId,
+    xp: p.xp,
+    streak_days: p.streakDays,
+    last_active_date: p.lastActiveDate || null,
+    puzzles_solved: p.puzzlesSolved,
+    games_played: p.gamesPlayed,
+    games_won: p.gamesWon,
+    daily_goal: p.dailyGoal,
+    solved_today: p.solvedToday,
+    goal_date: p.goalDate || null,
+    achievements: p.achievements,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<Progress>(DEFAULT);
   const [newlyEarned, setNewlyEarned] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -94,6 +136,33 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, []);
+
+  // When signed in with a backend, load cloud progress (source of truth).
+  useEffect(() => {
+    if (!(isSupabaseConfigured && supabase && user)) return;
+    supabase
+      .from('progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        // Cloud is source of truth for stats, but lesson completion is
+        // device-local, so preserve it across the load.
+        if (data) setProgress((prev) => ({ ...fromRow(data), lessonsCompleted: prev.lessonsCompleted }));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const save = useCallback(
+    (next: Progress) => {
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      if (isSupabaseConfigured && supabase && user) {
+        supabase.from('progress').upsert(toRow(next, user.id)).then(() => {});
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id],
+  );
 
   /** Apply daily streak + goal rollover, returning an updated draft. */
   const withDaily = (p: Progress): Progress => {
@@ -130,10 +199,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       let next = withDaily(prev);
       next = { ...next, xp: next.xp + XP_PUZZLE, puzzlesSolved: next.puzzlesSolved + 1, solvedToday: next.solvedToday + 1 };
       next = applyAchievements(next);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      save(next);
       return next;
     });
-  }, []);
+  }, [save]);
 
   const awardGameResult = useCallback((won: boolean) => {
     setProgress((prev) => {
@@ -145,10 +214,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         gamesWon: next.gamesWon + (won ? 1 : 0),
       };
       next = applyAchievements(next);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      save(next);
       return next;
     });
-  }, []);
+  }, [save]);
+
+  const markLessonComplete = useCallback((id: string) => {
+    setProgress((prev) => {
+      const done = prev.lessonsCompleted ?? [];
+      if (done.includes(id)) return prev;
+      let next = withDaily(prev);
+      next = { ...next, lessonsCompleted: [...done, id], xp: next.xp + XP_LESSON };
+      next = applyAchievements(next);
+      save(next);
+      return next;
+    });
+  }, [save]);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -156,10 +237,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       level: levelFromXp(progress.xp),
       awardPuzzleSolved,
       awardGameResult,
+      markLessonComplete,
       newlyEarned,
       clearNewlyEarned: () => setNewlyEarned(null),
     }),
-    [progress, newlyEarned, awardPuzzleSolved, awardGameResult],
+    [progress, newlyEarned, awardPuzzleSolved, awardGameResult, markLessonComplete],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

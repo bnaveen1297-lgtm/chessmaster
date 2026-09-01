@@ -20,7 +20,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
     <View style={[styles.page, { minHeight: height }]}>
       <View style={styles.brandCol}>
-        <Text style={styles.brand}>♞ ChessMaster</Text>
+        <Text style={styles.brand}>ChessMaster</Text>
         <Text style={styles.brandSub}>Mobile app preview</Text>
       </View>
       <View style={[styles.phone, { width: frameW, height: frameH }]}>

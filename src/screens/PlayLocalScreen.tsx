@@ -1,11 +1,13 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chess } from 'chess.js';
 import { ChessBoard } from '../components/ChessBoard';
 import { Button } from '../components/ui';
+import { Icon } from '../components/Icon';
 import { colors, radius, spacing, typography } from '../theme';
 import { legalTargets, tryMove, isOwnPiece, statusText, checkedKingSquare } from '../game/chessHelpers';
+import { saveGame } from '../game/history';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
@@ -27,6 +29,18 @@ export function PlayLocalScreen({ navigation }: Props) {
   const sync = useCallback(() => setFen(gameRef.current.fen()), []);
   const flipped = autoFlip && game.turn() === 'b';
   const gameOver = game.isGameOver();
+  const savedRef = useRef(false);
+
+  // Save the finished game to history once.
+  useEffect(() => {
+    const g = gameRef.current;
+    if (g.isGameOver() && !savedRef.current) {
+      savedRef.current = true;
+      const result = g.isCheckmate() ? (g.turn() === 'w' ? '0-1' : '1-0') : '1/2-1/2';
+      saveGame({ mode: 'friend', result, pgn: g.pgn(), white: 'White', black: 'Black' });
+    }
+    if (!g.isGameOver()) savedRef.current = false;
+  }, [fen]);
 
   const onSquarePress = useCallback(
     (square: string) => {
@@ -76,8 +90,9 @@ export function PlayLocalScreen({ navigation }: Props) {
       <View style={styles.topbar}>
         <Text style={styles.back} onPress={() => navigation.goBack()}>‹</Text>
         <Text style={styles.title}>Play with a Friend</Text>
-        <Pressable onPress={() => setAutoFlip((v) => !v)}>
-          <Text style={[styles.flip, autoFlip && styles.flipOn]}>⇅ Flip</Text>
+        <Pressable onPress={() => setAutoFlip((v) => !v)} style={styles.flipBtn}>
+          <Icon name="swap-vertical" size={16} color={autoFlip ? colors.gold : colors.textFaint} />
+          <Text style={[styles.flip, autoFlip && styles.flipOn]}>Flip</Text>
         </Pressable>
       </View>
 
@@ -125,6 +140,7 @@ const styles = StyleSheet.create({
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   back: { fontSize: 30, width: 40, color: colors.ink },
   title: { ...typography.h3 },
+  flipBtn: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   flip: { ...typography.muted, fontWeight: '700', color: colors.textFaint },
   flipOn: { color: colors.gold },
   playerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 4 },

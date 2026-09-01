@@ -6,20 +6,22 @@
 
 export const colors = {
   // brand
-  ink: '#141414', // near-black (buttons, headings)
-  gold: '#C9A24B', // accent (section numbers, highlights)
+  ink: '#1C1C1E', // primary label (near-black)
+  tint: '#5B4BE0', // the single interactive accent (violet — matches the logo)
+  gold: '#C9A24B', // reserved highlight (logo, XP, achievements)
   goldSoft: '#E7D3A1',
 
-  // surfaces (light-first)
-  bg: '#FFFFFF',
-  bgAlt: '#F5F5F6',
-  surface: '#FFFFFF',
-  border: '#E7E7EA',
+  // surfaces (iOS grouped look: gray ground, white cards)
+  bg: '#F2F2F7', // systemGroupedBackground
+  bgAlt: '#EDEDF2',
+  surface: '#FFFFFF', // secondarySystemGroupedBackground
+  border: 'rgba(60,60,67,0.13)', // separator hairline
+  fill: 'rgba(120,120,128,0.12)', // secondarySystemFill (tracks, chips)
 
-  // text
-  text: '#141414',
-  textMuted: '#6B6B72',
-  textFaint: '#9A9AA2',
+  // text (iOS label grays)
+  text: '#1C1C1E',
+  textMuted: '#6C6C70',
+  textFaint: '#AEAEB2',
   onDark: '#FFFFFF',
 
   // dark player surface (live game / puzzle board screens)
@@ -45,6 +47,12 @@ export const colors = {
   // board
   boardLight: '#EAD9B0',
   boardDark: '#9B7A4A',
+
+  // Olympiad theme (Samarkand 2026) — Silk Road turquoise + gold, evoking the
+  // blue-tiled domes of Registan. Used only in Olympiad-themed surfaces.
+  samarkand: '#0E9AA7',
+  samarkandDeep: '#0A5C6B',
+  samarkandTile: '#1FB6C4',
 } as const;
 
 export const spacing = {
@@ -57,19 +65,31 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  sm: 8,
+  sm: 10,
   md: 14,
-  lg: 20,
-  xl: 28,
+  lg: 18,
+  xl: 26,
   pill: 999,
 } as const;
 
+/** iOS-style soft card elevation (subtle — grouped cards barely lift). */
+export const shadow = {
+  card: {
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+} as const;
+
+// iOS type ramp (SF): large title → caption.
 export const typography = {
-  display: { fontSize: 34, fontWeight: '800' as const, color: colors.text, letterSpacing: 0.5 },
-  h1: { fontSize: 26, fontWeight: '800' as const, color: colors.text },
-  h2: { fontSize: 20, fontWeight: '700' as const, color: colors.text },
-  h3: { fontSize: 16, fontWeight: '700' as const, color: colors.text },
-  body: { fontSize: 15, fontWeight: '400' as const, color: colors.text },
-  muted: { fontSize: 13, fontWeight: '400' as const, color: colors.textMuted },
-  label: { fontSize: 11, fontWeight: '700' as const, color: colors.textFaint, letterSpacing: 0.6 },
+  display: { fontSize: 34, fontWeight: '800' as const, color: colors.text, letterSpacing: 0.35 },
+  h1: { fontSize: 28, fontWeight: '800' as const, color: colors.text, letterSpacing: 0.3 },
+  h2: { fontSize: 22, fontWeight: '700' as const, color: colors.text, letterSpacing: 0.2 },
+  h3: { fontSize: 17, fontWeight: '700' as const, color: colors.text, letterSpacing: -0.2 },
+  body: { fontSize: 16, fontWeight: '400' as const, color: colors.text },
+  muted: { fontSize: 13.5, fontWeight: '400' as const, color: colors.textMuted },
+  label: { fontSize: 12, fontWeight: '600' as const, color: colors.textFaint, letterSpacing: 0.4 },
 } as const;

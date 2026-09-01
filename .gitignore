@@ -10,6 +10,9 @@ expo-env.d.ts
 # vercel
 .vercel/
 
+# test artifacts
+.tsc-test/
+
 # native
 *.orig.*
 *.jks
@@ -38,3 +41,6 @@ yarn-error.*
 # IDE
 .idea/
 .vscode/
+
+# Supabase CLI scratch
+supabase/.temp/
