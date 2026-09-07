@@ -14,6 +14,7 @@ const QUICK = [
   { to: '/app/puzzles', label: 'Puzzles', desc: 'Millions + daily', Icon: IconPuzzle, c: '#1E88E5' },
   { to: '/app/puzzles/rush', label: 'Tactics Rush', desc: 'Beat the clock', Icon: IconPuzzle, c: '#111418' },
   { to: '/app/learn', label: 'Learn', desc: '40 lessons', Icon: IconLearn, c: '#111418' },
+  { to: '/app/ai', label: 'AI Coach', desc: 'Ask anything — it knows your games', Icon: IconCrown, c: '#0E7C74' },
   { to: '/app/path', label: 'Your Path', desc: 'Learns from your games', Icon: IconCrown, c: '#1E88E5' },
   { to: '/app/coach', label: 'Prep Coach', desc: 'Your weekly plan', Icon: IconCrown, c: '#111418' },
   { to: '/app/prep', label: 'Tournament Prep', desc: 'Peak for your event', Icon: IconTrophy, c: '#1E88E5' },
