@@ -179,4 +179,7 @@ export const LEVELS: Level[] = [
   { id: 'easy', label: 'Easy', depth: 1 },
   { id: 'medium', label: 'Medium', depth: 2 },
   { id: 'hard', label: 'Hard', depth: 3 },
+  // Grandmaster is handled specially by the UI (real Stockfish, not this
+  // heuristic search); depth here is only a fallback if the engine can't load.
+  { id: 'gm', label: 'Grandmaster', depth: 3 },
 ];

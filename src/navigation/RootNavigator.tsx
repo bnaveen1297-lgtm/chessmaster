@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors } from '../theme';
 import { useAuth } from '../auth/AuthContext';
+import { Icon, type IconName } from '../components/Icon';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
-import { SignInScreen } from '../screens/SignInScreen';
-import { SignUpScreen } from '../screens/SignUpScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ClassScreen } from '../screens/ClassScreen';
 import { PuzzleScreen } from '../screens/PuzzleScreen';
@@ -23,22 +22,44 @@ import { CoachScreen } from '../screens/CoachScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { LessonScreen } from '../screens/LessonScreen';
 import { OpeningsScreen } from '../screens/OpeningsScreen';
+import { OnlineLobbyScreen } from '../screens/OnlineLobbyScreen';
+import { OnlineGameScreen } from '../screens/OnlineGameScreen';
+import { TournamentsScreen } from '../screens/TournamentsScreen';
+import { TournamentDetailScreen } from '../screens/TournamentDetailScreen';
+import { MasterBaseScreen } from '../screens/MasterBaseScreen';
+import { MasterGameScreen } from '../screens/MasterGameScreen';
+import { PlayVsMasterScreen } from '../screens/PlayVsMasterScreen';
+import { OlympiadScreen } from '../screens/OlympiadScreen';
+import { LiveBoardsScreen } from '../screens/LiveBoardsScreen';
+import { GamesHistoryScreen } from '../screens/GamesHistoryScreen';
+import { ImportGamesScreen } from '../screens/ImportGamesScreen';
+import { OpeningTrainerScreen } from '../screens/OpeningTrainerScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
-  SignIn: undefined;
-  SignUp: undefined;
   Main: undefined;
   Profile: undefined;
-  LiveGame: { id: string };
+  LiveGame: { id?: string; pgn?: string; white?: string; black?: string; event?: string; result?: string };
   PuzzleSolve: { id?: string; puzzle?: import('../data/puzzles').Puzzle };
   PlayVsComputer: undefined;
   PlayLocal: undefined;
-  Analyze: undefined;
+  Analyze: { pgn?: string } | undefined;
   Coach: undefined;
   Lesson: { id: string };
   Openings: undefined;
   Plans: undefined;
+  OnlineLobby: undefined;
+  OnlineGame: { matchId: string; uid: string };
+  Tournaments: undefined;
+  TournamentDetail: { id: string };
+  MasterBase: undefined;
+  MasterGame: { id?: string; game?: import('../data/masters').MasterGame };
+  PlayVsMaster: { id?: string; side: 'w' | 'b'; game?: import('../data/masters').MasterGame };
+  Olympiad: undefined;
+  LiveBoards: undefined;
+  GamesHistory: undefined;
+  ImportGames: undefined;
+  OpeningTrainer: { eco: string };
 };
 
 export type TabParamList = {
@@ -52,12 +73,10 @@ export type TabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-function TabIcon({ glyph, color }: { glyph: string; color: string }) {
-  return <Text style={{ fontSize: 18, color }}>{glyph}</Text>;
-}
-const icon = (glyph: string) =>
+const tabIcon = (base: string) =>
   // eslint-disable-next-line react/display-name
-  ({ color }: { color: string }) => <TabIcon glyph={glyph} color={color} />;
+  ({ color, focused }: { color: string; focused: boolean }) =>
+    <Icon name={(focused ? base : `${base}-outline`) as IconName} color={color} size={23} />;
 
 function MainTabs() {
   return (
@@ -76,11 +95,11 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: icon('🏠') }} />
-      <Tab.Screen name="Class" component={ClassScreen} options={{ tabBarIcon: icon('📚') }} />
-      <Tab.Screen name="Puzzle" component={PuzzleScreen} options={{ tabBarIcon: icon('🧩') }} />
-      <Tab.Screen name="Game" component={GameScreen} options={{ tabBarIcon: icon('♟️') }} />
-      <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarIcon: icon('🛍️') }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: tabIcon('home') }} />
+      <Tab.Screen name="Class" component={ClassScreen} options={{ tabBarLabel: 'Learn', tabBarIcon: tabIcon('book') }} />
+      <Tab.Screen name="Puzzle" component={PuzzleScreen} options={{ tabBarIcon: tabIcon('extension-puzzle') }} />
+      <Tab.Screen name="Game" component={GameScreen} options={{ tabBarIcon: tabIcon('game-controller') }} />
+      <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarIcon: tabIcon('bag-handle') }} />
     </Tab.Navigator>
   );
 }
@@ -119,12 +138,22 @@ export function RootNavigator() {
           <Stack.Screen name="PuzzleSolve" component={PuzzleSolveScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayVsComputer" component={PlayVsComputerScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PlayLocal" component={PlayLocalScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="OnlineLobby" component={OnlineLobbyScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="OnlineGame" component={OnlineGameScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Tournaments" component={TournamentsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="TournamentDetail" component={TournamentDetailScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MasterBase" component={MasterBaseScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MasterGame" component={MasterGameScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PlayVsMaster" component={PlayVsMasterScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Olympiad" component={OlympiadScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LiveBoards" component={LiveBoardsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="GamesHistory" component={GamesHistoryScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ImportGames" component={ImportGamesScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="OpeningTrainer" component={OpeningTrainerScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="SignIn" component={SignInScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
         </>
       )}
     </Stack.Navigator>

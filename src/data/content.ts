@@ -42,41 +42,119 @@ export const languageSchedules: LanguageSchedule[] = [
   { id: 'ta', language: 'தமிழ்', color: colors.brown, days: week },
 ];
 
-/** End-to-end self-learn curriculum (ChessMaster requirement). */
+/** End-to-end self-learn curriculum (chesshub360 requirement). */
 export type Lesson = { id: string; title: string; minutes: number; done: boolean };
 export type CurriculumUnit = { id: string; title: string; lessons: Lesson[] };
 
 export const curriculum: CurriculumUnit[] = [
   {
     id: 'u1',
-    title: 'Chess Foundations',
+    title: 'First Steps',
     lessons: [
-      { id: 'l1', title: 'What is chess', minutes: 6, done: true },
-      { id: 'l2', title: 'Uses of playing chess', minutes: 5, done: true },
-      { id: 'l3', title: 'Understanding the board', minutes: 7, done: true },
+      { id: 'l1', title: 'What is chess', minutes: 6, done: false },
+      { id: 'l2', title: 'Uses of playing chess', minutes: 5, done: false },
+      { id: 'l3', title: 'Understanding the board', minutes: 7, done: false },
       { id: 'l4', title: 'Understanding the pawn', minutes: 8, done: false },
       { id: 'l5', title: 'Understanding the King & pieces', minutes: 9, done: false },
-      { id: 'l6', title: 'Understanding basic tactics', minutes: 10, done: false },
     ],
   },
   {
     id: 'u2',
-    title: 'Openings & Tactics',
+    title: 'Basic Tactics',
     lessons: [
-      { id: 'l7', title: 'Opening principles', minutes: 9, done: false },
+      { id: 'l6', title: 'Understanding basic tactics', minutes: 10, done: false },
       { id: 'l8', title: 'Forks & double attacks', minutes: 11, done: false },
       { id: 'l9', title: 'Pins and skewers', minutes: 12, done: false },
+      { id: 'l12', title: 'Discovered attacks', minutes: 10, done: false },
+      { id: 'l13', title: 'The double attack', minutes: 10, done: false },
+      { id: 'l14', title: 'Loose pieces & counting', minutes: 9, done: false },
     ],
   },
   {
     id: 'u3',
-    title: 'Endgame Mastery',
+    title: 'Checkmating Patterns',
+    lessons: [
+      { id: 'l15', title: 'What checkmate really is', minutes: 7, done: false },
+      { id: 'l16', title: 'The back-rank mate', minutes: 9, done: false },
+      { id: 'l17', title: 'King and queen vs king', minutes: 11, done: false },
+      { id: 'l18', title: 'The two-rook ladder mate', minutes: 10, done: false },
+      { id: 'l19', title: 'Smothered mate', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u4',
+    title: 'Opening Principles',
+    lessons: [
+      { id: 'l7', title: 'Opening principles', minutes: 9, done: false },
+      { id: 'l20', title: 'Fighting for the center', minutes: 8, done: false },
+      { id: 'l21', title: 'Development and tempo', minutes: 9, done: false },
+      { id: 'l22', title: 'King safety and castling', minutes: 8, done: false },
+      { id: 'l23', title: 'Common opening traps', minutes: 10, done: false },
+    ],
+  },
+  {
+    id: 'u5',
+    title: 'Positional Play',
+    lessons: [
+      { id: 'l24', title: 'What is positional chess', minutes: 8, done: false },
+      { id: 'l25', title: 'Good and bad bishops', minutes: 9, done: false },
+      { id: 'l26', title: 'Knights and outposts', minutes: 9, done: false },
+      { id: 'l27', title: 'Open files and the rooks', minutes: 10, done: false },
+      { id: 'l28', title: 'Space and the center', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u6',
+    title: 'Pawn Structures',
+    lessons: [
+      { id: 'l29', title: 'Why pawn structure matters', minutes: 8, done: false },
+      { id: 'l30', title: 'Isolated and doubled pawns', minutes: 9, done: false },
+      { id: 'l31', title: 'Passed pawns', minutes: 10, done: false },
+      { id: 'l32', title: 'Pawn chains', minutes: 9, done: false },
+      { id: 'l33', title: 'Backward pawns and holes', minutes: 9, done: false },
+    ],
+  },
+  {
+    id: 'u7',
+    title: 'Endgame Technique',
     lessons: [
       { id: 'l10', title: 'King & pawn endgames', minutes: 14, done: false },
       { id: 'l11', title: 'Rook endgame essentials', minutes: 16, done: false },
+      { id: 'l34', title: 'The opposition and key squares', minutes: 11, done: false },
+      { id: 'l35', title: 'Promoting a passed pawn', minutes: 10, done: false },
+      { id: 'l36', title: 'Basic checkmates', minutes: 12, done: false },
+      { id: 'l37', title: 'Minor-piece endgames', minutes: 12, done: false },
+    ],
+  },
+  {
+    id: 'u8',
+    title: 'Improvement & Practice',
+    lessons: [
+      { id: 'l38', title: 'How to study chess', minutes: 8, done: false },
+      { id: 'l39', title: 'Learning from your own games', minutes: 9, done: false },
+      { id: 'l40', title: 'Building a training routine', minutes: 8, done: false },
     ],
   },
 ];
+
+/** All lesson ids in curriculum order. */
+export const orderedLessonIds: string[] = curriculum.flatMap((u) => u.lessons.map((l) => l.id));
+
+/** The next lesson after `id` in curriculum order, or null at the end. */
+export function nextLessonId(id: string): string | null {
+  const i = orderedLessonIds.indexOf(id);
+  return i >= 0 && i < orderedLessonIds.length - 1 ? orderedLessonIds[i + 1] : null;
+}
+
+/** The first not-yet-completed lesson (for a "Continue learning" resume). */
+export function firstIncompleteLesson(completed: string[]): { id: string; title: string } | null {
+  for (const u of curriculum) {
+    for (const l of u.lessons) {
+      if (!completed.includes(l.id)) return { id: l.id, title: l.title };
+    }
+  }
+  return null;
+}
 
 /* ------------------------------------------------------------- OLYMPIAD LIVE */
 
@@ -85,42 +163,44 @@ export type LiveGame = {
   white: string;
   black: string;
   event: string;
-  eval: string;
-  moves: number;
+  /** Result shown on the card. */
+  result: string;
+  /** Full PGN move text — the board replays these moves. */
+  pgn: string;
   status: 'live' | 'starting';
-  fen: string;
 };
 
+// Featured broadcasts are real, famous games that the board replays move by move.
+// (We can't legally stream live Olympiad boards from a free API, so chesshub360
+// ships verifiable masterpieces you can watch and learn from — the playback is
+// real chess, driven by chess.js.)
 export const liveGames: LiveGame[] = [
   {
     id: 'g1',
-    white: 'Gukesh D',
-    black: 'Caruana F',
-    event: 'Olympiad · Round 7 · Board 1',
-    eval: '+0.4',
-    moves: 31,
+    white: 'Paul Morphy',
+    black: 'Duke & Count',
+    event: 'The Opera Game · Paris 1858',
+    result: '1-0',
     status: 'live',
-    fen: 'r2q1rk1/pp2bppp/2n1bn2/3p4/3P4/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12',
+    pgn: '1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0',
   },
   {
     id: 'g2',
-    white: 'Ju Wenjun',
-    black: 'Goryachkina A',
-    event: 'Olympiad · Round 7 · Board 1',
-    eval: '−0.2',
-    moves: 24,
+    white: 'Adolf Anderssen',
+    black: 'Lionel Kieseritzky',
+    event: 'The Immortal Game · London 1851',
+    result: '1-0',
     status: 'live',
-    fen: 'r1bqr1k1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w - - 0 9',
+    pgn: '1. e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8. Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15. Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21. Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0',
   },
   {
     id: 'g3',
-    white: 'Firouzja A',
-    black: 'Nakamura H',
-    event: 'Olympiad · Round 7 · Board 2',
-    eval: '=',
-    moves: 0,
-    status: 'starting',
-    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    white: 'Adolf Anderssen',
+    black: 'Jean Dufresne',
+    event: 'The Evergreen Game · Berlin 1852',
+    result: '1-0',
+    status: 'live',
+    pgn: '1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4 7. O-O d3 8. Qb3 Qf6 9. e5 Qg6 10. Re1 Nge7 11. Ba3 b5 12. Qxb5 Rb8 13. Qa4 Bb6 14. Nbd2 Bb7 15. Ne4 Qf5 16. Bxd3 Qh5 17. Nf6+ gxf6 18. exf6 Rg8 19. Rad1 Qxf3 20. Rxe7+ Nxe7 21. Qxd7+ Kxd7 22. Bf5+ Ke8 23. Bd7+ Kf8 24. Bxe7# 1-0',
   },
 ];
 
@@ -136,13 +216,13 @@ export const plans: Plan[] = [
 
 /* --------------------------------------------------------------------- GAME */
 
-export type GameMode = { id: string; title: string; blurb: string; glyph: string };
+export type GameMode = { id: string; title: string; blurb: string; icon: string };
 
 export const gameModes: GameMode[] = [
-  { id: 'tournaments', title: 'Play Tournaments', blurb: 'Join open arenas and climb the boards.', glyph: '🏆' },
-  { id: 'friends', title: 'Play with Friends', blurb: 'Two players, one device (pass & play).', glyph: '👥' },
-  { id: 'computer', title: 'Practice vs Computer', blurb: 'Train against bots at every level.', glyph: '🤖' },
-  { id: 'clock', title: 'Digital Chess Clock', blurb: 'Use a real clock for OTB practice.', glyph: '⏱️' },
+  { id: 'tournaments', title: 'Play Tournaments', blurb: 'Join open arenas and climb the boards.', icon: 'trophy' },
+  { id: 'friends', title: 'Play with Friends', blurb: 'Two players, one device (pass & play).', icon: 'people' },
+  { id: 'computer', title: 'Practice vs Computer', blurb: 'Train against bots at every level.', icon: 'hardware-chip' },
+  { id: 'clock', title: 'Digital Chess Clock', blurb: 'Use a real clock for OTB practice.', icon: 'timer' },
 ];
 
 export type OpenTournament = { id: string; name: string; format: string; players: number; startsIn: string };
@@ -179,11 +259,11 @@ export const prepPlan = [
 
 /* --------------------------------------------------------------------- SHOP */
 
-export type Product = { id: string; name: string; blurb: string; color: string; glyph: string };
+export type Product = { id: string; name: string; blurb: string; color: string; icon: string };
 
 export const products: Product[] = [
-  { id: 's1', name: 'Chess Board Set', blurb: 'Chess board and chess pieces.', color: colors.cyan, glyph: '♟️' },
-  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized ChessMaster tees.', color: colors.lavender, glyph: '👕' },
-  { id: 's3', name: 'Chess Pieces', blurb: 'Buy a full set or single pieces.', color: colors.brown, glyph: '♞' },
-  { id: 's4', name: 'Chess Clock', blurb: 'Tournament-grade digital clock.', color: colors.teal, glyph: '⏱️' },
+  { id: 's1', name: 'Chess Board Set', blurb: 'Chess board and chess pieces.', color: colors.cyan, icon: 'grid' },
+  { id: 's2', name: 'Chess T-Shirt', blurb: 'Customized chesshub360 tees.', color: colors.lavender, icon: 'shirt' },
+  { id: 's3', name: 'Chess Pieces', blurb: 'Buy a full set or single pieces.', color: colors.brown, icon: 'cube' },
+  { id: 's4', name: 'Chess Clock', blurb: 'Tournament-grade digital clock.', color: colors.teal, icon: 'timer' },
 ];

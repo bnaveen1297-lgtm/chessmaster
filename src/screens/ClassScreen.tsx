@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { Screen, Card, Segmented, Button, Pill } from '../components/ui';
+import { View, Text, StyleSheet } from 'react-native';
+import { Screen, Card, Segmented, Group, Row, Button, Pill } from '../components/ui';
 import { AppHeader } from '../components/AppHeader';
-import { colors, radius, spacing, typography } from '../theme';
-import { classLevels, languageSchedules, curriculum, liveGames } from '../data/content';
+import { Icon, type IconName } from '../components/Icon';
+import { colors, spacing, typography } from '../theme';
+import { classLevels, languageSchedules, curriculum, liveGames, orderedLessonIds, firstIncompleteLesson } from '../data/content';
+import { useProgress } from '../game/ProgressContext';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,101 +18,187 @@ type Props = CompositeScreenProps<
 
 const TABS = ['Live Class', 'Upcoming Class', 'All Class'];
 
+const LEVEL_ICON: Record<string, IconName> = { beg: 'leaf', int: 'trending-up', exp: 'ribbon' };
+const LANGS = ['தமிழ்', 'Hindi', 'English', 'Russian'];
+
 export function ClassScreen({ navigation }: Props) {
   const [tab, setTab] = useState(TABS[0]);
   const live = liveGames.find((g) => g.status === 'live')!;
+  const { progress } = useProgress();
+  const completed = progress.lessonsCompleted ?? [];
+  const isDone = (id: string) => completed.includes(id);
+  const resume = firstIncompleteLesson(completed);
+  const totalDone = orderedLessonIds.filter((id) => completed.includes(id)).length;
 
   return (
     <Screen>
-      <AppHeader title="Class" onProfile={() => navigation.navigate('Profile')} />
+      <AppHeader eyebrow="LEARN" title="Class" onProfile={() => navigation.navigate('Profile')} />
       <Segmented options={TABS} value={tab} onChange={setTab} />
 
       {tab === 'Live Class' && (
         <View>
-          {/* Olympiad live highlight (ChessMaster feature) */}
-          <Card style={styles.olympiad} onPress={() => navigation.navigate('LiveGame', { id: live.id })}>
-            <Pill label="OLYMPIAD LIVE" tone="live" />
-            <Text style={styles.olympiadTitle}>
-              {live.white} vs {live.black}
-            </Text>
-            <Text style={styles.olympiadMeta}>{live.event} · move {live.moves}</Text>
-            <View style={styles.playBadge}><Text style={styles.playGlyph}>▶</Text></View>
+          {/* Dark hero: featured broadcast (Apple Fitness-style single dark card) */}
+          <Card style={styles.hero} onPress={() => navigation.navigate('LiveGame', { id: live.id })}>
+            <View style={styles.heroRow}>
+              <View style={{ flex: 1 }}>
+                <Pill label="FEATURED GAME" tone="gold" />
+                <Text style={styles.heroTitle}>
+                  {live.white} vs {live.black}
+                </Text>
+                <Text style={styles.heroMeta}>{live.event}</Text>
+              </View>
+              <View style={styles.playBadge}>
+                <Icon name="play" size={20} color={colors.onDark} />
+              </View>
+            </View>
           </Card>
 
-          <Text style={typography.h3}>Live coaching now</Text>
-          <Text style={[typography.muted, { marginBottom: spacing.sm }]}>
-            Join a class in your language. Miss one? Watch the recording anytime.
-          </Text>
-          <View style={styles.langRow}>
-            {['தமிழ்', 'Hindi', 'English', 'Russian'].map((l) => (
-              <Card key={l} style={styles.langChip}>
-                <View style={styles.playBadgeSm}><Text style={styles.playGlyphSm}>▶</Text></View>
-                <Text style={styles.langText}>{l}</Text>
-              </Card>
+          <Text style={styles.label}>LIVE COACHING</Text>
+          <Text style={styles.sub}>Join a class in your language, or watch the recording anytime.</Text>
+          <Group>
+            {LANGS.map((l, i) => (
+              <Row
+                key={l}
+                first={i === 0}
+                last={i === LANGS.length - 1}
+                title={l}
+                subtitle="Live coaching now"
+                left={
+                  <View style={[styles.iconSquare, { backgroundColor: colors.tint }]}>
+                    <Icon name="play" size={18} color="#fff" />
+                  </View>
+                }
+                right={
+                  <View style={styles.liveBadge}>
+                    <View style={styles.liveDot} />
+                    <Text style={styles.liveText}>LIVE</Text>
+                  </View>
+                }
+              />
             ))}
-          </View>
+          </Group>
         </View>
       )}
 
       {tab === 'Upcoming Class' && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md }}>
+        <View>
           {languageSchedules.map((s) => (
-            <View key={s.id} style={[styles.schedule, { backgroundColor: s.color }]}>
-              <Text style={styles.scheduleTitle}>{s.language}</Text>
-              {s.days.map((d) => (
-                <View key={d.day} style={styles.scheduleRow}>
-                  <Text style={styles.scheduleDay}>{d.day}</Text>
-                  <Text style={styles.scheduleTime}>{d.time}</Text>
-                </View>
-              ))}
+            <View key={s.id}>
+              <View style={styles.langHeader}>
+                <View style={[styles.langDot, { backgroundColor: s.color }]} />
+                <Text style={styles.langLabel}>{s.language.toUpperCase()}</Text>
+              </View>
+              <Group>
+                {s.days.map((d, i) => (
+                  <Row
+                    key={d.day}
+                    first={i === 0}
+                    last={i === s.days.length - 1}
+                    title={d.day}
+                    right={<Text style={styles.timeText}>{d.time}</Text>}
+                  />
+                ))}
+              </Group>
             </View>
           ))}
-        </ScrollView>
+        </View>
       )}
 
       {tab === 'All Class' && (
         <View>
-          {classLevels.map((lvl) => (
-            <View key={lvl.id} style={[styles.level, { backgroundColor: lvl.color }]}>
-              <Text style={styles.levelTitle}>{lvl.level}</Text>
-              <Text style={styles.levelBlurb}>{lvl.blurb}</Text>
-              <View style={styles.startBtn}>
-                <Button label="Start" variant="light" small />
-              </View>
-            </View>
-          ))}
-
-          <Card style={styles.openingCard} onPress={() => navigation.navigate('Openings')}>
-            <Text style={styles.openingGlyph}>♟️</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={typography.h3}>Opening Book</Text>
-              <Text style={typography.muted}>Named openings, lines and ideas (ECO).</Text>
-            </View>
-            <Text style={styles.chev}>›</Text>
-          </Card>
-
-          <Text style={[typography.h3, { marginTop: spacing.lg }]}>Self-learn curriculum</Text>
-          <Text style={[typography.muted, { marginBottom: spacing.sm }]}>
-            An end-to-end path from your first move to advanced endgames. Tap a lesson to read it.
-          </Text>
-          {curriculum.map((unit) => {
-            const done = unit.lessons.filter((l) => l.done).length;
-            return (
-              <Card key={unit.id}>
-                <View style={styles.rowBetween}>
-                  <Text style={typography.h3}>{unit.title}</Text>
-                  <Text style={typography.label}>{done}/{unit.lessons.length} DONE</Text>
+          {resume && (
+            <Card style={styles.resume} onPress={() => navigation.navigate('Lesson', { id: resume.id })}>
+              <View style={styles.resumeRow}>
+                <View style={styles.resumeGlyph}><Icon name="play" size={20} color="#fff" /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.resumeLabel}>{totalDone > 0 ? 'CONTINUE LEARNING' : 'START LEARNING'}</Text>
+                  <Text style={styles.resumeTitle}>{resume.title}</Text>
+                  <Text style={styles.resumeMeta}>{totalDone}/{orderedLessonIds.length} lessons complete</Text>
                 </View>
-                {unit.lessons.map((lesson) => (
-                  <Pressable key={lesson.id} style={styles.lessonRow} onPress={() => navigation.navigate('Lesson', { id: lesson.id })}>
-                    <View style={[styles.dot, lesson.done && { backgroundColor: colors.success, borderColor: colors.success }]}>
-                      {lesson.done && <Text style={styles.check}>✓</Text>}
-                    </View>
-                    <Text style={[styles.lessonTitle, lesson.done && styles.lessonDone]}>{lesson.title}</Text>
-                    <Text style={styles.chev}>›</Text>
-                  </Pressable>
-                ))}
-              </Card>
+                <Icon name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
+              </View>
+            </Card>
+          )}
+          {!resume && (
+            <Card style={styles.resume}>
+              <View style={styles.resumeRow}>
+                <View style={styles.resumeGlyph}><Icon name="school" size={20} color="#fff" /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.resumeLabel}>CURRICULUM COMPLETE</Text>
+                  <Text style={styles.resumeTitle}>All {orderedLessonIds.length} lessons done</Text>
+                </View>
+              </View>
+            </Card>
+          )}
+
+          <Text style={styles.label}>CHOOSE YOUR LEVEL</Text>
+          <Group>
+            {classLevels.map((lvl, i) => (
+              <Row
+                key={lvl.id}
+                first={i === 0}
+                last={i === classLevels.length - 1}
+                title={lvl.level}
+                subtitle={lvl.blurb}
+                left={
+                  <View style={[styles.iconSquare, { backgroundColor: lvl.color }]}>
+                    <Icon name={LEVEL_ICON[lvl.id] ?? 'school'} size={18} color="#fff" />
+                  </View>
+                }
+                right={<Button label="Start" variant="outline" small />}
+              />
+            ))}
+          </Group>
+
+          <Text style={styles.label}>REFERENCE</Text>
+          <Group>
+            <Row
+              first
+              last
+              title="Opening Book"
+              subtitle="Named openings, lines and ideas (ECO)."
+              onPress={() => navigation.navigate('Openings')}
+              left={
+                <View style={[styles.iconSquare, { backgroundColor: colors.tint }]}>
+                  <Icon name="library" size={18} color="#fff" />
+                </View>
+              }
+              right={<Icon name="chevron-forward" size={18} color={colors.textFaint} />}
+            />
+          </Group>
+
+          <Text style={styles.label}>SELF-LEARN CURRICULUM</Text>
+          <Text style={styles.sub}>An end-to-end path from your first move to advanced endgames.</Text>
+          {curriculum.map((unit) => {
+            const done = unit.lessons.filter((l) => isDone(l.id)).length;
+            return (
+              <View key={unit.id}>
+                <View style={styles.unitHeader}>
+                  <Text style={styles.unitTitle}>{unit.title}</Text>
+                  <Text style={styles.unitCount}>{done}/{unit.lessons.length} DONE</Text>
+                </View>
+                <Group>
+                  {unit.lessons.map((lesson, i) => {
+                    const done2 = isDone(lesson.id);
+                    return (
+                      <Row
+                        key={lesson.id}
+                        first={i === 0}
+                        last={i === unit.lessons.length - 1}
+                        title={lesson.title}
+                        subtitle={done2 ? 'Completed' : `${lesson.minutes} min`}
+                        onPress={() => navigation.navigate('Lesson', { id: lesson.id })}
+                        left={
+                          <View style={[styles.dot, done2 && styles.dotDone]}>
+                            {done2 && <Icon name="checkmark" size={13} color={colors.onDark} />}
+                          </View>
+                        }
+                        right={<Icon name="chevron-forward" size={18} color={colors.textFaint} />}
+                      />
+                    );
+                  })}
+                </Group>
+              </View>
             );
           })}
         </View>
@@ -120,36 +208,40 @@ export function ClassScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  olympiad: { backgroundColor: colors.dark, borderColor: colors.dark },
-  olympiadTitle: { ...typography.h2, color: colors.onDark, marginTop: spacing.sm },
-  olympiadMeta: { ...typography.muted, color: '#B9B9C0' },
+  label: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  sub: { ...typography.muted, marginLeft: spacing.xs, marginTop: -4, marginBottom: spacing.sm },
+
+  resume: { backgroundColor: colors.tint, marginTop: spacing.xs },
+  resumeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  resumeGlyph: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  resumeLabel: { color: 'rgba(255,255,255,0.85)', fontWeight: '800', fontSize: 11, letterSpacing: 0.6 },
+  resumeTitle: { ...typography.h3, color: colors.onDark, marginTop: 1 },
+  resumeMeta: { color: 'rgba(255,255,255,0.8)', fontSize: 12.5, marginTop: 1 },
+
+  hero: { backgroundColor: colors.ink, marginTop: spacing.xs },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  heroTitle: { ...typography.h2, color: colors.onDark, marginTop: spacing.sm },
+  heroMeta: { ...typography.muted, color: '#B9B9C0', marginTop: 2 },
   playBadge: {
-    position: 'absolute', right: spacing.md, top: '50%',
-    width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gold,
+    width: 48, height: 48, borderRadius: 24, backgroundColor: colors.tint,
     alignItems: 'center', justifyContent: 'center',
   },
-  playGlyph: { color: colors.ink, fontSize: 16 },
-  langRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  langChip: { width: '47%', alignItems: 'center', paddingVertical: spacing.lg, marginBottom: 0 },
-  playBadgeSm: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
-  playGlyphSm: { fontSize: 13, color: colors.ink },
-  langText: { ...typography.h3 },
-  schedule: { width: 230, borderRadius: radius.lg, padding: spacing.md },
-  scheduleTitle: { ...typography.h2, color: colors.onDark, marginBottom: spacing.sm },
-  scheduleRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.25)' },
-  scheduleDay: { color: colors.onDark, fontSize: 13, fontWeight: '600' },
-  scheduleTime: { color: 'rgba(255,255,255,0.85)', fontSize: 12 },
-  level: { borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
-  levelTitle: { ...typography.h2, color: colors.onDark },
-  levelBlurb: { ...typography.muted, color: 'rgba(255,255,255,0.9)', marginVertical: spacing.xs },
-  startBtn: { alignSelf: 'flex-start', marginTop: spacing.sm },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
-  lessonRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
-  dot: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: colors.textFaint, alignItems: 'center', justifyContent: 'center' },
-  check: { color: colors.onDark, fontSize: 11, fontWeight: '900' },
-  lessonTitle: { ...typography.body, flex: 1 },
-  lessonDone: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  openingCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.md },
-  openingGlyph: { fontSize: 26 },
-  chev: { fontSize: 20, color: colors.textFaint },
+
+  iconSquare: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+
+  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger },
+  liveText: { color: colors.danger, fontWeight: '700', fontSize: 10, letterSpacing: 0.5 },
+
+  langHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  langLabel: { ...typography.label, color: colors.textMuted },
+  langDot: { width: 10, height: 10, borderRadius: 5 },
+  timeText: { ...typography.muted, fontSize: 13 },
+
+  unitHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: spacing.lg, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  unitTitle: { ...typography.h3, color: colors.ink },
+  unitCount: { ...typography.label, color: colors.textMuted },
+
+  dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: colors.textFaint, alignItems: 'center', justifyContent: 'center' },
+  dotDone: { backgroundColor: colors.success, borderColor: colors.success },
 });
