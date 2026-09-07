@@ -19,14 +19,11 @@ function gate(needLevel: number, xp: number): Unlock {
   };
 }
 
-export type EngineLevelId = 'easy' | 'medium' | 'hard';
+export type EngineLevelId = 'easy' | 'medium' | 'hard' | 'gm';
 
-/** Engine levels: Easy always open; Medium at L2; Hard at L4. */
-export function computerLevelUnlock(levelId: EngineLevelId, p: Progress): Unlock {
-  const xp = p.xp;
-  if (levelId === 'easy') return { unlocked: true, needLevel: 1, requirement: '' };
-  if (levelId === 'medium') return gate(2, xp);
-  return gate(4, xp);
+/** Every difficulty is open — players pick freely (Grandmaster included). */
+export function computerLevelUnlock(_levelId: EngineLevelId, _p: Progress): Unlock {
+  return { unlocked: true, needLevel: 1, requirement: '' };
 }
 
 /**

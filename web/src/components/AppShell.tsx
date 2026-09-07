@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useProgress, levelFromXp, xpIntoLevel } from '@/game/progress';
 import { IconHome, IconLearn, IconPuzzle, IconPlay, IconCrown, IconGlobe, IconTrophy, IconChart } from './icons';
 import { Wordmark } from './Wordmark';
+import { CoachCorner } from './CoachCorner';
 
 const NAV = [
   { to: '/app', label: 'Home', Icon: IconHome, end: true },
@@ -122,6 +123,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
+
+      {/* talking coach */}
+      <CoachCorner />
     </div>
   );
 }
