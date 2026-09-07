@@ -14,6 +14,7 @@ const NAV = [
   { to: '/app/leaderboard', label: 'Ranks', Icon: IconTrophy },
 ];
 const MORE = [
+  { to: '/app/ai', label: 'AI Coach', Icon: IconCrown },
   { to: '/app/masters', label: 'Masters', Icon: IconCrown },
   { to: '/app/tournaments', label: 'Tournaments', Icon: IconTrophy },
   { to: '/app/olympiad', label: 'Olympiad', Icon: IconGlobe },
