@@ -13,6 +13,7 @@ import {
   LobbyClient, GameClient, onlineAvailable,
   type LobbyPlayer, type GameStart, type Challenge, type GameOver,
 } from '@/lib/onlinePlay';
+import { sayCoach } from '@/game/coach';
 
 type Me = { userId: string; name: string; rating: number; ratedGames: number };
 
@@ -64,7 +65,7 @@ function OnlineInner({ me, onRating }: { me: Me; onRating: (r: number, g: number
   useEffect(() => {
     const lobby = new LobbyClient({ userId: me.userId, name: me.name, rating: me.rating }, {
       onPlayers: setPlayers,
-      onChallenge: (c) => setIncoming(c),
+      onChallenge: (c) => { setIncoming(c); sayCoach(`${c.fromName} wants to play you! Accept the challenge.`, 'happy'); },
       onDecline: () => setSentTo(null),
       onStart: (g) => { setIncoming(null); setSentTo(null); setStatus('playing'); setGameStart(g); },
     });
